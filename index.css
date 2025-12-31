@@ -1,0 +1,22 @@
+/* index.css */
+gmp-place-autocomplete {
+    width: 100%;
+  }
+  
+  /* These variables control the look of the new Google input */
+  gmp-place-autocomplete::part(input) {
+    border: none;
+    border-bottom: 2px solid #e2e8f0; /* slate-200 */
+    padding: 8px 0;
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 500;
+    background: transparent;
+    width: 100%;
+    border-radius: 0;
+    transition: border-color 0.2s;
+  }
+  
+  gmp-place-autocomplete::part(input):focus {
+    outline: none;
+    border-bottom-color: #6366f1; /* indigo-500 */
+  }

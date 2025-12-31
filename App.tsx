@@ -1,15 +1,33 @@
 import React, { useState, useCallback } from 'react';
 import { Search, Loader2, Plane, Sparkles, Utensils, Camera, Bed, Map, Briefcase } from 'lucide-react';
-import { searchPlacesWithGemini } from './services/geminiService';
+import { fetchGooglePlaces } from './services/googlePlacesService';
 import { Place, Category, SearchParams } from './types';
 import { PlaceCard } from './components/PlaceCard';
 import { ItineraryList } from './components/ItineraryList';
+import { AutocompleteInput } from './components/AutocompleteInput';
+import { setOptions } from '@googlemaps/js-api-loader';
 
 type View = 'explore' | 'trip';
 
+const mapPriceLevel = (level: string): string => {
+  const levels: Record<string, string> = {
+    'PRICE_LEVEL_FREE': '',
+    'PRICE_LEVEL_INEXPENSIVE': '$',
+    'PRICE_LEVEL_MODERATE': '$$',
+    'PRICE_LEVEL_EXPENSIVE': '$$$',
+    'PRICE_LEVEL_VERY_EXPENSIVE': '$$$$',
+  };
+  return levels[level] || '$$'; // Default to moderate
+};
+
+setOptions({
+  key: process.env.GOOGLE_MAPS_KEY,
+  libraries: ['places']
+});
+
 function App() {
   const [currentView, setCurrentView] = useState<View>('explore');
-  const [searchParams, setSearchParams] = useState<SearchParams>({
+  const [searchParams, setSearchParams] = useState<SearchParams & { lat?: number; lng?: number }>({
     destination: '',
     interests: '',
     budget: 'moderate',
@@ -27,40 +45,59 @@ function App() {
     return `https://picsum.photos/seed/${seedNum}/400/300`;
   };
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!searchParams.destination) return;
+const handleSearch = async (e?: React.FormEvent) => {
+  console.log("Search button clicked!"); // Add this!
+  if (e) e.preventDefault();
+  if (!searchParams.destination) {
+    console.error("No destination selected");
+    return;
+  }
 
-    // Dismiss keyboard on mobile
-    (document.activeElement as HTMLElement)?.blur();
+  console.log("1. Search Triggered for:", searchParams.destination);
+  setIsLoading(true);
+  setError(null);
+  setHasSearched(true);
 
-    setIsLoading(true);
-    setError(null);
-    setHasSearched(true);
-    setResults([]); 
+  try {
+    const query = searchParams.interests 
+      ? `${searchParams.destination} ${searchParams.interests}`
+      : searchParams.destination;
 
-    try {
-      const rawPlaces = await searchPlacesWithGemini(
-        searchParams.destination,
-        activeTab,
-        searchParams.interests,
-        searchParams.budget
-      );
+    console.log("2. Fetching from Google with query:", query);
 
-      const processedPlaces: Place[] = rawPlaces.map((p) => ({
-        ...p,
-        id: crypto.randomUUID(),
-        imageUrl: getPlaceholderImage(p.name, activeTab)
-      }));
+    const googlePlaces = await fetchGooglePlaces(
+      query,
+      activeTab,
+      searchParams.lat,
+      searchParams.lng
+    );
 
-      setResults(processedPlaces);
-    } catch (err) {
-      setError("Failed to fetch recommendations. Please check your API key.");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+    console.log("3. Raw Results from Google:", googlePlaces);
+
+    if (!googlePlaces || googlePlaces.length === 0) {
+      setError("No places found. Try a different interest or city.");
+      return;
     }
-  };
+
+    const processedPlaces: Place[] = googlePlaces.map((p: any) => ({
+      id: p.id,
+      name: p.displayName?.text || 'Unknown Place',
+      description: p.formattedAddress || '',
+      rating: p.rating || 0,
+      priceLevel: mapPriceLevel(p.priceLevel),
+      imageUrl: p.photos && p.photos.length > 0 
+        ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?key=${process.env.GOOGLE_MAPS_KEY}&maxWidthPx=400`
+        : getPlaceholderImage(p.displayName?.text || 'place', activeTab)
+    }));
+
+    setResults(processedPlaces);
+  } catch (err) {
+    console.error("Search Error:", err);
+    setError("Failed to fetch recommendations. Check console for details.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleTabChange = useCallback((category: Category) => {
     setActiveTab(category);
@@ -108,14 +145,22 @@ function App() {
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
                 <form onSubmit={handleSearch} className="space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Destination</label>
-                    <input
-                      type="text"
-                      placeholder="City, Country"
-                      className="w-full mt-1 border-b-2 border-slate-200 py-2 text-lg font-medium text-slate-900 placeholder:text-slate-300 focus:border-indigo-500 focus:outline-none bg-transparent transition-colors"
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Destination
+                    </label>
+                    
+                    <AutocompleteInput 
                       value={searchParams.destination}
-                      onChange={(e) => setSearchParams(prev => ({ ...prev, destination: e.target.value }))}
-                      required
+                      placeholder="City, Country"
+                      onPlaceSelect={(address, lat, lng) => {
+                        // This updates the state with coordinates provided by Google
+                        setSearchParams(prev => ({
+                          ...prev,
+                          destination: address,
+                          lat: lat,
+                          lng: lng
+                        }));
+                      }}
                     />
                   </div>
                   

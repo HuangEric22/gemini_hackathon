@@ -21,4 +21,6 @@ export interface SearchParams {
   destination: string;
   interests: string;
   budget: string;
+  lat?: number;
+  lng?: number;
 }
