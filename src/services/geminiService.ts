@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { Place, Category } from "../types";
+import { Place, Category } from "../types/types";
 
 // Initialize Gemini Client
 // IMPORTANT: process.env.API_KEY is automatically injected.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Place, Category } from '../types';
+import { Place, Category } from '@/types/index';
 import { Trash2, Utensils, Bed, Camera, Map } from 'lucide-react';
 
 interface ItineraryListProps {

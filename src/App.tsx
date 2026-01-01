@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { Search, Loader2, Plane, Sparkles, Utensils, Camera, Bed, Map, Briefcase } from 'lucide-react';
-import { fetchGooglePlaces } from './services/googlePlacesService';
-import { Place, Category, SearchParams } from './types';
-import { PlaceCard } from './components/PlaceCard';
-import { ItineraryList } from './components/ItineraryList';
-import { AutocompleteInput } from './components/AutocompleteInput';
+import { fetchGooglePlaces } from '@/services/googlePlacesService';
+import { Place, Category, SearchParams } from '@/types/index';
+import { PlaceCard } from '@/components/common/PlaceCard';
+import { ItineraryList } from '@/components/layout/ItineraryList';
+import { AutocompleteInput } from '@/components/maps/AutocompleteInput';
 import { setOptions } from '@googlemaps/js-api-loader';
 
 type View = 'explore' | 'trip';
