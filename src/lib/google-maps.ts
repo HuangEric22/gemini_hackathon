@@ -1,7 +1,6 @@
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
-
 setOptions({
-    key: process.env.GOOGLE_MAPS_KEY,
+    key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
     v: "weekly",
     libraries: ["places"],
     language: "en"
