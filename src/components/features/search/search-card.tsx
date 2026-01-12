@@ -11,16 +11,18 @@ interface Props {
 
 export function SearchCard({ onSearch, isLoading = false }: Props) {
   const [destination, setDestination] = useState('');
-
+  const [showDropDown, setDropDown] = useState(false);
   const { suggestions, fetchSuggestions, refreshSession } = usePlacesAutocomplete(destination, 'locality');
 
   const handleInputChange = (value: string) => {
     setDestination(value);
+    setDropDown(true);
     fetchSuggestions(value);
   };
 
   const handleSelect = (text: string) => {
     setDestination(text);
+    setDropDown(false);
     refreshSession();
   };
 
@@ -57,7 +59,7 @@ export function SearchCard({ onSearch, isLoading = false }: Props) {
           </div>
         </div>
         {/* SearchCard.tsx inside the relative group div */}
-        {suggestions.length > 0 && destination.length > 1 && (
+        {suggestions.length > 0 && destination.length > 1 && showDropDown && (
           <ul className="absolute z-50 w-full bg-white border border-slate-200 rounded-xl shadow-2xl mt-1 overflow-hidden">
             {suggestions.map((s, i) => (
               <li 

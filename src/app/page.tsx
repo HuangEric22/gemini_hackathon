@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { SearchCard } from '@/components/features/search/search-card';
 
 export default function Home() {
-  
+
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = async (destination: string) => {
