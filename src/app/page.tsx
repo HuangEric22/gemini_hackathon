@@ -30,7 +30,7 @@ export default function Home() {
     <div className="flex h-screen w-full overflow-hidden">
       
       {/* Column 1 */}
-      <Sidebar />
+      {/* <Sidebar /> */}
 
       {/* Column 2 */}
       <DiscoveryFeed onSearch={handleSearch} isSearching={isSearching} cityName='Los Angeles'/>
