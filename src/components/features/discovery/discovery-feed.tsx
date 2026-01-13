@@ -9,8 +9,8 @@ interface DiscoveryProps {
 
 export function DiscoveryFeed({ cityName, onSearch, isSearching } : DiscoveryProps) {
   return (
-    <main className="flex-1 overflow-y-auto h-screen p-10 bg-white">
-      <div className="max-w-2xl mx-auto space-y-10">
+    <main className="flex-1 w-full overflow-y-auto h-screen p-10 bg-white">
+      <div className="w-fill mx-auto space-y-10">
         
         {/* Header Section */}
         <header className="space-y-4">
@@ -37,7 +37,7 @@ function Section({ title }: { title: string }) {
       </div>
       {/* Horizontal Scroll Area */}
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
           <div key={i} className="min-w-[200px] h-56 bg-zinc-100 rounded-3xl shrink-0" />
         ))}
       </div>

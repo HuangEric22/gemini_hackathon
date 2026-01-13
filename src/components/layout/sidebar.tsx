@@ -2,7 +2,7 @@ import { Plus, LayoutGrid, Heart } from 'lucide-react';
 
 export function Sidebar() {
   return (
-    <aside className="w-64 border-r border-zinc-100 flex flex-col p-6 space-y-8 h-screen bg-white">
+    <aside className="w-full border-r border-zinc-100 flex flex-col p-6 space-y-8 h-screen bg-white">
       <div className="text-xl font-black italic tracking-tighter">GEMINIGO</div>
       
       <nav className="flex-1 space-y-4">
