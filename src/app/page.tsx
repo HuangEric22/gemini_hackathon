@@ -31,8 +31,6 @@ export default function Home() {
     <div className="flex h-screen w-full overflow-hidden">
       <Group orientation='horizontal' className='w-full'>
 
-      <Panel><Sidebar/></Panel>
-      <ResizeSeparator/>
       <Panel><DiscoveryFeed onSearch={handleSearch} isSearching={isSearching} cityName='Los Angeles'/></Panel>
       <ResizeSeparator/>
       <Panel><MapArea/></Panel>
