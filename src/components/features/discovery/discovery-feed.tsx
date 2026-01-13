@@ -9,7 +9,7 @@ interface DiscoveryProps {
 
 export function DiscoveryFeed({ cityName, onSearch, isSearching } : DiscoveryProps) {
   return (
-    <main className="flex-1 overflow-y-auto h-screen p-10 bg-white">
+    <main className="flex-1 w-full overflow-y-auto h-screen p-10 bg-white">
       <div className="max-w-2xl mx-auto space-y-10">
         
         {/* Header Section */}

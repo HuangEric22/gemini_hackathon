@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react';
-import { SearchCard } from '@/components/features/search/search-card';
+import { Panel, Group, Separator} from 'react-resizable-panels';
 import { Sidebar } from '@/components/layout/sidebar';
 import { DiscoveryFeed } from '@/components/features/discovery/discovery-feed';
 import { MapArea } from '@/components/features/map/map';
+import { ResizeSeparator } from '@/components/layout/resizeable-separator';
 
 export default function Home() {
 
@@ -28,16 +29,15 @@ export default function Home() {
     //   </main>
     // </div>
     <div className="flex h-screen w-full overflow-hidden">
-      
-      {/* Column 1 */}
-      <Sidebar />
+      <Group orientation='horizontal' className='w-full'>
 
-      {/* Column 2 */}
-      <DiscoveryFeed onSearch={handleSearch} isSearching={isSearching} cityName='Los Angeles'/>
+      <Panel><Sidebar/></Panel>
+      <ResizeSeparator/>
+      <Panel><DiscoveryFeed onSearch={handleSearch} isSearching={isSearching} cityName='Los Angeles'/></Panel>
+      <ResizeSeparator/>
+      <Panel><MapArea/></Panel>
 
-      {/* Column 3 */}
-      <MapArea />
-
+    </Group>
     </div>
   );
 }
