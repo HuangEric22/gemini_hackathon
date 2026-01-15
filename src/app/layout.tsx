@@ -3,9 +3,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/sidebar";
-import { useState } from 'react'
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -26,20 +23,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [newTripOpen, setNewTripOpen] = useState(false)
 
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex h-screen w-full overflow-hidden">
-          <Sidebar 
-            open={sidebarOpen} 
-            toggle={() => setSidebarOpen(o => !o)}
-            onNewTrip={() => setNewTripOpen(true)}
-          />
+        <div>
           {children}
         </div>
       </body>
