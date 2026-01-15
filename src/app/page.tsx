@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Panel, Group, Separator} from 'react-resizable-panels';
-import { Sidebar } from '@/components/layout/sidebar';
 import { DiscoveryFeed } from '@/components/features/discovery/discovery-feed';
 import { MapArea } from '@/components/features/map/map';
 import { ResizeSeparator } from '@/components/layout/resizeable-separator';
@@ -26,8 +25,6 @@ export default function Home() {
     <div className="flex h-screen w-full overflow-hidden">
       <Group orientation='horizontal' className='w-full'>
 
-      <Panel minSize="10%" maxSize="20%" defaultSize="10%"><Sidebar/></Panel>
-      <ResizeSeparator/>
       <Panel minSize="30%" defaultSize="60%"><DiscoveryFeed onSearch={handleSearch} isSearching={isSearching} cityName='Los Angeles'/></Panel>
       <ResizeSeparator/>
       <Panel minSize="20%" ><MapArea/></Panel>
