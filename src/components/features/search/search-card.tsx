@@ -85,7 +85,7 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant='sta
                 onClick={() => handleSelect(s.placePrediction.text.toString())}
                 className="px-4 py-3 hover:bg-indigo-50 cursor-pointer text-sm text-slate-700 flex items-center gap-2 border-b border-slate-50 last:border-none"
               >
-                <MapPin className="h-4 w-4 text-indigo-400" />
+                <MapPin className="h-4 w-3 text-indigo-400" />
                 {s.placePrediction.text.toString()}
               </li>
             ))}
