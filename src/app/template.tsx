@@ -29,7 +29,7 @@ const template = ({ children }: {children:React.ReactNode}) => {
         onNewTrip={() => setNewTripOpen(true)}
         />
 
-        <main>
+        <main className="w-full">
             {children}
         </main>
 
