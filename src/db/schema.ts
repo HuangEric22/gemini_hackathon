@@ -1,4 +1,4 @@
-import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { int, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 // User Table
 export const usersTable = sqliteTable("users_table", {
@@ -19,7 +19,9 @@ export const trips = sqliteTable("trips", {
   budget: int("budget"), // 1, 2, 3, or 4
   commute: text("commute"), // "roadtrip" or "public"
   interests: text("interests"),
-});
+}, (t)=>({
+  unique_trip_constraint: unique().on(t.tripName, t.destination)
+}));
 
 // Itinerary Items Table (The cards inside a trip)
 export const itineraryItems = sqliteTable("itinerary_items", {
