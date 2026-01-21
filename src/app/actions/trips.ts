@@ -14,21 +14,57 @@ export async function createTripAction(formData: {
   budget?: number;
   commute?: string;
 }) {
+
+  console.log("--- 1. Action Started ---", formData.tripName);
+
+  let newTripId: number | undefined;
+  
   // Insert into Database
-  const [newTrip] = await db.insert(trips).values({
-    tripName: formData.tripName,
-    destination: formData.destination,
-    startDate: formData.startDate,
-    endDate: formData.endDate,
-    interests: formData.interests,
-    budget: formData.budget,
-    commute: formData.commute,
-    status: 'upcoming', // Default for new trips
-  }).returning();
+  try {
+    console.log("--- 2. Attempting DB Insert ---");
 
-  // Refresh the "My Trips" page data
-  revalidatePath('/mytrip');
+    const [newTrip] = await db.insert(trips).values({
+      tripName: formData.tripName,
+      destination: formData.destination,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      interests: formData.interests,
+      budget: formData.budget,
+      commute: formData.commute,
+      status: 'upcoming', // Default for new trips
+    }).returning();
 
-  // Send the user to their new itinerary
-  redirect(`/mytrip/${newTrip.id}`);
+    console.log("--- 3. DB Insert Successful, ID:", newTrip?.id);
+    revalidatePath('/mytrip');
+
+    return { success: true, id: newTrip.id }; 
+
+  } catch(error: any){
+    
+    console.error("--- 4. Caught Error ---");
+    console.log("Message:", error.message);
+
+    const errorMessage = error.message || "";
+    const causeMessage = error.cause?.message || "";
+    const isDuplicate = errorMessage.includes("UNIQUE") || causeMessage.includes("UNIQUE");
+
+
+    if (isDuplicate) {
+      return {success: false,
+        error: "A trip with this name and destination already exists."
+      };
+    }
+
+    return {success: false, 
+      error: "An error occurs while creating your trip."
+    };
+  }
+
+  // if (newTripId) {
+  //   // Refresh the "My Trips" page data
+  //   revalidatePath('/mytrip');
+
+  //   // Send the user to their new itinerary
+  //   redirect(`/mytrip/${newTripId}`);
+  // }
 }

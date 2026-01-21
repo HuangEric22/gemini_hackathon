@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { SearchCard } from '@/components/features/search/search-card';
 import { createTripAction } from '@/app/actions/trips';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation'; // 1. Import Router
 
 const template = ({ children }: {children:React.ReactNode}) => {
 
@@ -23,6 +24,8 @@ const template = ({ children }: {children:React.ReactNode}) => {
   const [timing, setTiming] = useState<'flexible' | 'dates'>('flexible');
   const [budget, setBudget] = useState<number>(2); // Default to $$
 
+  const router = useRouter();
+
   const handleCreateSubmit = async () => {
     if (!formData.tripName || !formData.destination) {
       alert("Please fill in Name and Destination");
@@ -32,13 +35,30 @@ const template = ({ children }: {children:React.ReactNode}) => {
     setIsSubmitting(true);
     try {
       // Call the Server Action
-      await createTripAction({
+      const result = await createTripAction({
         ...formData,
         budget: budget
       });
+
+      if (result?.error) {
+        console.error("Server returned an error:", result.error);
+        alert(result.error);
+
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (result?.id) {
+        setIsSubmitting(false); 
+        setTimeout(() => {
+            setNewTripOpen(false);
+            router.push(`/mytrip/${result.id}`); 
+        }, 400);
+      }
+
       // The action handles the redirect, so we don't need to close the modal manually
     } catch (error) {
-      console.error("Failed to create trip:", error);
+      console.error("Network or Server Crash", error);
       setIsSubmitting(false);
     }
   };
