@@ -4,6 +4,9 @@ import React from 'react'
 import { Sidebar } from "@/components/layout/sidebar";
 import { useState } from 'react'
 import { SearchCard } from '@/components/features/search/search-card';
+import { createTripAction } from '@/app/actions/trips';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation'; // 1. Import Router
 
 const template = ({ children }: {children:React.ReactNode}) => {
 
@@ -17,9 +20,46 @@ const template = ({ children }: {children:React.ReactNode}) => {
     interests: '',
     commute: ''
   });
-  const [isSearching, setIsSearching] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [timing, setTiming] = useState<'flexible' | 'dates'>('flexible');
   const [budget, setBudget] = useState<number>(2); // Default to $$
+
+  const router = useRouter();
+
+  const handleCreateSubmit = async () => {
+    if (!formData.tripName || !formData.destination) {
+      alert("Please fill in Name and Destination");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Call the Server Action
+      const result = await createTripAction({
+        ...formData,
+        budget: budget
+      });
+
+      if (result?.error) {
+        console.error("Server returned an error:", result.error);
+        alert(result.error);
+
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (result?.id) {
+        setNewTripOpen(false);
+        setIsSubmitting(false); 
+        router.push(`/mytrip/${result.id}`); 
+      }
+
+      // The action handles the redirect, so we don't need to close the modal manually
+    } catch (error) {
+      console.error("Network or Server Crash", error);
+      setIsSubmitting(false);
+    }
+  };
   
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -146,6 +186,20 @@ const template = ({ children }: {children:React.ReactNode}) => {
                                 <option value="public">Public Transit</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div className="mt-8">
+                        <button 
+                            onClick={handleCreateSubmit}
+                            disabled={isSubmitting}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center"
+                        >
+                            {isSubmitting ? (
+                                <Loader2 className="w-6 h-6 animate-spin" />
+                            ) : (
+                                "Create Itinerary"
+                            )}
+                        </button>
                     </div>
                 </div>
                 
