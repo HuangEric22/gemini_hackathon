@@ -49,11 +49,9 @@ const template = ({ children }: {children:React.ReactNode}) => {
       }
       
       if (result?.id) {
+        setNewTripOpen(false);
         setIsSubmitting(false); 
-        setTimeout(() => {
-            setNewTripOpen(false);
-            router.push(`/mytrip/${result.id}`); 
-        }, 400);
+        router.push(`/mytrip/${result.id}`); 
       }
 
       // The action handles the redirect, so we don't need to close the modal manually
