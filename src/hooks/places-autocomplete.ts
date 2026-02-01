@@ -35,7 +35,7 @@ export function usePlacesAutocomplete(query: string, type: string) {
             // Use aliasing 'suggestions: data' to avoid naming conflicts with state
             const { suggestions: data } = 
                 await placesLib.current.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
-            
+
             setSuggestions(data);
         } catch (error) {
             console.error("Autocomplete Error:", error);
@@ -50,6 +50,6 @@ export function usePlacesAutocomplete(query: string, type: string) {
         }
     };
 
-    return { suggestions, fetchSuggestions, refreshSession };
+    return { suggestions, loading, fetchSuggestions, refreshSession };
     
 }

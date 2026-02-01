@@ -1,14 +1,22 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+const mockAutocompleteSuggestion = {
+  fetchAutocompleteSuggestions: vi.fn()
+};
+
+const mockAutocompleteSessionToken = vi.fn();
+
 global.google = {
   maps: {
-    importLibrary: vi.fn().mockResolvedValue({
-      AutocompleteSessionToken: vi.fn(),
-      AutocompleteSuggestion: {
-        fetchAutocompleteSuggestions: vi.fn().mockResolvedValue({ suggestions: [] }),
-      },
-    }),
+importLibrary: vi.fn().mockImplementation(async (lib) => {
+  if (lib === 'places') {
+    return {
+      AutocompleteSuggestion: mockAutocompleteSuggestion,
+      AutocompleteSessionToken: mockAutocompleteSessionToken,
+    };
+  }
+}),
   },
 } as any;
 

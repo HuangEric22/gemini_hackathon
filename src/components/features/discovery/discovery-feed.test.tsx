@@ -2,8 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { DiscoveryFeed } from './discovery-feed';
 
-// 1. Mock the child component to isolate the test
-// This ensures we aren't testing Google Maps logic inside the Feed test
 vi.mock('../search/search-card', () => ({
   SearchCard: ({ onSearch, isLoading }: any) => (
     <div data-testid="mock-search-card">
@@ -37,11 +35,9 @@ describe('DiscoveryFeed', () => {
   it('renders the correct number of placeholder items in each section', () => {
     render(<DiscoveryFeed {...defaultProps} />);
     
-    // Find the "Things to do" section specifically
     const section = screen.getByText('Things to do').closest('section');
     
-    // Check that it contains 10 placeholder divs (as defined in your code)
-    // We use querySelectorAll here because the divs have no text/role
+    // checks that we have the default 10 suggestions for each category
     const placeholders = section?.querySelectorAll('.min-w-\\[200px\\]');
     expect(placeholders).toHaveLength(10);
   });

@@ -14,7 +14,7 @@ interface Props {
 export function SearchCard({ onSearch, onChange, isLoading = false, variant='standalone'}: Props) {
   const [destination, setDestination] = useState('');
   const [showDropDown, setDropDown] = useState(false);
-  const { suggestions, fetchSuggestions, refreshSession } = usePlacesAutocomplete(destination, 'locality');
+  const { suggestions, loading : isFetchingSuggestions , fetchSuggestions, refreshSession } = usePlacesAutocomplete(destination, 'locality');
 
   const isStandalone = variant === 'standalone';
 
@@ -73,7 +73,11 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant='sta
                   ? "pl-10 pr-3 py-3" 
                   : "px-4 py-2"
                 }`}></input>
-              
+            {isFetchingSuggestions && (
+              <div className="absolute inset-y-0 right-3 flex items-center">
+                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+              </div>
+            )}              
           </div>
         </div>
         {/* SearchCard.tsx inside the relative group div */}
