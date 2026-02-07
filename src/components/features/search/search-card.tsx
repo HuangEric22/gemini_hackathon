@@ -3,15 +3,17 @@
 import { useState } from 'react';
 import { Search, MapPin, Loader2 } from 'lucide-react';
 import { usePlacesAutocomplete } from '@/hooks/places-autocomplete';
+import { placeholder } from 'drizzle-orm';
 
 interface Props {
   onSearch?: (destination: string) => void;
   onChange?: (value: string) => void;
   isLoading?: boolean;
   variant?: 'standalone'|'inline';
+  placeholder?: string;
 }
 
-export function SearchCard({ onSearch, onChange, isLoading = false, variant='standalone'}: Props) {
+export function SearchCard({ onSearch, onChange, isLoading = false, variant='standalone', placeholder}: Props) {
   const [destination, setDestination] = useState('');
   const [showDropDown, setDropDown] = useState(false);
   const { suggestions, loading : isFetchingSuggestions , fetchSuggestions, refreshSession } = usePlacesAutocomplete(destination, 'locality');
@@ -67,7 +69,7 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant='sta
               type="text"
               value={destination}
               onChange={(e) => handleInputChange(e.target.value)}
-              placeholder="e.g. Kyoto, Japan"
+              placeholder= {placeholder || "e.g. Kyoto, Japan"}
               className={`"block w-full border-b-2 border-slate-200 bg-transparent text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none transition-colors text-lg" ${
                 isStandalone 
                   ? "pl-10 pr-3 py-3" 

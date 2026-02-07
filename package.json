@@ -23,6 +23,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-resizable-panels": "^4.4.0",
+    "react-router-dom": "^7.13.0",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.9"
   },
@@ -39,8 +40,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "happy-dom": "^20.4.0",
-    "tsx": "^4.21.0",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.0.18"
   }

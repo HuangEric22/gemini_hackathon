@@ -4,7 +4,7 @@ import React from 'react'
 import { Sidebar } from "@/components/layout/sidebar";
 import { useState } from 'react'
 import { SearchCard } from '@/components/features/search/search-card';
-import { createTripAction } from '@/app/actions/trips';
+import { createTripAction } from '@/app/actions/crud-trip';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation'; // 1. Import Router
 
