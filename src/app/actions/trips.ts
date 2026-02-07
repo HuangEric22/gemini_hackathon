@@ -18,7 +18,7 @@ export async function createTripAction(formData: {
   console.log("--- 1. Action Started ---", formData.tripName);
 
   let newTripId: number | undefined;
-  
+
   // Insert into Database
   try {
     console.log("--- 2. Attempting DB Insert ---");
@@ -37,10 +37,10 @@ export async function createTripAction(formData: {
     console.log("--- 3. DB Insert Successful, ID:", newTrip?.id);
     revalidatePath('/mytrip');
 
-    return { success: true, id: newTrip.id }; 
+    return { success: true, id: newTrip.id };
 
-  } catch(error: any){
-    
+  } catch (error: any) {
+
     console.error("--- 4. Caught Error ---");
     console.log("Message:", error.message);
 
@@ -50,12 +50,14 @@ export async function createTripAction(formData: {
 
 
     if (isDuplicate) {
-      return {success: false,
+      return {
+        success: false,
         error: "A trip with this name and destination already exists."
       };
     }
 
-    return {success: false, 
+    return {
+      success: false,
       error: "An error occurs while creating your trip."
     };
   }

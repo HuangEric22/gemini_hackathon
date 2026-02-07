@@ -1,23 +1,23 @@
 'use client'
 
 import { useState } from 'react';
-import { Panel, Group, Separator} from 'react-resizable-panels';
+import { Panel, Group, Separator } from 'react-resizable-panels';
 import { DiscoveryFeed } from '@/components/features/discovery/discovery-feed';
 import { MapArea } from '@/components/features/map/map';
 import { ResizeSeparator } from '@/components/layout/resizeable-separator';
+import { Place } from '@/shared'
 
 export default function Home() {
 
   const [isSearching, setIsSearching] = useState(false);
+  const [cityName, setCityName] = useState("Los Angeles");
 
-  const handleSearch = async (destination: string) => {
+  const [destination, setDestination] = useState<Place | null>(null);
+
+  const handleSearch = async (destination: Place) => {
     setIsSearching(true);
-    
-    // Simulate an API call delay so you can see the loading state
-    console.log("User searched for:", destination);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    alert(`Searching for ${destination}... (API would run here)`);
+    setCityName(destination.name);
+    setDestination(destination);
     setIsSearching(false);
   };
 
@@ -25,11 +25,11 @@ export default function Home() {
     <div className="flex h-screen w-full overflow-hidden">
       <Group orientation='horizontal' className='w-full'>
 
-      <Panel minSize="30%" defaultSize="60%"><DiscoveryFeed onSearch={handleSearch} isSearching={isSearching} cityName='Los Angeles'/></Panel>
-      <ResizeSeparator/>
-      <Panel minSize="20%" ><MapArea/></Panel>
+        <Panel minSize="30%" defaultSize="60%"><DiscoveryFeed onSearch={handleSearch} isSearching={isSearching} cityName={cityName} location={destination} /></Panel>
+        <ResizeSeparator />
+        <Panel minSize="20%" ><MapArea /></Panel>
 
-    </Group>
+      </Group>
     </div>
   );
 }
