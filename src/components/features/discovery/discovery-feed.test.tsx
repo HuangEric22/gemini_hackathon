@@ -26,7 +26,7 @@ describe('DiscoveryFeed', () => {
 
   it('renders all three blueprint sections', () => {
     render(<DiscoveryFeed {...defaultProps} />);
-    
+
     expect(screen.getByText('Things to do')).toBeInTheDocument();
     expect(screen.getByText('Restaurants')).toBeInTheDocument();
     expect(screen.getByText('Events')).toBeInTheDocument();
@@ -34,9 +34,9 @@ describe('DiscoveryFeed', () => {
 
   it('renders the correct number of placeholder items in each section', () => {
     render(<DiscoveryFeed {...defaultProps} />);
-    
+
     const section = screen.getByText('Things to do').closest('section');
-    
+
     // checks that we have the default 10 suggestions for each category
     const placeholders = section?.querySelectorAll('.min-w-\\[200px\\]');
     expect(placeholders).toHaveLength(10);
@@ -45,11 +45,11 @@ describe('DiscoveryFeed', () => {
   it('passes the search callback to the SearchCard', async () => {
     const onSearchSpy = vi.fn();
     render(<DiscoveryFeed {...defaultProps} onSearch={onSearchSpy} />);
-    
+
     // Interact with the mocked SearchCard
     const mockSearchButton = screen.getByText('Mock Search');
     mockSearchButton.click();
-    
+
     expect(onSearchSpy).toHaveBeenCalledWith('New York');
   });
 
