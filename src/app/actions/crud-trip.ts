@@ -4,7 +4,9 @@ import { db } from "@/db";
 import { trips } from "@/db/schema";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { eq} from "drizzle-orm";
 
+// create
 export async function createTripAction(formData: {
   tripName: string;
   destination: string;
@@ -61,12 +63,15 @@ export async function createTripAction(formData: {
       error: "An error occurs while creating your trip."
     };
   }
+}
 
-  // if (newTripId) {
-  //   // Refresh the "My Trips" page data
-  //   revalidatePath('/mytrip');
-
-  //   // Send the user to their new itinerary
-  //   redirect(`/mytrip/${newTripId}`);
-  // }
+// read
+export async function getTripById(tripId: number) {
+  try {
+    const result = await db.select().from(trips).where(eq(trips.id, tripId));
+    return result[0] || null;
+  } catch (error) {
+    console.error("Database error:", error);
+    throw new Error("Failed to fetch trip");
+  }
 }

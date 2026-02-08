@@ -1,33 +1,69 @@
+'use client'
+
+import { useState, useEffect, useCallback, use } from 'react';
 import { db } from "@/db";
-import { trips } from "@/db/schema";
+import { type Trip, trips} from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { Panel, Group, Separator} from 'react-resizable-panels';
+import { MyTripFeed } from '@/components/features/mytrip/mytrip-feed'
+import { ResizeSeparator } from '@/components/layout/resizeable-separator';
+import { MapArea } from '@/components/features/map/map';
+import { getTripById } from '@/app/actions/crud-trip'
 
-// Next.js passes 'params' to dynamic pages
-export default async function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hoveredActivityId, setHoveredActivityId] = useState<string | null>(null);
+  const [wantToGoList, setWantToGoList] = useState<string[]>([]);
 
-  // 1. Fetch this specific trip from the database
-  const trip = await db.query.trips.findFirst({
-    where: eq(trips.id, Number(id)),
-  });
+  const handleAddToWantToGo = (activityId: string) => {
+    setWantToGoList(prev => [...prev, activityId]);
+  };
 
-  // 2. If the trip doesn't exist, show the 404 page
-  if (!trip) {
-    notFound();
+  // Define function to query trip info
+  const loadTripData = useCallback(async () => {
+  if (!id) return;
+  
+  setIsLoading(true);
+  try {
+    const result = await getTripById(Number(id));
+    if (result) setTrip(result);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setIsLoading(false);
   }
+}, [id]); // change the fn if 'id' changes
+  
+  // Trigger trip info querying fn
+  useEffect(() => {
+    loadTripData();
+  }, [loadTripData]); // runs on mount, and when fn changes
 
   return (
-    <div className="p-10 bg-white h-full w-full">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold">{trip.tripName}</h1>
-        <p className="text-gray-500">{trip.destination}, From {trip.startDate} To {trip.endDate}</p>
-      </header>
+    <div className="flex h-screen w-full bg-slate-50 overflow-hidden">
+      <Group orientation="horizontal" className="w-full">
+        {/* Left Panel: Discovery Feed */}
+        <Panel defaultSize={60} minSize={30}>
+          {trip ? (
+          <MyTripFeed 
+            trip={trip} 
+            onHover={setHoveredActivityId}
+            onAdd={handleAddToWantToGo}
+            wantToGoCount={wantToGoList.length}
+          />
+          ) : (<div>Loading feed...</div>)}
+        </Panel>
 
-      {/* Itinerary */}
-      <div className="border-2 border-dashed border-gray-200 rounded-3xl p-20 text-center text-gray-400">
-        Itinerary for {trip.tripName} goes here...
-      </div>
+        {/* Resize Handle */}
+        <ResizeSeparator/>
+
+        {/* Right Panel: Map */}
+        <Panel defaultSize={40} minSize={20}>
+          <MapArea/>
+        </Panel>
+      </Group>
     </div>
   );
 }
