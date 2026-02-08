@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { LoadPlacesLibrary } from "@/lib/google-maps";
 import { calculateRadiusFromViewport } from '@/utils/calculate_radius';
 
-export function usePlacesNearbySearch() {
+export function usePlacesSearch() {
     const [results, setResults] = useState<google.maps.places.Place[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -14,6 +14,14 @@ export function usePlacesNearbySearch() {
         });
     }, [])
 
+    const getSearchArea = (location: { lat: number, lng: number }, viewport?: google.maps.LatLngBounds | null) => {
+        const radius = viewport ? calculateRadiusFromViewport(viewport) : 500.0;
+        return {
+            center: location,
+            radius: radius
+            }            
+    };
+
     const searchNearby = useCallback(async (
         location: { lat: number, lng: number },
         categories: string[],
@@ -23,18 +31,14 @@ export function usePlacesNearbySearch() {
         if (!placesLib.current) return;
 
         setIsLoading(true)
-        const radius = viewport ? calculateRadiusFromViewport(viewport) : 500.0;
 
         try {
             const { Place, SearchNearbyRankPreference } = placesLib.current;
 
             const request: google.maps.places.SearchNearbyRequest = {
-                locationRestriction: {
-                    center: location,
-                    radius: radius
-                },
+                locationRestriction: getSearchArea(location, viewport),
                 includedTypes: categories,
-                maxResultCount: 12,
+                maxResultCount: numResults,
                 rankPreference: SearchNearbyRankPreference.POPULARITY,
                 fields: [
                     'id',
@@ -56,5 +60,36 @@ export function usePlacesNearbySearch() {
             setIsLoading(false);
         }
     }, []);
-    return { results, isLoading, searchNearby };
+
+    const searchByText = useCallback(async (
+        query: string,
+        categories: string[],
+        location: { lat: number, lng: number },
+        numQueries: number,
+        viewport?: google.maps.LatLngBounds | null
+    ) => {
+        if (!placesLib.current || !query) return;
+        setIsLoading(true);
+
+        try {
+            const { Place, SearchByTextRankPreference } = placesLib.current;
+            const request: google.maps.places.SearchByTextRequest = {
+                textQuery: query,
+                locationBias: getSearchArea(location, viewport),
+                maxResultCount: numQueries,
+                rankPreference: SearchByTextRankPreference.RELEVANCE,
+                fields: categories
+            };
+
+            const { places } = await Place.searchByText(request);
+            setResults(places || []);
+        } catch (error) {
+            console.error("Text Search Error:", error);
+            setResults([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);    
+
+    return { results, isLoading, searchNearby, searchByText};
 }

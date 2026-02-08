@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Search, ChevronRight, MapPin, Star } from 'lucide-react';
 import { SearchCard } from '../search/search-card';
 import { Place } from '@/shared'
-import { usePlacesNearbySearch } from '@/hooks/nearby-search';
+import { usePlacesSearch } from '@/hooks/places-search';
 
 interface DiscoveryProps {
   cityName: string;
@@ -12,9 +12,9 @@ interface DiscoveryProps {
 }
 
 export function DiscoveryFeed({ cityName, onSearch, isSearching, location }: DiscoveryProps) {
-  const attractions = usePlacesNearbySearch();
-  const restaurants = usePlacesNearbySearch();
-  const events = usePlacesNearbySearch();
+  const attractions = usePlacesSearch();
+  const restaurants = usePlacesSearch();
+  const events = usePlacesSearch();
   const numSearchResults = 15;
   useEffect(() => {
     if (location) {
