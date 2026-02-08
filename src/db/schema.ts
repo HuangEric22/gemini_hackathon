@@ -41,10 +41,6 @@ export const itineraryItems = sqliteTable("itinerary_items", {
   type: text("type"), // "restaurant", "activity", etc.
 });
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 00c56e6 (activity table added)
 export interface DayHours {
   open: string;  // e.g., "09:00"
   close: string; // e.g., "18:00"
