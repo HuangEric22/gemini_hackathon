@@ -1,0 +1,1 @@
+// TODO: when clicking the card, show the activity info modal
