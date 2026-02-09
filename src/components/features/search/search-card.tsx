@@ -7,7 +7,7 @@ import { Place } from '@/shared'
 import { placeholder } from 'drizzle-orm';
 
 interface Props {
-  onSearch?: (destination: Place) => void;
+  onSearch?: (destination: Place | string) => void;
   onChange?: (value: string) => void;
   isLoading?: boolean;
   variant?: 'standalone' | 'inline';
@@ -42,25 +42,35 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!destination?.placePrediction) return;
-    const { place } = await destination.placePrediction?.toPlace().fetchFields({ fields: ['location', 'id', 'displayName', 'viewport'] });
-    console.log(place.location, place.displayName);
+    const trimmedInput = inputValue.trim();
+    if (!trimmedInput) return;
 
-    if (!place.location || !place.displayName) {
-      return;
+    // A specific destination was selected from the dropdown
+    if (destination?.placePrediction) {
+      try {
+        const { place } = await destination.placePrediction.toPlace().fetchFields({ 
+          fields: ['location', 'id', 'displayName', 'viewport'] 
+        });
+
+        if (place.location && place.displayName) {
+          const selectedPlace = {
+            name: place.displayName.toString(),
+            lat: place.location.lat(),
+            lng: place.location.lng(),
+            id: place.id,
+            viewport: place.viewport
+          };
+          onSearch?.(selectedPlace);
+          return; // Stop here
+        }
+      } catch (error) {
+        console.error("Error fetching place details:", error);
+      }
     }
 
-    const selectedPlace = {
-      name: place.displayName,
-      lat: place.location?.lat(),
-      lng: place.location?.lng(),
-      id: place.id,
-      viewport: place?.viewport
-    }
-
-    if (inputValue.trim()) {
-      onSearch?.(selectedPlace);
-    }
+    // No destination selected, or fetch failed -> Proceed as Keyword Search
+    onSearch?.(trimmedInput);
+    setDropDown(false); // Close suggestions if they were open
   };
 
   return (
@@ -119,7 +129,6 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
           </ul>
         )}
         {/*Submit Button */}
-        {isStandalone &&
           <button
             type="submit"
             disabled={!inputValue || isLoading}
@@ -134,7 +143,6 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
               </>
             )}
           </button>
-        }
       </form>
 
     </div>

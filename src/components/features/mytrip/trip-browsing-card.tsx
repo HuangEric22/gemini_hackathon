@@ -1,15 +1,18 @@
 import React from 'react';
-import { Star, Plus, MapPin, MoreHorizontal, ListPlus } from 'lucide-react';
+import { Star, Minus, MapPin, MoreHorizontal, ListPlus, Check } from 'lucide-react';
 import { type Activity } from '@/db/schema'
+import { updateWantToGo } from '@/app/actions/crud-trip';
 
 interface TripActivityCardProps {
+  tripId: number
   activity: Activity;
+  isAdded: boolean;
   onHover: (id: number | null) => void;
-  onAdd: (id: number) => void;
+  onToggle: () => void;
   onClick: () => void;
 }
 
-export function TripActivityCard({ activity, onHover, onAdd, onClick }: TripActivityCardProps) {
+export function TripActivityCard({ tripId, activity, isAdded, onHover, onToggle, onClick }: TripActivityCardProps) {
   return (
     <div 
       className="flex flex-col flex-row h-50 gap-6 p-4 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group cursor-pointer"
@@ -52,14 +55,29 @@ export function TripActivityCard({ activity, onHover, onAdd, onClick }: TripActi
           </span>
         </div>
 
-        {/* Interaction Buttons - Positioned like the drawing's "add sign" */}
+        {/* Interaction Buttons */}
         <div className="absolute top-0 right-0 flex flex-col gap-2">
           <button 
-            onClick={(e) => { e.stopPropagation(); onAdd(activity.id); }}
-            className="p-2.5 bg-white border border-slate-200 rounded-full text-slate-600 hover:text-white hover:bg-indigo-600 hover:border-indigo-600 shadow-sm transition-all"
-            title="Add to Want to Go"
+            onClick={(e) => { 
+                e.stopPropagation(); // Prevents triggering the card's onClick
+                onToggle(); 
+                updateWantToGo(tripId, activity.id, isAdded)
+            }}
+            className={`group/btn relative p-2.5 rounded-full shadow-sm transition-all border ${
+                isAdded 
+                ? 'bg-indigo-600 border-indigo-600 text-white hover:bg-red-500 hover:border-red-500' 
+                : 'bg-white border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-600'
+            }`}
           >
-            <ListPlus className="w-5 h-5" />
+            {isAdded ? (
+                <>
+                  {/* Shows Check by default, Minus on hover to indicate removal */}
+                  <Check className="w-5 h-5 block group-hover/btn:hidden" />
+                  <Minus className="w-5 h-5 hidden group-hover/btn:block" />
+                </>
+            ) : (
+                <ListPlus className="w-5 h-5" />
+            )}
           </button>
           <button className="p-2.5 bg-white border border-slate-200 rounded-full text-slate-400 hover:text-slate-600 shadow-sm transition-all">
             <MoreHorizontal className="w-5 h-5" />

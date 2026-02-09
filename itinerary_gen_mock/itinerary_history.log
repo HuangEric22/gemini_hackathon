@@ -1,0 +1,914 @@
+
+        ============================================================
+        USER INPUT: [{'name': 'Eiffel Tower', 'lat': 48.8584, 'lng': 2.2945}, {'name': 'Louvre Museum', 'lat': 48.8606, 'lng': 2.3376}, {'name': 'Arc de Triomphe', 'lat': 48.8738, 'lng': 2.295}]
+        TIMESTAMP:  2026-02-05 17:43:56.899051
+        ------------------------------------------------------------
+        GENERATED ITINERARY:
+        {
+    "days": [
+        {
+            "day_number": 1,
+            "items": [
+                {
+                    "title": "Breakfast at Le Nemours",
+                    "google_place_id": "ChIJm_zVEx9u5kcRG-x0i9I2f7M",
+                    "start_time": "08:30",
+                    "end_time": "09:30",
+                    "type": "restaurant",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "louvre_001"
+                },
+                {
+                    "title": "Louvre Museum",
+                    "google_place_id": "ChIJD7fiBh9u5kcRYJSMaMOCCwM",
+                    "start_time": "09:35",
+                    "end_time": "12:35",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "lunch_001"
+                },
+                {
+                    "title": "Lunch at Caf\u00e9 Marly",
+                    "google_place_id": "ChIJ-8_YCh9u5kcR7P6Xy_m_C6w",
+                    "start_time": "12:40",
+                    "end_time": "14:00",
+                    "type": "restaurant",
+                    "commute_info": "10 min walk",
+                    "commute_seconds": 600,
+                    "next_item_id": "activity_001"
+                },
+                {
+                    "title": "Jardin des Tuileries",
+                    "google_place_id": "ChIJ688V6i1u5kcRLD79Hba-vW8",
+                    "start_time": "14:10",
+                    "end_time": "16:00",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "dinner_001"
+                },
+                {
+                    "title": "Dinner at Les Philosophes",
+                    "google_place_id": "ChIJL-m3mRtu5kcRscwB2jK0m_k",
+                    "start_time": "19:00",
+                    "end_time": "21:00",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 2,
+            "items": [
+                {
+                    "title": "Breakfast at Carette Trocad\u00e9ro",
+                    "google_place_id": "ChIJN1t_tW1u5kcR9V4o5u_ck80",
+                    "start_time": "08:30",
+                    "end_time": "09:30",
+                    "type": "restaurant",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "arc_001"
+                },
+                {
+                    "title": "Arc de Triomphe",
+                    "google_place_id": "ChIJ53S3n39u5kcR9_S_L7R9P_U",
+                    "start_time": "09:40",
+                    "end_time": "11:30",
+                    "type": "activity",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "lunch_002"
+                },
+                {
+                    "title": "Lunch at L'Avenue",
+                    "google_place_id": "ChIJR6GvUn9u5kcRnGv6p0-1p8U",
+                    "start_time": "11:40",
+                    "end_time": "13:00",
+                    "type": "restaurant",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "eiffel_001"
+                },
+                {
+                    "title": "Eiffel Tower",
+                    "google_place_id": "ChIJLU7jZClu5kcR4Pc9_S7eS_8",
+                    "start_time": "13:15",
+                    "end_time": "16:15",
+                    "type": "activity",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "dinner_002"
+                },
+                {
+                    "title": "Dinner at Les Cocottes",
+                    "google_place_id": "ChIJaX5z-Sxu5kcR9q6PIn8pLno",
+                    "start_time": "19:00",
+                    "end_time": "21:00",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        }
+    ]
+}
+        ============================================================
+
+        ============================================================
+        USER INPUT: [{'name': 'Hollywood Walk of Fame', 'lat': 34.1016, 'lng': -118.3267}, {'name': "Angel's Flight Railway", 'lat': 34.0513, 'lng': -118.2493}, {'name': 'The Last Bookstore', 'lat': 34.0477, 'lng': -118.2496}, {'name': 'The Broad', 'lat': 34.0544, 'lng': -118.2506}, {'name': 'Santa Monica Pier', 'lat': 34.0099, 'lng': -118.496}, {'name': 'Griffith Observatory', 'lat': 34.1184, 'lng': -118.3004}, {'name': 'Venice Beach Boardwalk', 'lat': 33.9866, 'lng': -118.474}, {'name': 'Runyon Canyon Park', 'lat': 34.1054, 'lng': -118.3486}, {'name': 'The Huntington Library', 'lat': 34.1292, 'lng': -118.1145}]
+        TIMESTAMP:  2026-02-05 17:56:18.203142
+        ------------------------------------------------------------
+        GENERATED ITINERARY:
+        {
+    "days": [
+        {
+            "day_number": 1,
+            "items": [
+                {
+                    "title": "Grand Central Market",
+                    "google_place_id": "ChIJDYp_R8_GwoARALu_S-R-8_8",
+                    "start_time": "09:00",
+                    "end_time": "10:00",
+                    "type": "restaurant",
+                    "commute_info": "2 min walk",
+                    "commute_seconds": 120,
+                    "next_item_id": "ChIJ6Xm3iM_GwoARV-xH2M3h4y8"
+                },
+                {
+                    "title": "Angel's Flight Railway",
+                    "google_place_id": "ChIJ6Xm3iM_GwoARV-xH2M3h4y8",
+                    "start_time": "10:02",
+                    "end_time": "10:30",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "ChIJpU27W8_GwoARxL9Vv8zO4oY"
+                },
+                {
+                    "title": "The Last Bookstore",
+                    "google_place_id": "ChIJpU27W8_GwoARxL9Vv8zO4oY",
+                    "start_time": "10:35",
+                    "end_time": "12:00",
+                    "type": "activity",
+                    "commute_info": "5 min drive",
+                    "commute_seconds": 300,
+                    "next_item_id": "ChIJDc-8_8_GwoAR9vV-08_GwoA"
+                },
+                {
+                    "title": "Guisados DTLA",
+                    "google_place_id": "ChIJDc-8_8_GwoAR9vV-08_GwoA",
+                    "start_time": "12:05",
+                    "end_time": "13:15",
+                    "type": "restaurant",
+                    "commute_info": "5 min drive",
+                    "commute_seconds": 300,
+                    "next_item_id": "ChIJX4v-08_GwoAR9vV-08_GwoA"
+                },
+                {
+                    "title": "The Broad",
+                    "google_place_id": "ChIJX4v-08_GwoAR9vV-08_GwoA",
+                    "start_time": "13:20",
+                    "end_time": "15:30",
+                    "type": "activity",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "ChIJ_fV-08_GwoAR9vV-08_GwoA"
+                },
+                {
+                    "title": "Otium",
+                    "google_place_id": "ChIJ_fV-08_GwoAR9vV-08_GwoA",
+                    "start_time": "18:00",
+                    "end_time": "20:00",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 2,
+            "items": [
+                {
+                    "title": "Tiago Coffee Bar + Kitchen",
+                    "google_place_id": "ChIJR6O12-C_woAR9vV-08_GwoA",
+                    "start_time": "08:30",
+                    "end_time": "09:30",
+                    "type": "restaurant",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "ChIJVxH0D-W-woARXp19_fV_F_M"
+                },
+                {
+                    "title": "Runyon Canyon Park",
+                    "google_place_id": "ChIJVxH0D-W-woARXp19_fV_F_M",
+                    "start_time": "09:40",
+                    "end_time": "11:30",
+                    "type": "activity",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "ChIJN2_yq-C_woARe9f-08_GwoA"
+                },
+                {
+                    "title": "Musso & Frank Grill",
+                    "google_place_id": "ChIJN2_yq-C_woARe9f-08_GwoA",
+                    "start_time": "11:40",
+                    "end_time": "13:15",
+                    "type": "restaurant",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "ChIJ60X0T1C_woARl9F8uYV2Z4E"
+                },
+                {
+                    "title": "Hollywood Walk of Fame",
+                    "google_place_id": "ChIJ60X0T1C_woARl9F8uYV2Z4E",
+                    "start_time": "13:20",
+                    "end_time": "15:00",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "ChIJ9Y_00Y3AwoARv6LpP4mS7tM"
+                },
+                {
+                    "title": "Griffith Observatory",
+                    "google_place_id": "ChIJ9Y_00Y3AwoARv6LpP4mS7tM",
+                    "start_time": "15:15",
+                    "end_time": "18:30",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "ChIJh_V-08_GwoAR9vV-08_GwoA"
+                },
+                {
+                    "title": "Birds Hollywood",
+                    "google_place_id": "ChIJh_V-08_GwoAR9vV-08_GwoA",
+                    "start_time": "18:45",
+                    "end_time": "20:30",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 3,
+            "items": [
+                {
+                    "title": "Flake",
+                    "google_place_id": "ChIJIY_00Y3AwoARv6LpP4mS7tM",
+                    "start_time": "09:00",
+                    "end_time": "10:00",
+                    "type": "restaurant",
+                    "commute_info": "10 min walk",
+                    "commute_seconds": 600,
+                    "next_item_id": "ChIJ-9uS7_LGwoAR-U1V6nC1U3k"
+                },
+                {
+                    "title": "Venice Beach Boardwalk",
+                    "google_place_id": "ChIJ-9uS7_LGwoAR-U1V6nC1U3k",
+                    "start_time": "10:10",
+                    "end_time": "12:30",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "ChIJIY_00Y3AwoARv6LpP4mS7tM"
+                },
+                {
+                    "title": "Gjelina",
+                    "google_place_id": "ChIJIY_00Y3AwoARv6LpP4mS7tM",
+                    "start_time": "12:35",
+                    "end_time": "14:15",
+                    "type": "restaurant",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "ChIJu7u_9_LGwoARv6LpP4mS7tM"
+                },
+                {
+                    "title": "Santa Monica Pier",
+                    "google_place_id": "ChIJu7u_9_LGwoARv6LpP4mS7tM",
+                    "start_time": "14:25",
+                    "end_time": "17:30",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "ChIJ-9uS7_LGwoAR-U1V6nC1U3k"
+                },
+                {
+                    "title": "The Lobster",
+                    "google_place_id": "ChIJ-9uS7_LGwoAR-U1V6nC1U3k",
+                    "start_time": "18:30",
+                    "end_time": "20:30",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 4,
+            "items": [
+                {
+                    "title": "Marston's Restaurant",
+                    "google_place_id": "ChIJ8yX-t_LGwoAR5x-8rV6O-A0",
+                    "start_time": "09:30",
+                    "end_time": "10:30",
+                    "type": "restaurant",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "ChIJT77y6-K_woAR-U1V6nC1U3k"
+                },
+                {
+                    "title": "The Huntington Library",
+                    "google_place_id": "ChIJT77y6-K_woAR-U1V6nC1U3k",
+                    "start_time": "10:40",
+                    "end_time": "16:00",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "ChIJR6O12-C_woAR9vV-08_GwoA"
+                },
+                {
+                    "title": "Union Restaurant",
+                    "google_place_id": "ChIJR6O12-C_woAR9vV-08_GwoA",
+                    "start_time": "18:30",
+                    "end_time": "20:30",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 5,
+            "items": [
+                {
+                    "title": "Republique",
+                    "google_place_id": "ChIJN2_yq-C_woARe9f-08_GwoA",
+                    "start_time": "09:00",
+                    "end_time": "10:30",
+                    "type": "restaurant",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "ChIJN2_yq-C_woARe9f-08_GwoA"
+                },
+                {
+                    "title": "LACMA",
+                    "google_place_id": "ChIJN2_yq-C_woARe9f-08_GwoA",
+                    "start_time": "10:40",
+                    "end_time": "13:30",
+                    "type": "activity",
+                    "commute_info": "5 min drive",
+                    "commute_seconds": 300,
+                    "next_item_id": "ChIJN2_yq-C_woARe9f-08_GwoA"
+                },
+                {
+                    "title": "The Original Farmers Market",
+                    "google_place_id": "ChIJN2_yq-C_woARe9f-08_GwoA",
+                    "start_time": "13:35",
+                    "end_time": "14:45",
+                    "type": "restaurant",
+                    "commute_info": "2 min walk",
+                    "commute_seconds": 120,
+                    "next_item_id": "ChIJN2_yq-C_woARe9f-08_GwoA"
+                },
+                {
+                    "title": "The Grove",
+                    "google_place_id": "ChIJN2_yq-C_woARe9f-08_GwoA",
+                    "start_time": "14:47",
+                    "end_time": "16:30",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "ChIJN2_yq-C_woARe9f-08_GwoA"
+                },
+                {
+                    "title": "Dan Tana's",
+                    "google_place_id": "ChIJN2_yq-C_woARe9f-08_GwoA",
+                    "start_time": "18:30",
+                    "end_time": "20:30",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        }
+    ]
+}
+        ============================================================
+
+        ============================================================
+        USER INPUT: [{'name': 'Hollywood Walk of Fame', 'lat': 34.1016, 'lng': -118.3267}, {'name': "Angel's Flight Railway", 'lat': 34.0513, 'lng': -118.2493}, {'name': 'The Last Bookstore', 'lat': 34.0477, 'lng': -118.2496}, {'name': 'The Broad', 'lat': 34.0544, 'lng': -118.2506}, {'name': 'Santa Monica Pier', 'lat': 34.0099, 'lng': -118.496}, {'name': 'Griffith Observatory', 'lat': 34.1184, 'lng': -118.3004}, {'name': 'Venice Beach Boardwalk', 'lat': 33.9866, 'lng': -118.474}, {'name': 'Runyon Canyon Park', 'lat': 34.1054, 'lng': -118.3486}, {'name': 'The Huntington Library', 'lat': 34.1292, 'lng': -118.1145}]
+        TIMESTAMP:  2026-02-05 18:08:28.361736
+        ------------------------------------------------------------
+        GENERATED ITINERARY:
+        {
+    "days": [
+        {
+            "day_number": 1,
+            "items": [
+                {
+                    "title": "The Huntington Library",
+                    "google_place_id": "ChIJY_pA8mPHwoAR0P7mXvS7qYo",
+                    "start_time": "09:00",
+                    "end_time": "12:00",
+                    "type": "activity",
+                    "commute_info": "20 min drive",
+                    "commute_seconds": 1200,
+                    "next_item_id": "lunch_day1"
+                },
+                {
+                    "title": "Lunch in Pasadena",
+                    "google_place_id": "ChIJ6Yp99q3HwoARgK4Y5Y2Zz_Y",
+                    "start_time": "12:20",
+                    "end_time": "13:30",
+                    "type": "restaurant",
+                    "commute_info": "25 min drive",
+                    "commute_seconds": 1500,
+                    "next_item_id": "broad_museum"
+                },
+                {
+                    "title": "The Broad",
+                    "google_place_id": "ChIJ686u7r_HwoARt-v0y_yvI8U",
+                    "start_time": "14:00",
+                    "end_time": "15:30",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "angels_flight"
+                },
+                {
+                    "title": "Angel's Flight Railway",
+                    "google_place_id": "ChIJp6R8lbbHwoAR9Z63y-uG9oA",
+                    "start_time": "15:35",
+                    "end_time": "16:00",
+                    "type": "activity",
+                    "commute_info": "10 min walk",
+                    "commute_seconds": 600,
+                    "next_item_id": "last_bookstore"
+                },
+                {
+                    "title": "The Last Bookstore",
+                    "google_place_id": "ChIJ7z8T-rjHwoARmS_h-vD6G8A",
+                    "start_time": "16:10",
+                    "end_time": "17:30",
+                    "type": "activity",
+                    "commute_info": "30 min drive",
+                    "commute_seconds": 1800,
+                    "next_item_id": "griffith_obs"
+                },
+                {
+                    "title": "Griffith Observatory",
+                    "google_place_id": "ChIJ_Y9f2p-3woAReR-kE9r7gGk",
+                    "start_time": "18:00",
+                    "end_time": "20:30",
+                    "type": "activity",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 2,
+            "items": [
+                {
+                    "title": "Runyon Canyon Park",
+                    "google_place_id": "ChIJyUf668O-woARVlG_t-7U_oA",
+                    "start_time": "08:00",
+                    "end_time": "10:00",
+                    "type": "activity",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "walk_of_fame"
+                },
+                {
+                    "title": "Hollywood Walk of Fame",
+                    "google_place_id": "ChIJs8Pj_66-woARm7vE-mB1Y-A",
+                    "start_time": "10:10",
+                    "end_time": "11:45",
+                    "type": "activity",
+                    "commute_info": "5 min drive",
+                    "commute_seconds": 300,
+                    "next_item_id": "lunch_day2"
+                },
+                {
+                    "title": "Lunch in Hollywood",
+                    "google_place_id": "ChIJ06m6-66-woARx9C_6W0I8gA",
+                    "start_time": "11:50",
+                    "end_time": "13:00",
+                    "type": "restaurant",
+                    "commute_info": "45 min drive",
+                    "commute_seconds": 2700,
+                    "next_item_id": "santa_monica_pier"
+                },
+                {
+                    "title": "Santa Monica Pier",
+                    "google_place_id": "ChIJ_4j006K3woARe9C-6W0I8gA",
+                    "start_time": "13:45",
+                    "end_time": "16:30",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "venice_beach"
+                },
+                {
+                    "title": "Venice Beach Boardwalk",
+                    "google_place_id": "ChIJv_M-pLW3woARf5B-qH5mY_o",
+                    "start_time": "16:45",
+                    "end_time": "19:00",
+                    "type": "activity",
+                    "commute_info": "10 min walk",
+                    "commute_seconds": 600,
+                    "next_item_id": "dinner_day2"
+                },
+                {
+                    "title": "Dinner in Venice",
+                    "google_place_id": "ChIJ2V9_uLW3woARf5B-qH5mY_o",
+                    "start_time": "19:10",
+                    "end_time": "21:00",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        }
+    ]
+}
+        ============================================================
+
+        ============================================================
+        USER INPUT: [{'name': 'Hollywood Walk of Fame', 'lat': 34.1016, 'lng': -118.3267}, {'name': "Angel's Flight Railway", 'lat': 34.0513, 'lng': -118.2493}, {'name': 'The Last Bookstore', 'lat': 34.0477, 'lng': -118.2496}, {'name': 'The Broad', 'lat': 34.0544, 'lng': -118.2506}, {'name': 'Santa Monica Pier', 'lat': 34.0099, 'lng': -118.496}, {'name': 'Griffith Observatory', 'lat': 34.1184, 'lng': -118.3004}, {'name': 'Venice Beach Boardwalk', 'lat': 33.9866, 'lng': -118.474}, {'name': 'Runyon Canyon Park', 'lat': 34.1054, 'lng': -118.3486}, {'name': 'The Huntington Library', 'lat': 34.1292, 'lng': -118.1145}, {'name': 'Joshua Tree', 'lat': 33.8734, 'lng': -115.901}]
+        TIME TAKEN: 35.69979119300842
+        TIMESTAMP:  2026-02-05 18:37:11.142553
+        ------------------------------------------------------------
+        GENERATED ITINERARY:
+        {
+    "days": [
+        {
+            "day_number": 1,
+            "items": [
+                {
+                    "title": "The Huntington Library",
+                    "google_place_id": "ChIJW4Wf-0vGwoARV-WfT-i0P-Y",
+                    "start_time": "09:00",
+                    "end_time": "12:00",
+                    "type": "activity",
+                    "commute_info": "2 hour 15 min drive",
+                    "commute_seconds": 8100,
+                    "next_item_id": "joshua_tree_park"
+                },
+                {
+                    "title": "Joshua Tree",
+                    "google_place_id": "ChIJ7wR6o-o924AR8A_2H4jUq6k",
+                    "start_time": "14:15",
+                    "end_time": "18:00",
+                    "type": "activity",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 2,
+            "items": [
+                {
+                    "title": "Venice Beach Boardwalk",
+                    "google_place_id": "ChIJX7R8h8-6woARFm0n6Ue6_yU",
+                    "start_time": "08:00",
+                    "end_time": "09:30",
+                    "type": "activity",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "sm_pier"
+                },
+                {
+                    "title": "Santa Monica Pier",
+                    "google_place_id": "ChIJVX9Yq9O7woARNSHq8S7i38o",
+                    "start_time": "09:40",
+                    "end_time": "11:30",
+                    "type": "activity",
+                    "commute_info": "30 min drive",
+                    "commute_seconds": 1800,
+                    "next_item_id": "the_broad"
+                },
+                {
+                    "title": "The Broad",
+                    "google_place_id": "ChIJm_S1s_jHwoARhFhF9nB7h90",
+                    "start_time": "12:00",
+                    "end_time": "14:00",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "angels_flight"
+                },
+                {
+                    "title": "Angel's Flight Railway",
+                    "google_place_id": "ChIJuX8Vf_DHwoAR9T3p_f-F6_Y",
+                    "start_time": "14:05",
+                    "end_time": "14:30",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "last_bookstore"
+                },
+                {
+                    "title": "The Last Bookstore",
+                    "google_place_id": "ChIJy_pL6fDHwoAR8S1hV7_z6kI",
+                    "start_time": "14:35",
+                    "end_time": "15:30",
+                    "type": "activity",
+                    "commute_info": "25 min drive",
+                    "commute_seconds": 1500,
+                    "next_item_id": "runyon_canyon"
+                },
+                {
+                    "title": "Runyon Canyon Park",
+                    "google_place_id": "ChIJz8sS55K_woARo67U0TfX7k8",
+                    "start_time": "15:55",
+                    "end_time": "17:15",
+                    "type": "activity",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "walk_of_fame"
+                },
+                {
+                    "title": "Hollywood Walk of Fame",
+                    "google_place_id": "ChIJY9oV55K_woAR8u9H6-fU6_0",
+                    "start_time": "17:25",
+                    "end_time": "18:15",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "griffith_obs"
+                },
+                {
+                    "title": "Griffith Observatory",
+                    "google_place_id": "ChIJ686_7vS_woAR_1vR9N7M8_s",
+                    "start_time": "18:30",
+                    "end_time": "20:30",
+                    "type": "activity",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        }
+    ]
+}
+        ============================================================
+
+        ============================================================
+        USER INPUT: []
+        TIME TAKEN: 18.106290102005005
+        TIMESTAMP:  2026-02-05 18:40:18.940836
+        ------------------------------------------------------------
+        GENERATED ITINERARY:
+        {
+    "days": [
+        {
+            "day_number": 1,
+            "items": [
+                {
+                    "title": "Eiffel Tower",
+                    "google_place_id": "ChIJLU7jZClu5kcR4P-BhG2_Wms",
+                    "start_time": "09:00",
+                    "end_time": "11:30",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "itinerary_item_1_2"
+                },
+                {
+                    "title": "Les Cocottes",
+                    "google_place_id": "ChIJ9_Xf5CZu5kcR6_qWb28T-6A",
+                    "start_time": "11:45",
+                    "end_time": "13:00",
+                    "type": "restaurant",
+                    "commute_info": "20 min transit",
+                    "commute_seconds": 1200,
+                    "next_item_id": "itinerary_item_1_3"
+                },
+                {
+                    "title": "Louvre Museum",
+                    "google_place_id": "ChIJ9026HW9u5kcR8O8vM0kP-1A",
+                    "start_time": "13:20",
+                    "end_time": "17:00",
+                    "type": "activity",
+                    "commute_info": "10 min walk",
+                    "commute_seconds": 600,
+                    "next_item_id": "itinerary_item_1_4"
+                },
+                {
+                    "title": "Seine River Cruise",
+                    "google_place_id": "ChIJVXN9-M5u5kcRovmYyWp-Sms",
+                    "start_time": "17:10",
+                    "end_time": "18:30",
+                    "type": "activity",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "itinerary_item_1_5"
+                },
+                {
+                    "title": "Le Comptoir de la Relais",
+                    "google_place_id": "ChIJH_0H3K9v5kcReG9mYl_7mAs",
+                    "start_time": "19:00",
+                    "end_time": "21:00",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 2,
+            "items": [
+                {
+                    "title": "Sacr\u00e9-C\u0153ur",
+                    "google_place_id": "ChIJm46K_S9u5kcR7P4R8P_Wms0",
+                    "start_time": "09:30",
+                    "end_time": "11:00",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "itinerary_item_2_2"
+                },
+                {
+                    "title": "Le Consulat",
+                    "google_place_id": "ChIJW-X-UjVu5kcRE9VvWv_Wm9Y",
+                    "start_time": "11:05",
+                    "end_time": "12:30",
+                    "type": "restaurant",
+                    "commute_info": "25 min transit",
+                    "commute_seconds": 1500,
+                    "next_item_id": "itinerary_item_2_3"
+                },
+                {
+                    "title": "Centre Pompidou",
+                    "google_place_id": "ChIJ_S3F-7Bv5kcR3_v9mY_7mAs",
+                    "start_time": "13:00",
+                    "end_time": "16:00",
+                    "type": "activity",
+                    "commute_info": "15 min walk",
+                    "commute_seconds": 900,
+                    "next_item_id": "itinerary_item_2_4"
+                },
+                {
+                    "title": "Cath\u00e9drale Notre-Dame de Paris",
+                    "google_place_id": "ChIJaS0v6K9v5kcR_v9mY_7mAs",
+                    "start_time": "16:15",
+                    "end_time": "18:00",
+                    "type": "activity",
+                    "commute_info": "20 min drive",
+                    "commute_seconds": 1200,
+                    "next_item_id": "itinerary_item_2_5"
+                },
+                {
+                    "title": "Chez L'Ami Louis",
+                    "google_place_id": "ChIJ-658rLlv5kcR8_v9mY_7mAs",
+                    "start_time": "19:30",
+                    "end_time": "21:30",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        }
+    ]
+}
+        ============================================================
+
+        ============================================================
+        USER INPUT: [{'name': 'Hollywood Walk of Fame', 'lat': 34.1016, 'lng': -118.3267}]
+        TIME TAKEN: 18.56858992576599
+        TIMESTAMP:  2026-02-05 18:42:27.631314
+        ------------------------------------------------------------
+        GENERATED ITINERARY:
+        {
+    "days": [
+        {
+            "day_number": 1,
+            "items": [
+                {
+                    "title": "Musso & Frank Grill",
+                    "google_place_id": "ChIJN09N-vS-woAR_y4-rWjN-Y8",
+                    "start_time": "09:00",
+                    "end_time": "10:30",
+                    "type": "restaurant",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "item_h_walk"
+                },
+                {
+                    "title": "Hollywood Walk of Fame",
+                    "google_place_id": "ChIJL-m_q_6-woAR_z6uD6n_p-E",
+                    "start_time": "10:30",
+                    "end_time": "12:30",
+                    "type": "activity",
+                    "commute_info": "5 min walk",
+                    "commute_seconds": 300,
+                    "next_item_id": "item_stout"
+                },
+                {
+                    "title": "Stout Burgers & Beers",
+                    "google_place_id": "ChIJ76O-6_S-woARi27Xy3pE-p8",
+                    "start_time": "12:30",
+                    "end_time": "14:00",
+                    "type": "restaurant",
+                    "commute_info": "15 min drive",
+                    "commute_seconds": 900,
+                    "next_item_id": "item_griffith"
+                },
+                {
+                    "title": "Griffith Observatory",
+                    "google_place_id": "ChIJ9e8-F_O-woAR8_f8n_p_698",
+                    "start_time": "14:00",
+                    "end_time": "17:00",
+                    "type": "activity",
+                    "commute_info": "20 min drive",
+                    "commute_seconds": 1200,
+                    "next_item_id": "item_yamashiro"
+                },
+                {
+                    "title": "Yamashiro Hollywood",
+                    "google_place_id": "ChIJVXU_YfS-woAR63Fv6C3_p-Y",
+                    "start_time": "17:00",
+                    "end_time": "19:00",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        },
+        {
+            "day_number": 2,
+            "items": [
+                {
+                    "title": "Huckleberry Bakery & Cafe",
+                    "google_place_id": "ChIJzU9_6Xq-woARk5u-6_q-w88",
+                    "start_time": "09:00",
+                    "end_time": "10:30",
+                    "type": "restaurant",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "item_sm_pier"
+                },
+                {
+                    "title": "Santa Monica Pier",
+                    "google_place_id": "ChIJ46C-Y_K-woARXF6-rWjN-Y8",
+                    "start_time": "10:30",
+                    "end_time": "13:00",
+                    "type": "activity",
+                    "commute_info": "2 min walk",
+                    "commute_seconds": 120,
+                    "next_item_id": "item_lobster"
+                },
+                {
+                    "title": "The Lobster",
+                    "google_place_id": "ChIJU3N-Y_K-woARXF6-rWjN-Y8",
+                    "start_time": "13:00",
+                    "end_time": "14:30",
+                    "type": "restaurant",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "item_venice"
+                },
+                {
+                    "title": "Venice Canals",
+                    "google_place_id": "ChIJ6Yp-Y_K-woARXF6-rWjN-Y8",
+                    "start_time": "14:30",
+                    "end_time": "17:00",
+                    "type": "activity",
+                    "commute_info": "10 min drive",
+                    "commute_seconds": 600,
+                    "next_item_id": "item_gjelina"
+                },
+                {
+                    "title": "Gjelina",
+                    "google_place_id": "ChIJh_q_q_6-woAR39Xj7Q5_w98",
+                    "start_time": "17:00",
+                    "end_time": "19:00",
+                    "type": "restaurant",
+                    "commute_info": null,
+                    "commute_seconds": null,
+                    "next_item_id": null
+                }
+            ]
+        }
+    ]
+}
+        ============================================================

@@ -14,46 +14,48 @@ export default async function MyTripsPage() {
   const pastTrips = allTrips.filter((t) => t.status === "past");
 
   return (
-    <div className="min-h-screen bg-white p-8 lg:p-12 max-w-7xl mx-auto space-y-12">
+    <div className="min-h-screen w-full bg-white p-8 lg:p-12 space-y-12">
       <header className="flex justify-between items-center">
         <h1 className="text-4xl font-black text-slate-900 tracking-tight">My Trips</h1>
       </header>
 
       {/* --- UPCOMING TRIPS SECTION --- */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 text-slate-400">
-          <Plane className="w-5 h-5" />
-          <h2 className="text-xl font-bold uppercase tracking-widest text-sm">Upcoming trips</h2>
-        </div>
-
-        {upcomingTrips.length === 0 ? (
-          <EmptyState message="No upcoming adventures planned yet." />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {upcomingTrips.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
+      <main className="flex-1 overflow-y-auto p-8 lg:p-12 pt-0 space-y-12">
+        <section className="space-y-6">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Plane className="w-5 h-5" />
+            <h2 className="text-xl font-bold uppercase tracking-widest text-sm">Upcoming trips</h2>
           </div>
-        )}
-      </section>
 
-      {/* --- PAST TRIPS SECTION --- */}
-      <section className="space-y-6 pt-10 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-slate-400">
-          <Calendar className="w-5 h-5" />
-          <h2 className="text-xl font-bold uppercase tracking-widest text-sm">Past trips</h2>
-        </div>
+          {upcomingTrips.length === 0 ? (
+            <EmptyState message="No upcoming adventures planned yet." />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {upcomingTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </div>
+          )}
+        </section>
 
-        {pastTrips.length === 0 ? (
-          <p className="text-slate-400 italic">No past trips recorded.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {pastTrips.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
+        {/* --- PAST TRIPS SECTION --- */}
+        <section className="space-y-6 pt-10 border-t border-slate-100">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Calendar className="w-5 h-5" />
+            <h2 className="text-xl font-bold uppercase tracking-widest text-sm">Past trips</h2>
           </div>
-        )}
-      </section>
+
+          {pastTrips.length === 0 ? (
+            <p className="text-slate-400 italic">No past trips recorded.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {pastTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
     </div>
   );
 }
