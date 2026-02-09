@@ -5,13 +5,18 @@ import { calculateRadiusFromViewport } from '@/utils/calculate_radius';
 export function usePlacesSearch() {
     const [results, setResults] = useState<google.maps.places.Place[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+<<<<<<< HEAD
     
+=======
+    const [isLoaded, setIsLoaded] = useState(false);
+>>>>>>> ae1f79c (added default loading to kyoto on website start.)
 
     const placesLib = useRef<google.maps.PlacesLibrary | null>(null);
 
     useEffect(() => {
         LoadPlacesLibrary().then((lib) => {
             placesLib.current = lib;
+            setIsLoaded(true);
         });
     }, [])
 
@@ -20,7 +25,7 @@ export function usePlacesSearch() {
         return {
             center: location,
             radius: radius
-            }            
+        }
     };
 
     const searchNearby = useCallback(async (
@@ -90,7 +95,11 @@ export function usePlacesSearch() {
         } finally {
             setIsLoading(false);
         }
-    }, []);    
+    }, []);
 
+<<<<<<< HEAD
     return { results, isLoading, searchNearby, searchByText, setResults};
+=======
+    return { results, isLoading, isLoaded, searchNearby, searchByText };
+>>>>>>> ae1f79c (added default loading to kyoto on website start.)
 }

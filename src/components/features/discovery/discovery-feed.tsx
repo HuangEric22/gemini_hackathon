@@ -24,7 +24,7 @@ export function DiscoveryFeed({ cityName, onSearch, isSearching, location }: Dis
       restaurants.searchNearby(coords, ['restaurant', 'cafe', 'bakery'], numSearchResults, location.viewport);
       events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], numSearchResults, location.viewport);
     }
-  }, [location, attractions.searchNearby, restaurants.searchNearby, events.searchNearby]);
+  }, [location, attractions.isLoaded, restaurants.isLoaded, events.isLoaded, attractions.searchNearby, restaurants.searchNearby, events.searchNearby]);
 
   return (
     <main className="flex-1 w-full overflow-y-auto h-screen p-10 bg-white">
@@ -40,17 +40,17 @@ export function DiscoveryFeed({ cityName, onSearch, isSearching, location }: Dis
         <Section 
           title="Things to do" 
           data={attractions.results} 
-          isLoading={attractions.isLoading} 
+          isLoading={attractions.isLoading || !attractions.isLoaded} 
         />
         <Section 
           title="Restaurants" 
           data={restaurants.results} 
-          isLoading={restaurants.isLoading} 
+          isLoading={restaurants.isLoading || !restaurants.isLoaded} 
         />
         <Section 
           title="Events & Culture" 
           data={events.results} 
-          isLoading={events.isLoading} 
+          isLoading={events.isLoading || !restaurants.isLoaded} 
         />
       </div>
     </main>
@@ -66,8 +66,8 @@ function Section({ title, data, isLoading }: { title: string; data: any[]; isLoa
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
-        {isLoading ? (
-          [1, 2, 3, 4].map((i) => (
+        {isLoading || data.length == 0 ? (
+          [1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="min-w-[240px] h-60 bg-slate-100 animate-pulse rounded-3xl" />
           ))
         ) : (
