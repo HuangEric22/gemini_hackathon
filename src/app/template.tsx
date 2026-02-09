@@ -15,14 +15,18 @@ const template = ({ children }: { children: React.ReactNode }) => {
     const [formData, setFormData] = useState({
         tripName: '',
         destination: '',
+        lat: 0,
+        lng: 0,
         startDate: '',
         endDate: '',
+        dayCount: 0,
         interests: '',
         commute: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [timing, setTiming] = useState<'flexible' | 'dates'>('flexible');
     const [budget, setBudget] = useState<number>(2); // Default to $$
+    const [numDays, setNumDays] = useState<number>(0);
 
     const router = useRouter();
 
@@ -35,10 +39,7 @@ const template = ({ children }: { children: React.ReactNode }) => {
         setIsSubmitting(true);
         try {
             // Call the Server Action
-            const result = await createTripAction({
-                ...formData,
-                budget: budget
-            });
+            const result = await createTripAction({...formData});
 
             if (result?.error) {
                 console.error("Server returned an error:", result.error);
@@ -109,7 +110,23 @@ const template = ({ children }: { children: React.ReactNode }) => {
                             {/* Destination */}
                             <div className='space-y-2'>
                                 <label className="font-semibold">Destination *</label>
-                                <SearchCard onChange={(val) => setFormData({ ...formData, destination: val })} variant={'inline'} />
+                                <SearchCard 
+                                    onSearch={(place)=> {
+                                        if (typeof place != 'string') {
+                                            setFormData({
+                                                ...formData,
+                                                destination: place.name,
+                                                lat: place.lat,
+                                                lng: place.lng
+                                            })
+                                        }
+                                    }}
+                                    onChange={(val)=>{
+                                        if (val === ''){
+                                            setFormData({...formData, destination: '', lat:0, lng: 0})
+                                        }
+                                    }} 
+                                    variant={'inline'} />
                             </div>
 
                             {/* Dates */}
@@ -130,6 +147,23 @@ const template = ({ children }: { children: React.ReactNode }) => {
                                         Select Dates
                                     </button>
                                 </div>
+
+                                {timing === 'flexible' && (
+                                    <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <span className="text-xs text-gray-500 ml-1">Trip length</span>
+                                        <select
+                                        value={numDays}
+                                        onChange={(e) => setNumDays(Number(e.target.value))}
+                                        className="w-full p-2 border rounded-lg text-sm bg-white"
+                                        >
+                                        {[1,2,3,4,5,6,7,10,14].map((d) => (
+                                            <option key={d} value={d}>
+                                            {d} {d === 1 ? 'day' : 'days'}
+                                            </option>
+                                        ))}
+                                        </select>
+                                    </div>
+                                    )}
 
                                 {timing === 'dates' && (
                                     <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
