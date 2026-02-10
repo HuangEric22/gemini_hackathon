@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { LoadPlacesLibrary } from "@/lib/google-maps";
 
-export function usePlacesAutocomplete(query: string, type: string) {
-// Define the state as an array of AutocompleteSuggestion
-    const [suggestions, setSuggestions] = useState<google.maps.places.AutocompleteSuggestion[]>([]);
+export function usePlacesAutocomplete() {
+
+    const [searchSuggestions, setSearchSuggestions] = useState<google.maps.places.AutocompleteSuggestion[]>([]);
     const [loading, setLoading] = useState(false);
 
     const placesLib = useRef<google.maps.PlacesLibrary | null>(null);
     const sessionToken = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
 
-    useEffect(() =>{
+    useEffect(() => {
         LoadPlacesLibrary().then((lib) => {
             placesLib.current = lib;
             sessionToken.current = new placesLib.current.AutocompleteSessionToken();
@@ -19,7 +19,7 @@ export function usePlacesAutocomplete(query: string, type: string) {
 
     const fetchSuggestions = async (input: string) => {
         if (!input || !placesLib.current) {
-            setSuggestions([]);
+            setSearchSuggestions([]);
             return;
         }
 
@@ -28,15 +28,15 @@ export function usePlacesAutocomplete(query: string, type: string) {
             const request = {
                 input,
                 sessionToken: sessionToken.current!,
-                includedPrimaryTypes: ['locality'], // Limits results to cities
+                includedPrimaryTypes: ['locality'],
                 language: 'en-US',
             };
 
             // Use aliasing 'suggestions: data' to avoid naming conflicts with state
-            const { suggestions: data } = 
+            const { suggestions } =
                 await placesLib.current.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
-            
-            setSuggestions(data);
+
+            setSearchSuggestions(suggestions);
         } catch (error) {
             console.error("Autocomplete Error:", error);
         } finally {
@@ -50,6 +50,6 @@ export function usePlacesAutocomplete(query: string, type: string) {
         }
     };
 
-    return { suggestions, fetchSuggestions, refreshSession };
-    
+    return { searchSuggestions, loading, fetchSuggestions, refreshSession };
+
 }
