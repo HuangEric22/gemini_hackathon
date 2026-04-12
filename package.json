@@ -17,6 +17,7 @@
     "@google/genai": "^1.34.0",
     "@googlemaps/js-api-loader": "^2.0.2",
     "@libsql/client": "^0.17.0",
+    "@libsql/darwin-arm64": "^0.5.29",
     "@vitejs/plugin-react": "^5.1.2",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
@@ -52,7 +53,6 @@
     "vitest": "^4.0.18"
   },
   "optionalDependencies": {
-    "@libsql/darwin-arm64": "^0.5.29",
     "lightningcss-darwin-arm64": "^1.32.0"
   }
 }
