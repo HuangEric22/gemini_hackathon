@@ -11,6 +11,16 @@ const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 function buildCacheKey(lat: number, lng: number, categories: string[]): string {
   return `${lat.toFixed(3)}_${lng.toFixed(3)}_${[...categories].sort().join(',')}`;
 }
+import type { PlaceSnapshot } from '@/app/actions/shadow-save-activities';
+
+// Module-level cache — survives re-renders and navigation within the session.
+// Keyed by lat/lng/categories so the same city never hits Google twice in one session.
+const _searchCache = new Map<string, { places: google.maps.places.Place[]; expiry: number }>();
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+function buildCacheKey(lat: number, lng: number, categories: string[]): string {
+  return `${lat.toFixed(3)}_${lng.toFixed(3)}_${[...categories].sort().join(',')}`;
+}
 
 export function usePlacesSearch() {
     const [results, setResults] = useState<google.maps.places.Place[]>([]);
@@ -51,6 +61,16 @@ export function usePlacesSearch() {
         }
 
         console.log(`[PlacesSearch] CACHE MISS — calling Google Places API for key: ${cacheKey}`);
+        // Check in-memory cache before hitting Google
+        const cacheKey = buildCacheKey(location.lat, location.lng, categories);
+        const cached = _searchCache.get(cacheKey);
+        if (cached && Date.now() < cached.expiry) {
+            console.log(`[PlacesSearch] CACHE HIT — returning ${cached.places.length} results for key: ${cacheKey}`);
+            setResults(cached.places);
+            return;
+        }
+
+        console.log(`[PlacesSearch] CACHE MISS — calling Google Places API for key: ${cacheKey}`);
         setIsLoading(true)
 
         try {
@@ -73,10 +93,20 @@ export function usePlacesSearch() {
                     'regularOpeningHours',
                     'priceLevel',
                     'websiteURI',
+                    'googleMapsLinks',
+                    'editorialSummary',
+                    'regularOpeningHours',
+                    'priceLevel',
+                    'websiteURI',
                 ]
             };
 
             const { places } = await Place.searchNearby(request);
+            const found = places || [];
+            _searchCache.set(cacheKey, { places: found, expiry: Date.now() + CACHE_TTL_MS });
+            console.log(`[PlacesSearch] Stored ${found.length} results in cache for key: ${cacheKey}`);
+            setResults(found);
+            
             const found = places || [];
             _searchCache.set(cacheKey, { places: found, expiry: Date.now() + CACHE_TTL_MS });
             console.log(`[PlacesSearch] Stored ${found.length} results in cache for key: ${cacheKey}`);
