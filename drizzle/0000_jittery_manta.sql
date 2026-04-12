@@ -11,7 +11,7 @@ CREATE TABLE `activities` (
 	`average_duration` integer DEFAULT 60,
 	`opening_hours` text,
 	`rating` real,
-	`price_level` integer,
+	`price_level` text,
 	`website_url` text,
 	`image_url` text
 );
@@ -20,6 +20,7 @@ CREATE UNIQUE INDEX `activities_google_place_id_unique` ON `activities` (`google
 CREATE TABLE `itinerary_items` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`trip_id` integer,
+	`title` text,
 	`day_number` integer NOT NULL,
 	`start_time` text,
 	`end_time` text,
@@ -41,8 +42,11 @@ CREATE TABLE `trips` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`trip_name` text NOT NULL,
 	`destination` text NOT NULL,
+	`lat` real NOT NULL,
+	`lng` real NOT NULL,
 	`start_date` text,
 	`end_date` text,
+	`dayCount` integer,
 	`status` text DEFAULT 'upcoming',
 	`budget` integer,
 	`commute` text,

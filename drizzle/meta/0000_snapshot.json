@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "7c678719-1fa2-48a6-9fcb-2963b1f4e8e3",
+  "id": "4b0ae376-d935-401c-8c9e-55447970e75d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -94,7 +94,7 @@
         },
         "price_level": {
           "name": "price_level",
-          "type": "integer",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -141,6 +141,13 @@
         "trip_id": {
           "name": "trip_id",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -291,6 +298,20 @@
           "notNull": true,
           "autoincrement": false
         },
+        "lat": {
+          "name": "lat",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lng": {
+          "name": "lng",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "start_date": {
           "name": "start_date",
           "type": "text",
@@ -301,6 +322,13 @@
         "end_date": {
           "name": "end_date",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "dayCount": {
+          "name": "dayCount",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

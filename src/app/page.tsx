@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { Panel, Group, Separator } from 'react-resizable-panels';
+import { useState } from 'react';
+import { Panel, Group } from 'react-resizable-panels';
 import { DiscoveryFeed } from '@/components/features/discovery/discovery-feed';
 import { MapArea } from '@/components/features/map/map';
 import { ResizeSeparator } from '@/components/layout/resizeable-separator';
@@ -27,7 +27,8 @@ export default function Home() {
   const [destination, setDestination] = useState<Place | null>(DEFAULT_PLACE);
   const cityName = destination?.name || "Select a City";
 
-  const handleSearch = async (destination: Place) => {
+  const handleSearch = async (destination: Place | string) => {
+    if (typeof destination === 'string') return; // city chip clicks go through SearchCard's autocomplete
     setIsSearching(true);
     setDestination(destination);
     setIsSearching(false);

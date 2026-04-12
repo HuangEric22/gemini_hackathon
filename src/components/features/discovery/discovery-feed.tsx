@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
-import { Search, ChevronRight, MapPin, Star } from 'lucide-react';
+import { ChevronRight, MapPin, Star } from 'lucide-react';
 import { SearchCard } from '../search/search-card';
 import { Place } from '@/shared'
-import { usePlacesSearch } from '@/hooks/places-search';
+import { usePlacesSearch, extractSnapshot } from '@/hooks/places-search';
+import { shadowSaveActivities } from '@/app/actions/shadow-save-activities';
 
 interface DiscoveryProps {
   cityName: string;
-  onSearch: (destination: Place) => void;
+  onSearch: (destination: Place | string) => void;
   isSearching: boolean;
   location: Place | null;
 }
@@ -15,8 +16,7 @@ export function DiscoveryFeed({ cityName, onSearch, isSearching, location }: Dis
   const attractions = usePlacesSearch();
   const restaurants = usePlacesSearch();
   const events = usePlacesSearch();
-  const numSearchResults = 15;
-  
+  const numSearchResults = 10;
 
   useEffect(() => {
     if (location) {
@@ -26,6 +26,31 @@ export function DiscoveryFeed({ cityName, onSearch, isSearching, location }: Dis
       events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], numSearchResults, location.viewport);
     }
   }, [location, attractions.isLoaded, restaurants.isLoaded, events.isLoaded, attractions.searchNearby, restaurants.searchNearby, events.searchNearby]);
+
+  // Shadow-save each category's results to DB once they arrive
+  useEffect(() => {
+    if (!location || !attractions.results.length) return;
+    const snapshots = attractions.results
+      .map((p) => extractSnapshot(p, location.name, 'attraction'))
+      .filter((s) => s.googlePlaceId);
+    shadowSaveActivities(snapshots).catch(console.error);
+  }, [attractions.results, location]);
+
+  useEffect(() => {
+    if (!location || !restaurants.results.length) return;
+    const snapshots = restaurants.results
+      .map((p) => extractSnapshot(p, location.name, 'restaurant'))
+      .filter((s) => s.googlePlaceId);
+    shadowSaveActivities(snapshots).catch(console.error);
+  }, [restaurants.results, location]);
+
+  useEffect(() => {
+    if (!location || !events.results.length) return;
+    const snapshots = events.results
+      .map((p) => extractSnapshot(p, location.name, 'culture'))
+      .filter((s) => s.googlePlaceId);
+    shadowSaveActivities(snapshots).catch(console.error);
+  }, [events.results, location]);
 
   return (
     <main className="flex-1 w-full overflow-y-auto h-screen p-10 bg-white">
@@ -38,20 +63,20 @@ export function DiscoveryFeed({ cityName, onSearch, isSearching, location }: Dis
         </header>
 
         {/* Blueprint Section Template */}
-        <Section 
-          title="Things to do" 
-          data={attractions.results} 
-          isLoading={attractions.isLoading || !attractions.isLoaded} 
+        <Section
+          title="Things to do"
+          data={attractions.results}
+          isLoading={attractions.isLoading || !attractions.isLoaded}
         />
-        <Section 
-          title="Restaurants" 
-          data={restaurants.results} 
-          isLoading={restaurants.isLoading || !restaurants.isLoaded} 
+        <Section
+          title="Restaurants"
+          data={restaurants.results}
+          isLoading={restaurants.isLoading || !restaurants.isLoaded}
         />
-        <Section 
-          title="Events & Culture" 
-          data={events.results} 
-          isLoading={events.isLoading || !restaurants.isLoaded} 
+        <Section
+          title="Events & Culture"
+          data={events.results}
+          isLoading={events.isLoading || !restaurants.isLoaded}
         />
       </div>
     </main>
