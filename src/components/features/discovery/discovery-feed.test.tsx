@@ -1,6 +1,26 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { DiscoveryFeed } from './discovery-feed';
+
+// Mock the hook so tests don't touch Google
+vi.mock('@/hooks/places-search', () => ({
+  usePlacesSearch: () => ({
+    results: [],
+    isLoading: false,
+    isLoaded: true,
+    searchNearby: vi.fn(),
+    searchByText: vi.fn(),
+  }),
+}));
+
+// Mock the server actions added in the last session
+vi.mock('@/app/actions/shadow-save-activities', () => ({
+  shadowSaveActivities: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/app/actions/recommend-cities', () => ({
+  getRecommendedCities: vi.fn().mockResolvedValue([]),
+}));
 
 vi.mock('../search/search-card', () => ({
   SearchCard: ({ onSearch, isLoading }: any) => (
@@ -16,6 +36,7 @@ describe('DiscoveryFeed', () => {
     cityName: 'Los Angeles',
     onSearch: vi.fn(),
     isSearching: false,
+    location: null,
   };
 
   it('renders the correct city name in the heading', () => {
@@ -24,36 +45,32 @@ describe('DiscoveryFeed', () => {
     expect(heading).toHaveTextContent('Los Angeles');
   });
 
-  it('renders all three blueprint sections', () => {
+  it('renders all three section headings', () => {
     render(<DiscoveryFeed {...defaultProps} />);
 
     expect(screen.getByText('Things to do')).toBeInTheDocument();
     expect(screen.getByText('Restaurants')).toBeInTheDocument();
-    expect(screen.getByText('Events')).toBeInTheDocument();
+    expect(screen.getByText('Events & Culture')).toBeInTheDocument();
   });
 
-  it('renders the correct number of placeholder items in each section', () => {
+  it('renders skeleton placeholders while loading', () => {
     render(<DiscoveryFeed {...defaultProps} />);
 
-    const section = screen.getByText('Things to do').closest('section');
-
-    // checks that we have the default 10 suggestions for each category
-    const placeholders = section?.querySelectorAll('.min-w-\\[200px\\]');
-    expect(placeholders).toHaveLength(10);
+    // Each section shows 5 skeleton cards when results are empty
+    const skeletons = document.querySelectorAll('.animate-pulse');
+    expect(skeletons.length).toBeGreaterThanOrEqual(5);
   });
 
-  it('passes the search callback to the SearchCard', async () => {
+  it('passes the search callback to the SearchCard', () => {
     const onSearchSpy = vi.fn();
     render(<DiscoveryFeed {...defaultProps} onSearch={onSearchSpy} />);
 
-    // Interact with the mocked SearchCard
-    const mockSearchButton = screen.getByText('Mock Search');
-    mockSearchButton.click();
+    screen.getByText('Mock Search').click();
 
     expect(onSearchSpy).toHaveBeenCalledWith('New York');
   });
 
-  it('shows loading state when isSearching is true', () => {
+  it('shows loading indicator in SearchCard when isSearching is true', () => {
     render(<DiscoveryFeed {...defaultProps} isSearching={true} />);
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });

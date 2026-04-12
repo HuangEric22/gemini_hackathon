@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { LoadPlacesLibrary } from "@/lib/google-maps";
 import { calculateRadiusFromViewport } from '@/utils/calculate_radius';
+import type { PlaceSnapshot } from '@/app/actions/shadow-save-activities';
+
+// Module-level cache — survives re-renders and navigation within the session.
+// Keyed by lat/lng/categories so the same city never hits Google twice in one session.
+const _searchCache = new Map<string, { places: google.maps.places.Place[]; expiry: number }>();
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+function buildCacheKey(lat: number, lng: number, categories: string[]): string {
+  return `${lat.toFixed(3)}_${lng.toFixed(3)}_${[...categories].sort().join(',')}`;
+}
 
 export function usePlacesSearch() {
     const [results, setResults] = useState<google.maps.places.Place[]>([]);
@@ -31,6 +41,16 @@ export function usePlacesSearch() {
 
         if (!placesLib.current) return;
 
+        // Check in-memory cache before hitting Google
+        const cacheKey = buildCacheKey(location.lat, location.lng, categories);
+        const cached = _searchCache.get(cacheKey);
+        if (cached && Date.now() < cached.expiry) {
+            console.log(`[PlacesSearch] CACHE HIT — returning ${cached.places.length} results for key: ${cacheKey}`);
+            setResults(cached.places);
+            return;
+        }
+
+        console.log(`[PlacesSearch] CACHE MISS — calling Google Places API for key: ${cacheKey}`);
         setIsLoading(true)
 
         try {
@@ -48,12 +68,20 @@ export function usePlacesSearch() {
                     'formattedAddress',
                     'location',
                     'rating',
-                    'googleMapsLinks'
+                    'googleMapsLinks',
+                    'editorialSummary',
+                    'regularOpeningHours',
+                    'priceLevel',
+                    'websiteURI',
                 ]
             };
 
             const { places } = await Place.searchNearby(request);
-            setResults(places || []);
+            const found = places || [];
+            _searchCache.set(cacheKey, { places: found, expiry: Date.now() + CACHE_TTL_MS });
+            console.log(`[PlacesSearch] Stored ${found.length} results in cache for key: ${cacheKey}`);
+            setResults(found);
+            
         } catch (error) {
             console.error("Nearby Search Error:", error);
             setResults([]);
@@ -92,5 +120,40 @@ export function usePlacesSearch() {
         }
     }, []);
 
-    return { results, isLoading, isLoaded, searchNearby, searchByText};
+    return { results, setResults, isLoading, isLoaded, searchNearby, searchByText};
+}
+
+// Exposed for tests only — clears the module-level cache between test runs
+export function clearSearchCache() {
+    _searchCache.clear();
+}
+
+// Extracts all storable fields from a Google Place object into our PlaceSnapshot shape.
+// Lives here because it is tightly coupled to what searchNearby fetches.
+export function extractSnapshot(
+    p: google.maps.places.Place,
+    city: string,
+    category: string,
+): PlaceSnapshot {
+    return {
+        googlePlaceId: p.id ?? '',
+        name: p.displayName ?? '',
+        lat: p.location?.lat() ?? 0,
+        lng: p.location?.lng() ?? 0,
+        address: p.formattedAddress ?? null,
+        city,
+        category,
+        rating: p.rating ?? null,
+        imageUrl: p.photos?.[0]?.getURI({ maxWidth: 400 }) ?? null,
+        description: p.editorialSummary ?? null,
+        // Store Google's period array directly — no custom conversion
+        openingHours: p.regularOpeningHours?.periods?.map((period) => ({
+            open: { day: period.open.day, hour: period.open.hour, minute: period.open.minute },
+            close: period.close
+                ? { day: period.close.day, hour: period.close.hour, minute: period.close.minute }
+                : null,
+        })) ?? null,
+        priceLevel: p.priceLevel ?? null,  // e.g. 'MODERATE', 'EXPENSIVE', 'FREE'
+        websiteUrl: p.websiteURI ?? null,
+    };
 }

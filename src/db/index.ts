@@ -1,12 +1,10 @@
-import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client'; // Recommended for LibSQL
+import { createClient } from '@libsql/client';
 import * as schema from './schema';
 
-// Create the client explicitly
-const client = createClient({ 
-  url: process.env.DB_FILE_NAME! 
+const client = createClient({
+  url: process.env.DB_FILE_NAME!,
+  authToken: process.env.DB_AUTH_TOKEN, // only needed for Turso — ignored for local file
 });
 
-// Pass the schema in the config object
 export const db = drizzle(client, { schema });
