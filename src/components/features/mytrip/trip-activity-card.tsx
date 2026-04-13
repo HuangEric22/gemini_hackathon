@@ -71,7 +71,7 @@ export function TripActivityCard({ activity, isAdded, onToggle, onHover }: TripA
 
                 {/* Rating — top-left */}
                 {activity.rating && (
-                    <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-bold shadow-sm text-gray-500">
+                    <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-bold shadow-sm text-slate-800">
                         <Star size={11} className="fill-yellow-400 stroke-yellow-400" />
                         {activity.rating.toFixed(1)}
                     </div>

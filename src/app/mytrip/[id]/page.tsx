@@ -9,7 +9,7 @@ import { MapArea } from '@/components/features/map/map';
 import { getTripById, getTripSelectionsByTripId, getItineraryItemsByTripId, saveGeneratedItinerary } from '@/app/actions/crud-trip'
 import { ItineraryWorkspace } from '@/components/features/mytrip/itinerary-workspace'
 import { itineraryService } from '@/hooks/itinerary-generate';
-import { ItineraryGenerationResponse } from '@/shared';
+import { ItineraryGenerationResponse, MapPlace } from '@/shared';
 
 function hydrateItinerary(items: ItineraryItem[]): ItineraryGenerationResponse {
   const daysMap: Record<number, any> = {};
@@ -34,6 +34,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [trip, setTrip] = useState<Trip | null>(null);
   const [viewMode, setViewMode] = useState<'browsing' | 'itinerary'>('browsing')
   const [hoveredActivityId, setHoveredActivityId] = useState<number | null>(null);
+  const [focusedPlaceId, setFocusedPlaceId] = useState<string | null>(null);
+  const [mapPlaces, setMapPlaces] = useState<MapPlace[]>([]);
 
   // Data states
   const [isLoading, setIsLoading] = useState(true);
@@ -103,12 +105,16 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         <Panel defaultSize={60} minSize={30}>
           {trip ? (
             viewMode === 'browsing' ? (
-              <MyTripFeed 
-              trip={trip} 
-              onHover={setHoveredActivityId}
-              onGenerate={handleGenerate}
-              onViewItinerary={handleTransitionToItinerary}
-          />
+              <MyTripFeed
+                trip={trip}
+                onSearch={() => {}}
+                onHover={setHoveredActivityId}
+                onGenerate={handleGenerate}
+                onViewItinerary={handleTransitionToItinerary}
+                onPlacesChange={setMapPlaces}
+                focusedPlaceId={focusedPlaceId}
+                onFocusPlace={setFocusedPlaceId}
+              />
             ) : (
               <ItineraryWorkspace
                 trip={trip}
@@ -127,7 +133,12 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
 
         {/* Right Panel: Map */}
         <Panel defaultSize={40} minSize={20}>
-          <MapArea/>
+          <MapArea
+            center={{ lat: trip?.lat ?? 35.6762, lng: trip?.lng ?? 139.6503 }}
+            places={mapPlaces}
+            focusedPlaceId={focusedPlaceId}
+            onPinClick={setFocusedPlaceId}
+          />
         </Panel>
       </Group>
     </div>

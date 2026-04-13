@@ -1,23 +1,28 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion';
 import { type Trip, Activity } from '@/db/schema'
-import { Map, X, Calendar, Loader2, Sparkles, UtensilsCrossed, PartyPopper, Lightbulb, ArrowLeft, ChevronRight, ListPlus } from 'lucide-react';
+import { Map as MapIcon, X, Calendar, Loader2, Sparkles, UtensilsCrossed, PartyPopper, Lightbulb, ArrowLeft, ChevronLeft, ChevronRight, ListPlus } from 'lucide-react';
 import { SearchCard } from '../search/search-card';
 import { HighlightActivityCard, HighlightSkeletons } from './highligh-activity-card';
 import { OverlayMyList } from './overlay-mytrip';
 import { usePlacesSearch, extractSnapshot } from '@/hooks/places-search';
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities';
-import { Place } from '@/shared';
+import { MapPlace, Place } from '@/shared';
 import { CATEGORY_KEYWORDS, KeywordCategory, PROMPT_SUGGESTIONS } from '@/shared/activity-keywords';
 import { TripActivityCard } from './trip-activity-card';
+import { PlaceDetailPanel } from '../map/place-detail-panel';
 
 interface TripFeedProps {
     trip: Trip;
     onHover: (id: number | null) => void;
     onGenerate: (activities: Activity[], preference?: string) => void;
     onViewItinerary: (activities: Activity[]) => void;
-    onToggle: (activity: Activity) => void;
+    onToggle?: (activity: Activity) => void;
+    onPlacesChange?: (places: MapPlace[]) => void;
+    focusedPlaceId?: string | null;
+    onFocusPlace?: (id: string | null) => void;
 }
 
 const CHIPS: KeywordCategory[] = ['All', 'Outdoor', 'Food', 'Culture', 'Nightlife'];
@@ -34,19 +39,23 @@ const placeholderWords = [
 ];
 
 // ─── Main component ────────────────────────────────────────────────────────────
-export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggle }: TripFeedProps) => {
+export const MyTripFeed = ({ trip, onHover: _onHover, onGenerate, onViewItinerary, onToggle, onPlacesChange, focusedPlaceId, onFocusPlace }: TripFeedProps) => {
     const [searching, setSearching] = useState('');
     const [wordIndex, setWordIndex] = useState(0);
     const [selectedChip, setSelectedChip] = useState<KeywordCategory>('All');
     const [wantToGoActivities, setWantToGoActivities] = useState<Activity[]>([]);
     const [isListOpen, setIsListOpen] = useState(false);
     const [animateBadge, setAnimateBadge] = useState(false);
+    const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
+    const mapPlacesRef = useRef<MapPlace[]>([]);
+    const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
     // DB-backed activity arrays (with integer IDs) for each section
     const [attractionActivities, setAttractionActivities] = useState<Activity[]>([]);
     const [restaurantActivities, setRestaurantActivities] = useState<Activity[]>([]);
     const [eventActivities, setEventActivities] = useState<Activity[]>([]);
     const [searchActivities, setSearchActivities] = useState<Activity[]>([]);
+    const [hasLoadedMore, setHasLoadedMore] = useState(false);
 
     const attractions = usePlacesSearch();
     const restaurants = usePlacesSearch();
@@ -98,13 +107,85 @@ export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggl
         ).then(setSearchActivities).catch(console.error);
     }, [textSearch.results]);
 
-    // Clear search when input emptied
+    // Emit all discovered places to parent (for map pins)
     useEffect(() => {
+        const allResults = [...attractions.results, ...restaurants.results, ...events.results];
+        if (!allResults.length) { onPlacesChange?.([]); return; }
+        const mapPlaces: MapPlace[] = allResults
+            .filter(p => p.id && p.location)
+            .map(p => ({
+                id: p.id!,
+                name: p.displayName ?? '',
+                lat: p.location!.lat(),
+                lng: p.location!.lng(),
+                rating: p.rating ?? null,
+                address: p.formattedAddress ?? null,
+                imageUrl: p.photos?.[0]?.getURI({ maxWidth: 400 }) ?? null,
+                images: p.photos?.slice(0, 8).map(ph => ph.getURI({ maxWidth: 800 })) ?? [],
+                type: p.primaryType ?? null,
+                description: p.editorialSummary ?? null,
+                websiteUrl: p.websiteURI ?? null,
+                openingHoursText: p.regularOpeningHours?.weekdayDescriptions ?? null,
+                reviews: p.reviews?.slice(0, 5).map((r) => ({
+                    author: r.authorAttribution?.displayName ?? 'Anonymous',
+                    authorPhoto: r.authorAttribution?.photoURI ?? null,
+                    rating: r.rating ?? 0,
+                    text: r.text ?? '',
+                    relativeTime: r.relativePublishTimeDescription ?? '',
+                })) ?? null,
+            }));
+        mapPlacesRef.current = mapPlaces;
+        onPlacesChange?.(mapPlaces);
+    }, [attractions.results, restaurants.results, events.results]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleActivitySelect = (activity: Activity) => {
+        const place = mapPlacesRef.current.find(p => p.id === activity.googlePlaceId);
+        if (place) {
+            setSelectedPlace(place);
+            onFocusPlace?.(place.id);
+            return;
+        }
+        // For search results not in mapPlacesRef, build a MapPlace from Activity fields
+        if (!activity.googlePlaceId) return;
+        setSelectedPlace({
+            id: activity.googlePlaceId,
+            name: activity.name,
+            lat: activity.lat,
+            lng: activity.lng,
+            rating: activity.rating ?? null,
+            address: activity.address ?? null,
+            imageUrl: activity.imageUrl ?? null,
+            images: activity.imageUrl ? [activity.imageUrl] : [],
+            type: activity.category ?? null,
+            description: activity.description ?? null,
+            websiteUrl: activity.websiteUrl ?? null,
+            openingHoursText: null,
+            reviews: null,
+        });
+    };
+
+    // Scroll focused activity card into view when a map pin is clicked
+    useEffect(() => {
+        if (!focusedPlaceId) return;
+        const el = cardRefs.current.get(focusedPlaceId);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, [focusedPlaceId]);
+
+    // Clear search when input emptied; reset load-more when keyword changes
+    useEffect(() => {
+        setHasLoadedMore(false);
         if (!searching) {
             setSearchActivities([]);
             textSearch.setResults([]);
         }
     }, [searching]);
+
+    const handleLoadMore = async () => {
+        if (trip.lat && trip.lng) {
+            await textSearch.searchByText(searching, SEARCH_FIELDS, { lat: trip.lat, lng: trip.lng }, 20);
+            setHasLoadedMore(true);
+        }
+    };
 
     // Rotate placeholder while idle
     useEffect(() => {
@@ -147,7 +228,8 @@ export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggl
     const prompts = PROMPT_SUGGESTIONS(trip.dayCount ?? 3);
 
     return (
-        <main className="h-full overflow-y-auto bg-white">
+        <main className="relative h-full overflow-hidden bg-white">
+        <div className="h-full overflow-y-auto">
             {/* ── Header ── */}
             <div className="p-10 space-y-4">
                 <div className="flex justify-between items-start">
@@ -176,7 +258,7 @@ export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggl
                         onClick={() => onViewItinerary(wantToGoActivities)}
                         className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm"
                     >
-                        <Map className="w-4 h-4" /> View Itinerary
+                        <MapIcon className="w-4 h-4" /> View Itinerary
                     </button>
                 </div>
 
@@ -234,16 +316,31 @@ export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggl
                         ) : searchActivities.length === 0 ? (
                             <p className="text-slate-400 text-sm py-10 text-center">No results found. Try a different keyword.</p>
                         ) : (
-                            <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-                                {searchActivities.map(activity => (
-                                    <TripActivityCard
-                                      key={activity.id}
-                                      activity={activity}
-                                      isAdded={isAdded(activity.id)}
-                                      onToggle={() => onToggle(activity)}
-                                  />
-                                ))}
-                            </div>
+                            <>
+                                <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {searchActivities.map(activity => (
+                                        <div key={activity.id} className="cursor-pointer" onClick={() => handleActivitySelect(activity)}>
+                                            <TripActivityCard
+                                                activity={activity}
+                                                isAdded={isAdded(activity.id)}
+                                                onToggle={() => onToggle?.(activity)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                {!hasLoadedMore && (
+                                    <div className="flex justify-center pt-2">
+                                        <button
+                                            onClick={handleLoadMore}
+                                            disabled={textSearch.isLoading}
+                                            className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-slate-200 text-sm font-semibold text-slate-600 hover:border-indigo-300 hover:text-indigo-600 transition-all disabled:opacity-50"
+                                        >
+                                            {textSearch.isLoading ? <Loader2 size={14} className="animate-spin" /> : null}
+                                            {textSearch.isLoading ? 'Loading…' : 'Load more'}
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </section>
                 ) : (
@@ -256,6 +353,7 @@ export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggl
                             isLoading={attractions.isLoading || !attractions.isLoaded}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
+                            onSelect={handleActivitySelect}
                         />
 
                         <DiscoverySection
@@ -265,6 +363,7 @@ export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggl
                             isLoading={restaurants.isLoading || !restaurants.isLoaded}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
+                            onSelect={handleActivitySelect}
                         />
 
                         <DiscoverySection
@@ -274,6 +373,7 @@ export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggl
                             isLoading={events.isLoading || !events.isLoaded}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
+                            onSelect={handleActivitySelect}
                         />
 
                         {/* Prompt suggestions */}
@@ -329,13 +429,42 @@ export const MyTripFeed = ({ trip, onHover, onGenerate, onViewItinerary, onToggl
                 }}
                 onGenerate={() => onGenerate(wantToGoActivities)}
             />
+
+        </div>
+
+            {/* Place detail panel — slides in from the right, anchored to the visible panel */}
+            <AnimatePresence>
+                {selectedPlace && (
+                    <>
+                        <motion.div
+                            className="absolute inset-0 z-10 bg-black/20"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => { setSelectedPlace(null); onFocusPlace?.(null); }}
+                        />
+                        <motion.div
+                            className="absolute inset-y-0 right-0 z-20"
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 30, stiffness: 250 }}
+                        >
+                            <PlaceDetailPanel
+                                place={selectedPlace}
+                                onClose={() => { setSelectedPlace(null); onFocusPlace?.(null); }}
+                            />
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </main>
     );
 };
 
 // ─── Discovery section ─────────────────────────────────────────────────────────
 function DiscoverySection({
-    icon, title, activities, isLoading, isAdded, onToggle,
+    icon, title, activities, isLoading, isAdded, onToggle, onSelect,
 }: {
     icon: React.ReactNode;
     title: string;
@@ -343,7 +472,13 @@ function DiscoverySection({
     isLoading: boolean;
     isAdded: (id: number) => boolean;
     onToggle: (activity: Activity) => void;
+    onSelect: (activity: Activity) => void;
 }) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const scroll = (dir: 'left' | 'right') => {
+        scrollRef.current?.scrollBy({ left: dir === 'left' ? -1040 : 1040, behavior: 'smooth' });
+    };
+
     return (
         <section className="space-y-4">
             <div className="flex justify-between items-center text-zinc-800">
@@ -351,18 +486,26 @@ function DiscoverySection({
                     {icon}
                     <h2 className="text-xl font-bold">{title}</h2>
                 </div>
-                <ChevronRight className="text-zinc-300" />
+                <div className="flex gap-1">
+                    <button onClick={() => scroll('left')} className="p-1 rounded-full hover:bg-zinc-100 transition-colors">
+                        <ChevronLeft size={20} className="text-zinc-400" />
+                    </button>
+                    <button onClick={() => scroll('right')} className="p-1 rounded-full hover:bg-zinc-100 transition-colors">
+                        <ChevronRight size={20} className="text-zinc-400" />
+                    </button>
+                </div>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
+            <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x">
                 {isLoading || activities.length === 0
                     ? <HighlightSkeletons />
                     : activities.map(activity => (
-                        <HighlightActivityCard
-                            key={activity.id}
-                            activity={activity}
-                            isAdded={isAdded(activity.id)}
-                            onToggle={() => onToggle(activity)}
-                        />
+                        <div key={activity.id} onClick={() => onSelect(activity)}>
+                            <HighlightActivityCard
+                                activity={activity}
+                                isAdded={isAdded(activity.id)}
+                                onToggle={() => onToggle(activity)}
+                            />
+                        </div>
                     ))
                 }
             </div>
