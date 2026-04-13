@@ -23,12 +23,13 @@ export interface PlaceSnapshot {
 // Called client-side after Google results arrive.
 // Upserts into the activities table so subsequent searches for the same
 // city hit the DB instead of Google (once DB-first lookup is wired in).
+// Returns the saved Activity rows (with integer IDs) so callers can use them directly.
 export async function shadowSaveActivities(places: PlaceSnapshot[]) {
-  if (!places.length) return;
+  if (!places.length) return [];
 
   console.log(`[ShadowSave] Upserting ${places.length} activities to DB (city: ${places[0]?.city}, category: ${places[0]?.category})`);
 
-  await db
+  const saved = await db
     .insert(activities)
     .values(places)
     .onConflictDoUpdate({
@@ -43,7 +44,9 @@ export async function shadowSaveActivities(places: PlaceSnapshot[]) {
         priceLevel: sql`excluded.price_level`,
         websiteUrl: sql`excluded.website_url`,
       },
-    });
+    })
+    .returning();
 
-  console.log(`[ShadowSave] Done — ${places.length} activities saved/updated`);
+  console.log(`[ShadowSave] Done — ${saved.length} activities saved/updated`);
+  return saved;
 }

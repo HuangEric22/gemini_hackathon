@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react';
-import { Search, MapPin, Loader2 } from 'lucide-react';
+import { Search, MapPin, Loader2, Tag } from 'lucide-react';
 import { usePlacesAutocomplete } from '@/hooks/places-autocomplete';
 import { Place } from '@/shared'
-import { placeholder } from 'drizzle-orm';
+import { ALL_KEYWORDS } from '@/shared/activity-keywords';
 
 interface Props {
   onSearch?: (destination: Place | string) => void;
@@ -12,32 +12,78 @@ interface Props {
   isLoading?: boolean;
   variant?: 'standalone' | 'inline';
   placeholder?: string;
+  mode?: 'locality' | 'activity';
+  locationContext?: { lat: number; lng: number };
+  keywords?: readonly string[];
 }
 
-export function SearchCard({ onSearch, onChange, isLoading = false, variant = 'standalone', placeholder}: Props) {
+export function SearchCard({ onSearch, onChange, isLoading = false, variant = 'standalone', placeholder, mode = 'locality', locationContext, keywords }: Props) {
   const [destination, setDestination] = useState<google.maps.places.AutocompleteSuggestion | null>(null);
   const [inputValue, setInputValue] = useState('');
 
   const [showDropDown, setDropDown] = useState(false);
-  const { searchSuggestions, loading: isFetchingSuggestions, fetchSuggestions, refreshSession } = usePlacesAutocomplete();
+  const { searchSuggestions, loading: isFetchingSuggestions, fetchSuggestions, refreshSession } = usePlacesAutocomplete(
+    mode === 'activity'
+      ? { includedPrimaryTypes: ['establishment'], locationBias: locationContext }
+      : undefined
+  );
 
   const isStandalone = variant === 'standalone';
+  const isInline = variant === 'inline';
+
+  const activeKeywords: string[] = keywords ? [...keywords] : ALL_KEYWORDS;
+  const filteredKeywords = activeKeywords.filter((k: string) =>
+    inputValue.length === 0 || k.toLowerCase().startsWith(inputValue.toLowerCase())
+  );
+  const showKeywordChips = mode === 'activity' && inputValue.length < 2 && showDropDown && filteredKeywords.length > 0;
+  const showPlaceSuggestions = mode !== 'activity' ? (searchSuggestions.length > 0 && inputValue.length > 1 && showDropDown)
+    : (searchSuggestions.length > 0 && inputValue.length >= 2 && showDropDown);
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
     setDropDown(true);
-    fetchSuggestions(value);
+    if (value.length >= 2) fetchSuggestions(value);
     onChange?.(value);
+  };
+
+  const handleKeywordSelect = (keyword: string) => {
+    setInputValue(keyword);
+    setDropDown(false);
+    onChange?.(keyword);
+    if (isInline) onSearch?.(keyword);
   };
 
   const handleSelect = async (suggestion: google.maps.places.AutocompleteSuggestion) => {
     if (!suggestion.placePrediction) return;
-    const name = suggestion.placePrediction.text.toString()
+    const name = suggestion.placePrediction.text.toString();
     setInputValue(name);
     setDestination(suggestion);
     setDropDown(false);
     refreshSession();
-    onChange?.(name)
+    onChange?.(name);
+
+    // Inline: auto-submit immediately on selection
+    if (isInline) {
+      try {
+        const { place } = await suggestion.placePrediction.toPlace().fetchFields({
+          fields: ['location', 'id', 'displayName', 'viewport'],
+        });
+        if (place.location && place.displayName) {
+          onSearch?.({
+            name: place.displayName.toString(),
+            lat: place.location.lat(),
+            lng: place.location.lng(),
+            id: place.id,
+            viewport: place.viewport,
+          });
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching place details:", error);
+      }
+      // Fallback to text if fetchFields fails
+      onSearch?.(name);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,12 +146,15 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
               type="text"
               value={inputValue}
               onChange={(e) => handleInputChange(e.target.value)}
-              placeholder= {placeholder || "e.g. Kyoto, Japan"}
-              className={`"block w-full border-b-2 border-slate-200 bg-transparent text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none transition-colors text-lg" ${
-                isStandalone 
-                  ? "pl-10 pr-3 py-3" 
+              onFocus={() => setDropDown(true)}
+              onBlur={() => setTimeout(() => setDropDown(false), 150)}
+              placeholder={placeholder || "e.g. Kyoto, Japan"}
+              className={`block w-full border-b-2 border-slate-200 bg-transparent text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none transition-colors text-lg ${
+                isStandalone
+                  ? "pl-10 pr-3 py-3"
                   : "px-4 py-2"
-                }`}></input>
+              }`}
+            />
             {isFetchingSuggestions && (
               <div className="absolute inset-y-0 right-3 flex items-center">
                 <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
@@ -113,22 +162,39 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
             )}
           </div>
         </div>
-        {/* SearchCard.tsx inside the relative group div */}
-        {searchSuggestions.length > 0 && inputValue.length > 1 && showDropDown && (
+        {/* Keyword chips — activity mode, short input */}
+        {showKeywordChips && (
+          <ul className="absolute z-50 w-full bg-white border border-slate-200 rounded-xl shadow-2xl mt-1 overflow-hidden">
+            {filteredKeywords.map((keyword) => (
+              <li
+                key={keyword}
+                onMouseDown={(e) => { e.preventDefault(); handleKeywordSelect(keyword); }}
+                className="px-4 py-3 hover:bg-indigo-50 cursor-pointer text-sm text-slate-700 flex items-center gap-2 border-b border-slate-50 last:border-none"
+              >
+                <Tag className="h-4 w-4 text-indigo-400 shrink-0" />
+                {keyword}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Live place suggestions — input length >= 2 */}
+        {showPlaceSuggestions && (
           <ul className="absolute z-50 w-full bg-white border border-slate-200 rounded-xl shadow-2xl mt-1 overflow-hidden">
             {searchSuggestions.map((s, i) => (
               <li
                 key={i}
-                onClick={() => handleSelect(s)}
+                onMouseDown={(e) => { e.preventDefault(); handleSelect(s); }}
                 className="px-4 py-3 hover:bg-indigo-50 cursor-pointer text-sm text-slate-700 flex items-center gap-2 border-b border-slate-50 last:border-none"
               >
-                <MapPin className="h-4 w-3 text-indigo-400" />
+                <MapPin className="h-4 w-4 text-indigo-400 shrink-0" />
                 {s.placePrediction?.text.toString() || ""}
               </li>
             ))}
           </ul>
         )}
-        {/*Submit Button */}
+        {/*Submit Button — standalone only */}
+        {isStandalone && (
           <button
             type="submit"
             disabled={!inputValue || isLoading}
@@ -143,6 +209,7 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
               </>
             )}
           </button>
+        )}
       </form>
 
     </div>

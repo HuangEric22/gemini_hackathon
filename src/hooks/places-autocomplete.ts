@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { LoadPlacesLibrary } from "@/lib/google-maps";
 
-export function usePlacesAutocomplete() {
+interface AutocompleteOptions {
+    includedPrimaryTypes?: string[];
+    locationBias?: { lat: number; lng: number };
+}
+
+export function usePlacesAutocomplete(options?: AutocompleteOptions) {
 
     const [searchSuggestions, setSearchSuggestions] = useState<google.maps.places.AutocompleteSuggestion[]>([]);
     const [loading, setLoading] = useState(false);
@@ -28,8 +33,11 @@ export function usePlacesAutocomplete() {
             const request = {
                 input,
                 sessionToken: sessionToken.current!,
-                includedPrimaryTypes: ['locality'],
+                ...(options?.includedPrimaryTypes
+                    ? { includedPrimaryTypes: options.includedPrimaryTypes }
+                    : { includedPrimaryTypes: ['locality'] }),
                 language: 'en-US',
+                ...(options?.locationBias && { locationBias: options.locationBias }),
             };
 
             // Use aliasing 'suggestions: data' to avoid naming conflicts with state

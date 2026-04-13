@@ -116,7 +116,7 @@ function Section({ title, data, isLoading }: { title: string; data: any[]; isLoa
 
                 {/* Rating Overlay */}
                 {place.rating && (
-                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-bold shadow-sm">
+                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-bold shadow-sm text-gray-500">
                     <Star size={12} className="fill-yellow-400 stroke-yellow-400" />
                     {place.rating}
                   </div>
