@@ -55,7 +55,7 @@ class GenerationRequest(BaseModel):
 class ItineraryGenerator:
     def __init__(self):
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model_id = "gemini-3-flash-preview" # or your preferred version
+        self.model_id = "gemini-3.1-pro-preview" # or your preferred version
 
     def generate(self, req: GenerationRequest):
         prompt = f"""

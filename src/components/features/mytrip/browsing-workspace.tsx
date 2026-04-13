@@ -1,23 +1,27 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { type Trip, Activity } from '@/db/schema'
-import { Map, X, Edit3, Calendar, MapPin, ListPlus, Loader2 } from 'lucide-react';
+import { Map as MapIcon, X, Calendar, MapPin, ListPlus, Loader2 } from 'lucide-react';
 import { SearchCard } from '../search/search-card';
 import { TripActivityCard } from './trip-browsing-card';
 import { MOCK_ACTIVITIES } from '@/db/mock-activities';
 import { OverlayMyList } from './overlay-mytrip';
 import { usePlacesSearch } from '@/hooks/places-search';
-import { Place } from '@/shared';
+import { MapPlace, Place } from '@/shared';
 
 interface TripFeedProps {
     trip: Trip;
     onSearch: (keyword: string) => void;
     onHover: (id: number | null) => void;
     onGenerate: (activities: Activity[]) => void;
-    onViewItinerary: (activities: Activity[])=>void;
+    onViewItinerary: (activities: Activity[]) => void;
+    onPlacesChange: (places: MapPlace[]) => void;
+    focusedPlaceId: string | null;
+    onFocusPlace: (id: string | null) => void;
 }
 
-export const MyTripFeed = ( {trip, onSearch, onHover, onGenerate, onViewItinerary} : TripFeedProps) => {
+export const MyTripFeed = ({ trip, onSearch, onHover, onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace }: TripFeedProps) => {
   const [searching, setSearching] = useState('');
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const placeholderWords = [
     "Sightseeing",
@@ -51,7 +55,8 @@ export const MyTripFeed = ( {trip, onSearch, onHover, onGenerate, onViewItinerar
                     'websiteUri',
                     'photos',
                     'regularOpeningHours',
-                    'editorialSummary'
+                    'editorialSummary',
+                    'reviews',
                 ];
 
   const handleSearchSubmit = async (data: Place | string) => {
@@ -74,6 +79,45 @@ export const MyTripFeed = ( {trip, onSearch, onHover, onGenerate, onViewItinerar
 
     return ()=>clearInterval(interval);
   }, [searching === '']);
+
+  // Emit place locations to parent so the map can show pins
+  useEffect(() => {
+    if (!suggestions.results.length) {
+      onPlacesChange([]);
+      return;
+    }
+    const mapPlaces: MapPlace[] = suggestions.results
+      .filter((p) => p.id && p.location)
+      .map((p) => ({
+        id: p.id!,
+        name: p.displayName ?? '',
+        lat: p.location!.lat(),
+        lng: p.location!.lng(),
+        rating: p.rating ?? null,
+        address: p.formattedAddress ?? null,
+        imageUrl: p.photos?.[0]?.getURI({ maxWidth: 400 }) ?? null,
+        images: p.photos?.slice(0, 8).map(ph => ph.getURI({ maxWidth: 800 })) ?? [],
+        type: p.primaryType ?? null,
+        description: p.editorialSummary ?? null,
+        websiteUrl: p.websiteURI ?? null,
+        openingHoursText: p.regularOpeningHours?.weekdayDescriptions ?? null,
+        reviews: p.reviews?.slice(0, 5).map((r) => ({
+          author: r.authorAttribution?.displayName ?? 'Anonymous',
+          authorPhoto: r.authorAttribution?.photoURI ?? null,
+          rating: r.rating ?? 0,
+          text: r.text ?? '',
+          relativeTime: r.relativePublishTimeDescription ?? '',
+        })) ?? null,
+      }));
+    onPlacesChange(mapPlaces);
+  }, [suggestions.results, onPlacesChange]);
+
+  // Scroll focused card into view when a pin is clicked on the map
+  useEffect(() => {
+    if (!focusedPlaceId) return;
+    const el = cardRefs.current.get(focusedPlaceId);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [focusedPlaceId]);
 
   const displayActivities = useMemo(() => {
     // If we have search results from Google, show those
@@ -121,7 +165,7 @@ export const MyTripFeed = ( {trip, onSearch, onHover, onGenerate, onViewItinerar
                 onClick={() => onViewItinerary(wantToGoActivities)} 
                 className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm"
               >
-                <Map className="w-4 h-4" /> View Itinerary
+                <MapIcon className="w-4 h-4" /> View Itinerary
               </button>
             </div>
           </div>
@@ -154,13 +198,20 @@ export const MyTripFeed = ( {trip, onSearch, onHover, onGenerate, onViewItinerar
               ) : (
                 <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   {displayActivities.map((activity) => (
-                    <TripActivityCard 
-                        key={activity.id}
-                        activity={activity}
+                    <div
+                      key={activity.id}
+                      ref={(el) => { if (el) cardRefs.current.set(String(activity.id), el); }}
+                      className={focusedPlaceId === String(activity.id) ? 'ring-2 ring-indigo-500 rounded-2xl' : ''}
+                    >
+                      <TripActivityCard
+                        tripId={trip.id}
+                        activity={activity as Activity}
                         isAdded={isAdded(activity.id)}
                         onHover={onHover}
-                        onToggle={() => toggleWantToGo(activity)}
-                    />
+                        onToggle={() => toggleWantToGo(activity as Activity)}
+                        onClick={() => onFocusPlace(String(activity.id))}
+                      />
+                    </div>
                   ))}
                 </div>
               )}

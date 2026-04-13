@@ -10,4 +10,6 @@ setOptions({
 }
 
 export const LoadPlacesLibrary = () => importLibrary("places");
+export const LoadMapsLibrary = () => importLibrary("maps");
+export const LoadMarkerLibrary = () => importLibrary("marker");
  

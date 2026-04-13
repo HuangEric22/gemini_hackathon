@@ -58,7 +58,7 @@ export function usePlacesSearch() {
 
             const request: google.maps.places.SearchNearbyRequest = {
                 locationRestriction: getSearchArea(location, viewport),
-                includedTypes: categories,
+                includedPrimaryTypes: categories,
                 maxResultCount: numResults,
                 rankPreference: SearchNearbyRankPreference.POPULARITY,
                 fields: [
@@ -73,6 +73,7 @@ export function usePlacesSearch() {
                     'regularOpeningHours',
                     'priceLevel',
                     'websiteURI',
+                    'reviews',
                 ]
             };
 
