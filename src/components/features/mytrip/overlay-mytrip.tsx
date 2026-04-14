@@ -47,7 +47,13 @@ export const OverlayMyList = ({
                     className="flex gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm transition-all hover:border-indigo-200"
                 >
                     <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 shadow-inner">
-                    <img src={place.imageUrl || ''} className="w-full h-full object-cover" alt={place.name} />
+                    {place.imageUrl ? (
+                      <img src={place.imageUrl} className="w-full h-full object-cover" alt={place.name} />
+                    ) : (
+                      <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                        <MapPin size={24} className="text-slate-300" />
+                      </div>
+                    )}
                     </div>
                     <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-slate-900 truncate">{place.name}</h4>

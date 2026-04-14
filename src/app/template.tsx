@@ -21,12 +21,13 @@ const template = ({ children }: { children: React.ReactNode }) => {
         endDate: '',
         dayCount: 0,
         interests: '',
-        commute: ''
+        commute: '',
+        imageUrl: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [timing, setTiming] = useState<'flexible' | 'dates'>('flexible');
     const [budget, setBudget] = useState<number>(2); // Default to $$
-    const [numDays, setNumDays] = useState<number>(0);
+    const [numDays, setNumDays] = useState<number>(1);
 
     const router = useRouter();
 
@@ -39,7 +40,13 @@ const template = ({ children }: { children: React.ReactNode }) => {
         setIsSubmitting(true);
         try {
             // Call the Server Action
-            const result = await createTripAction({...formData});
+            const result = await createTripAction({
+                ...formData,
+                dayCount: timing === 'flexible' ? numDays : formData.dayCount,
+                budget,
+                startDate: timing === 'dates' ? formData.startDate : undefined,
+                endDate: timing === 'dates' ? formData.endDate : undefined,
+            });
 
             if (result?.error) {
                 console.error("Server returned an error:", result.error);
@@ -110,14 +117,15 @@ const template = ({ children }: { children: React.ReactNode }) => {
                             {/* Destination */}
                             <div className='space-y-2'>
                                 <label className="font-semibold">Destination *</label>
-                                <SearchCard 
+                                <SearchCard
                                     onSearch={(place)=> {
                                         if (typeof place != 'string') {
                                             setFormData({
                                                 ...formData,
                                                 destination: place.name,
                                                 lat: place.lat,
-                                                lng: place.lng
+                                                lng: place.lng,
+                                                imageUrl: place.imageUrl || ''
                                             })
                                         }
                                     }}
@@ -169,11 +177,21 @@ const template = ({ children }: { children: React.ReactNode }) => {
                                     <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                         <div className="space-y-1">
                                             <span className="text-xs text-gray-500 ml-1">From</span>
-                                            <input type="date" className="w-full p-2 border rounded-lg text-sm" />
+                                            <input
+                                                type="date"
+                                                className="w-full p-2 border rounded-lg text-sm"
+                                                value={formData.startDate}
+                                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                            />
                                         </div>
                                         <div className="space-y-1">
                                             <span className="text-xs text-gray-500 ml-1">To</span>
-                                            <input type="date" className="w-full p-2 border rounded-lg text-sm" />
+                                            <input
+                                                type="date"
+                                                className="w-full p-2 border rounded-lg text-sm"
+                                                value={formData.endDate}
+                                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                            />
                                         </div>
                                     </div>
                                 )}

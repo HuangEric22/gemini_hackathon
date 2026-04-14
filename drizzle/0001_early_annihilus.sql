@@ -1,0 +1,1 @@
+ALTER TABLE `trips` ADD `image_url` text;

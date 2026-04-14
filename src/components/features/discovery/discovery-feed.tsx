@@ -161,7 +161,17 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
     console.log(`[DiscoveryFeed] Calling Google Places API for "${location.name}"`);
     const coords = { lat: location.lat, lng: location.lng };
     attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], numSearchResults, location.viewport);
-    restaurants.searchNearby(coords, ['restaurant', 'cafe', 'bakery'], numSearchResults, location.viewport);
+    restaurants.searchNearby(coords, [
+      'restaurant', 'cafe', 'bakery',
+      'chinese_restaurant', 'japanese_restaurant', 'korean_restaurant',
+      'indian_restaurant', 'thai_restaurant', 'vietnamese_restaurant',
+      'italian_restaurant', 'mexican_restaurant', 'american_restaurant',
+      'mediterranean_restaurant', 'french_restaurant', 'asian_restaurant',
+      'seafood_restaurant', 'pizza_restaurant', 'steak_house',
+      'sushi_restaurant', 'ramen_restaurant', 'fast_food_restaurant',
+      'breakfast_restaurant', 'brunch_restaurant', 'hamburger_restaurant',
+      'sandwich_shop', 'ice_cream_shop',
+    ], numSearchResults, location.viewport);
     events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], numSearchResults, location.viewport);
     hotels.searchNearby(coords, ['hotel', 'motel', 'resort_hotel', 'extended_stay_hotel'], numSearchResults, location.viewport);
   }, [location, attractions.isLoaded, restaurants.isLoaded, events.isLoaded, hotels.isLoaded, attractions.searchNearby, restaurants.searchNearby, events.searchNearby, hotels.searchNearby]);

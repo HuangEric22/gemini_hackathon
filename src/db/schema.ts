@@ -25,6 +25,7 @@ export const trips = sqliteTable("trips", {
   interests: text("interests"),
   lastAiPreference: text("last_ai_preference"),
   isItineraryPublished: int("is_published", { mode: 'boolean' }).default(false),
+  imageUrl: text("image_url"),
 
 }, (t) => [
   unique().on(t.tripName, t.destination)
@@ -36,6 +37,7 @@ export const itineraryItems = sqliteTable("itinerary_items", {
   id: int("id").primaryKey({ autoIncrement: true }),
   tripId: int("trip_id").references(() => trips.id, { onDelete: 'cascade' }),
   title: text("title"),
+  description: text("description"),
 
   dayNumber: int("day_number").notNull(),
   startTime: text("start_time"),
@@ -44,7 +46,11 @@ export const itineraryItems = sqliteTable("itinerary_items", {
   commuteInfo: text("commute_info"), // e.g. "15 min bus"
   commuteSeconds: int("commute_seconds"),
 
-  type: text("type"), // "restaurant", "activity", etc.
+  type: text("type"), // "restaurant", "activity", "commute", "alternative", etc.
+  isSuggested: int("is_suggested", { mode: 'boolean' }).default(false),
+  sortOrder: int("sort_order").default(0),
+  lat: real("lat"),
+  lng: real("lng"),
 });
 
 // Mirrors Google Places API period format exactly — no conversion needed on save.

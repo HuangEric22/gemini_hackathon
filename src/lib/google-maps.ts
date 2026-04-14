@@ -4,7 +4,7 @@ if (typeof window !== "undefined") {
 setOptions({
     key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
     v: "weekly",
-    libraries: ["places", "geometry"],
+    libraries: ["places", "geometry", "routes"],
     language: "en"
 })
 }
@@ -12,4 +12,5 @@ setOptions({
 export const LoadPlacesLibrary = () => importLibrary("places");
 export const LoadMapsLibrary = () => importLibrary("maps");
 export const LoadMarkerLibrary = () => importLibrary("marker");
+export const LoadRoutesLibrary = () => importLibrary("routes");
  

@@ -6,23 +6,25 @@ import { type Trip, Activity } from '@/db/schema'
 import { Map as MapIcon, X, Calendar, Loader2, Sparkles, UtensilsCrossed, PartyPopper, Lightbulb, ArrowLeft, ChevronLeft, ChevronRight, ListPlus } from 'lucide-react';
 import { SearchCard } from '../search/search-card';
 import { HighlightActivityCard, HighlightSkeletons } from './highligh-activity-card';
-import { OverlayMyList } from './overlay-mytrip';
+import { DayPlanner, type DayAssignments } from './day-planner';
 import { usePlacesSearch, extractSnapshot } from '@/hooks/places-search';
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities';
-import { MapPlace, Place } from '@/shared';
+import { updateWantToGo } from '@/app/actions/crud-trip';
+import { ItineraryGenerationResponse, MapPlace, Place } from '@/shared';
 import { CATEGORY_KEYWORDS, KeywordCategory, PROMPT_SUGGESTIONS } from '@/shared/activity-keywords';
 import { TripActivityCard } from './trip-activity-card';
 import { PlaceDetailPanel } from '../map/place-detail-panel';
 
 interface TripFeedProps {
     trip: Trip;
+    initialSelections?: Activity[];
     onHover: (id: number | null) => void;
-    onGenerate: (activities: Activity[], preference?: string) => void;
+    onGenerate: (activities: Activity[], preference?: string, dayAssignments?: DayAssignments) => void;
     onViewItinerary: (activities: Activity[]) => void;
-    onToggle?: (activity: Activity) => void;
     onPlacesChange?: (places: MapPlace[]) => void;
     focusedPlaceId?: string | null;
     onFocusPlace?: (id: string | null) => void;
+    currentItinerary?: ItineraryGenerationResponse | null;
 }
 
 const CHIPS: KeywordCategory[] = ['All', 'Outdoor', 'Food', 'Culture', 'Nightlife'];
@@ -38,17 +40,35 @@ const placeholderWords = [
     'Day trips', 'Museums', 'Night markets', 'Hiking trails',
 ];
 
+function getSearchParams(dayCount: number) {
+    if (dayCount <= 1) return { radius: 2000, count: 10 };
+    if (dayCount <= 2) return { radius: 5000, count: 12 };
+    if (dayCount <= 3) return { radius: 8000, count: 15 };
+    if (dayCount <= 5) return { radius: 15000, count: 18 };
+    return { radius: 25000, count: 20 }; // 7+ days
+}
+
 // ─── Main component ────────────────────────────────────────────────────────────
-export const MyTripFeed = ({ trip, onHover: _onHover, onGenerate, onViewItinerary, onToggle, onPlacesChange, focusedPlaceId, onFocusPlace }: TripFeedProps) => {
+export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary }: TripFeedProps) => {
     const [searching, setSearching] = useState('');
     const [wordIndex, setWordIndex] = useState(0);
     const [selectedChip, setSelectedChip] = useState<KeywordCategory>('All');
-    const [wantToGoActivities, setWantToGoActivities] = useState<Activity[]>([]);
+    const [wantToGoActivities, setWantToGoActivities] = useState<Activity[]>(initialSelections);
     const [isListOpen, setIsListOpen] = useState(false);
     const [animateBadge, setAnimateBadge] = useState(false);
     const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
     const mapPlacesRef = useRef<MapPlace[]>([]);
     const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+    // Sync local selections when parent loads from DB
+    useEffect(() => {
+        if (initialSelections.length === 0) return;
+        setWantToGoActivities(prev => {
+            const existingIds = new Set(prev.map(a => a.id));
+            const newOnes = initialSelections.filter(a => !existingIds.has(a.id));
+            return newOnes.length > 0 ? [...prev, ...newOnes] : prev;
+        });
+    }, [initialSelections]);
 
     // DB-backed activity arrays (with integer IDs) for each section
     const [attractionActivities, setAttractionActivities] = useState<Activity[]>([]);
@@ -68,9 +88,20 @@ export const MyTripFeed = ({ trip, onHover: _onHover, onGenerate, onViewItinerar
         if (!attractions.isLoaded || !restaurants.isLoaded || !events.isLoaded) return;
 
         const coords = { lat: trip.lat, lng: trip.lng };
-        attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], 10);
-        restaurants.searchNearby(coords, ['restaurant', 'cafe', 'bakery'], 10);
-        events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], 10);
+        const { radius, count } = getSearchParams(trip.dayCount ?? 1);
+        attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], count, null, radius);
+        restaurants.searchNearby(coords, [
+            'restaurant', 'cafe', 'bakery',
+            'chinese_restaurant', 'japanese_restaurant', 'korean_restaurant',
+            'indian_restaurant', 'thai_restaurant', 'vietnamese_restaurant',
+            'italian_restaurant', 'mexican_restaurant', 'american_restaurant',
+            'mediterranean_restaurant', 'french_restaurant', 'asian_restaurant',
+            'seafood_restaurant', 'pizza_restaurant', 'steak_house',
+            'sushi_restaurant', 'ramen_restaurant', 'fast_food_restaurant',
+            'breakfast_restaurant', 'brunch_restaurant', 'hamburger_restaurant',
+            'sandwich_shop', 'ice_cream_shop',
+        ], count, null, radius);
+        events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], count, null, radius);
     }, [
         trip.lat, trip.lng,
         attractions.isLoaded, restaurants.isLoaded, events.isLoaded,
@@ -214,13 +245,19 @@ export const MyTripFeed = ({ trip, onHover: _onHover, onGenerate, onViewItinerar
     };
 
     const toggleWantToGo = (activity: Activity) => {
-        setWantToGoActivities(prev => {
-            const already = prev.some(a => a.id === activity.id);
-            if (already) return prev.filter(a => a.id !== activity.id);
+        const already = wantToGoActivities.some(a => a.id === activity.id);
+
+        // Update local state (pure updater — no side effects inside)
+        setWantToGoActivities(prev =>
+            already ? prev.filter(a => a.id !== activity.id) : [...prev, activity]
+        );
+
+        // Side effects outside the updater
+        updateWantToGo(trip.id, activity.id, !already);
+        if (!already) {
             setAnimateBadge(true);
             setTimeout(() => setAnimateBadge(false), 300);
-            return [...prev, activity];
-        });
+        }
     };
 
     const isAdded = (id: number) => wantToGoActivities.some(a => a.id === id);
@@ -323,7 +360,7 @@ export const MyTripFeed = ({ trip, onHover: _onHover, onGenerate, onViewItinerar
                                             <TripActivityCard
                                                 activity={activity}
                                                 isAdded={isAdded(activity.id)}
-                                                onToggle={() => onToggle?.(activity)}
+                                                onToggle={() => toggleWantToGo(activity)}
                                             />
                                         </div>
                                     ))}
@@ -419,15 +456,17 @@ export const MyTripFeed = ({ trip, onHover: _onHover, onGenerate, onViewItinerar
                 </button>
             )}
 
-            <OverlayMyList
+            <DayPlanner
                 isOpen={isListOpen}
                 onClose={() => setIsListOpen(false)}
-                addedPlaces={wantToGoActivities}
+                activities={wantToGoActivities}
+                dayCount={trip.dayCount ?? 1}
                 onRemove={(id: number) => {
                     const act = wantToGoActivities.find(a => a.id === id);
                     if (act) toggleWantToGo(act);
                 }}
-                onGenerate={() => onGenerate(wantToGoActivities)}
+                onGenerate={(acts, dayAssignments) => onGenerate(acts, undefined, dayAssignments)}
+                currentItinerary={currentItinerary}
             />
 
         </div>
@@ -453,6 +492,13 @@ export const MyTripFeed = ({ trip, onHover: _onHover, onGenerate, onViewItinerar
                             <PlaceDetailPanel
                                 place={selectedPlace}
                                 onClose={() => { setSelectedPlace(null); onFocusPlace?.(null); }}
+                                isAdded={[...attractionActivities, ...restaurantActivities, ...eventActivities, ...searchActivities]
+                                  .some(a => a.googlePlaceId === selectedPlace.id && isAdded(a.id))}
+                                onToggle={() => {
+                                  const activity = [...attractionActivities, ...restaurantActivities, ...eventActivities, ...searchActivities]
+                                    .find(a => a.googlePlaceId === selectedPlace.id);
+                                  if (activity) toggleWantToGo(activity);
+                                }}
                             />
                         </motion.div>
                     </>

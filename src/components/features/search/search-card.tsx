@@ -66,7 +66,7 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
     if (isInline) {
       try {
         const { place } = await suggestion.placePrediction.toPlace().fetchFields({
-          fields: ['location', 'id', 'displayName', 'viewport'],
+          fields: ['location', 'id', 'displayName', 'viewport', 'photos'],
         });
         if (place.location && place.displayName) {
           onSearch?.({
@@ -75,6 +75,7 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
             lng: place.location.lng(),
             id: place.id,
             viewport: place.viewport,
+            imageUrl: place.photos?.[0]?.getURI({ maxWidth: 800 }),
           });
           return;
         }
@@ -94,8 +95,8 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
     // A specific destination was selected from the dropdown
     if (destination?.placePrediction) {
       try {
-        const { place } = await destination.placePrediction.toPlace().fetchFields({ 
-          fields: ['location', 'id', 'displayName', 'viewport'] 
+        const { place } = await destination.placePrediction.toPlace().fetchFields({
+          fields: ['location', 'id', 'displayName', 'viewport', 'photos']
         });
 
         if (place.location && place.displayName) {
@@ -104,7 +105,8 @@ export function SearchCard({ onSearch, onChange, isLoading = false, variant = 's
             lat: place.location.lat(),
             lng: place.location.lng(),
             id: place.id,
-            viewport: place.viewport
+            viewport: place.viewport,
+            imageUrl: place.photos?.[0]?.getURI({ maxWidth: 800 }),
           };
           onSearch?.(selectedPlace);
           return; // Stop here

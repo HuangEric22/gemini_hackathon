@@ -18,6 +18,7 @@ export async function createTripAction(formData: {
   interests?: string;
   budget?: number;
   commute?: string;
+  imageUrl?: string;
 }) {
 
   console.log("--- 1. Action Started ---", formData.tripName);
@@ -51,6 +52,7 @@ export async function createTripAction(formData: {
       interests: formData.interests,
       budget: formData.budget,
       commute: formData.commute,
+      imageUrl: formData.imageUrl || null,
       status: 'upcoming', // Default for new trips
     }).returning();
 
@@ -87,15 +89,22 @@ export async function saveGeneratedItinerary(tripId: number, itinerary: Itinerar
   // 1. Delete old items for this trip
   await db.delete(itineraryItems).where(eq(itineraryItems.tripId, tripId));
 
-  // 2. Flatten AI JSON into DB rows
-  const itemsToInsert = itinerary.days.flatMap((day) => 
-    day.items.map((item) => ({
+  // 2. Flatten AI JSON into DB rows — save ALL items (commutes, suggestions, alternatives)
+  const itemsToInsert = itinerary.days.flatMap((day) =>
+    day.items.map((item, idx) => ({
       tripId,
       title: item.title,
+      description: item.description ?? null,
       dayNumber: day.day_number,
       startTime: item.start_time,
       endTime: item.end_time,
       type: item.type,
+      commuteInfo: item.commute_info ?? null,
+      commuteSeconds: item.commute_seconds ?? null,
+      isSuggested: item.is_suggested ?? false,
+      sortOrder: idx,
+      lat: item.lat ?? null,
+      lng: item.lng ?? null,
     }))
   );
 
@@ -139,12 +148,33 @@ export async function getItineraryItemsByTripId(tripId: number) {
       .select()
       .from(itineraryItems)
       .where(eq(itineraryItems.tripId, tripId))
-      .orderBy(itineraryItems.dayNumber, itineraryItems.startTime);
+      .orderBy(itineraryItems.dayNumber, itineraryItems.sortOrder);
 
     return items;
   } catch (error) {
     console.error("Error fetching itinerary items:", error);
     return [];
+  }
+}
+
+// delete
+export async function deleteTripAction(tripId: number) {
+  try {
+    await db.delete(trips).where(eq(trips.id, tripId));
+    revalidatePath('/mytrip');
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting trip:", error);
+    return { success: false, error: "Failed to delete trip." };
+  }
+}
+
+export async function saveTripSelections(tripId: number, activityIds: number[]) {
+  await db.delete(tripSelections).where(eq(tripSelections.tripId, tripId));
+  if (activityIds.length > 0) {
+    await db.insert(tripSelections).values(
+      activityIds.map(activityId => ({ tripId, activityId }))
+    ).onConflictDoNothing();
   }
 }
 

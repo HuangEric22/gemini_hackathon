@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Star, MapPin, Globe, Clock, User, Sparkles } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Star, MapPin, Globe, Clock, User, Sparkles, Plus, Check } from 'lucide-react';
 import { MapPlace } from '@/shared';
 import { generatePlaceSummary } from '@/app/actions/generate-place-summary';
 import { getTopMenuItems } from '@/app/actions/get-top-menu-items';
@@ -11,9 +11,11 @@ interface PlaceDetailPanelProps {
   place: MapPlace;
   onClose: () => void;
   variant?: 'panel' | 'card'; // panel = full-height slide-in, card = compact floating
+  isAdded?: boolean;
+  onToggle?: () => void;
 }
 
-export function PlaceDetailPanel({ place, onClose, variant = 'panel' }: PlaceDetailPanelProps) {
+export function PlaceDetailPanel({ place, onClose, variant = 'panel', isAdded, onToggle }: PlaceDetailPanelProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews'>('overview');
@@ -68,7 +70,7 @@ export function PlaceDetailPanel({ place, onClose, variant = 'panel' }: PlaceDet
 
   return (
     <div className={variant === 'panel'
-      ? "h-full w-[560px] bg-white shadow-2xl overflow-hidden flex flex-col"
+      ? "h-full w-[min(420px,40vw)] bg-white shadow-2xl overflow-hidden flex flex-col"
       : "w-80 max-h-[72vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
     }>
 
@@ -301,6 +303,32 @@ export function PlaceDetailPanel({ place, onClose, variant = 'panel' }: PlaceDet
           )
         )}
       </div>
+
+      {/* Add to Trip button */}
+      {onToggle && (
+        <div className="shrink-0 p-4 border-t border-slate-200 bg-white">
+          <button
+            onClick={onToggle}
+            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${
+              isAdded
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md'
+            }`}
+          >
+            {isAdded ? (
+              <>
+                <Check className="w-4 h-4" />
+                Added to Trip
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                Add to Trip
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

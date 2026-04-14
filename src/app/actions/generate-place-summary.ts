@@ -24,7 +24,7 @@ export async function generatePlaceSummary(input: GeneratePlaceSummaryInput): Pr
         .join('\n')
     : 'No reviews available.';
 
-  const prompt = `You are a travel guide writer. Write a concise 2-3 sentence description of the following place for a traveler. Be informative and engaging. Do not start with the place name. Do not use phrases like "This place" or "This establishment".
+  const prompt = `You are a travel guide writer. Write a concise 1-2 sentence description of the following place for a traveler. Be informative and engaging. Do not start with the place name. Do not use phrases like "This place" or "This establishment".
 
 Place: ${input.name}
 Type: ${input.type?.replace(/_/g, ' ') ?? 'unknown'}

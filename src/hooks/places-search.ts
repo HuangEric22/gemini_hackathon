@@ -8,8 +8,9 @@ import type { PlaceSnapshot } from '@/app/actions/shadow-save-activities';
 const _searchCache = new Map<string, { places: google.maps.places.Place[]; expiry: number }>();
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
-function buildCacheKey(lat: number, lng: number, categories: string[]): string {
-  return `${lat.toFixed(3)}_${lng.toFixed(3)}_${[...categories].sort().join(',')}`;
+function buildCacheKey(lat: number, lng: number, categories: string[], radius?: number): string {
+  const base = `${lat.toFixed(3)}_${lng.toFixed(3)}_${[...categories].sort().join(',')}`;
+  return radius ? `${base}_r${radius}` : base;
 }
 
 export function usePlacesSearch() {
@@ -25,8 +26,8 @@ export function usePlacesSearch() {
         });
     }, [])
 
-    const getSearchArea = (location: { lat: number, lng: number }, viewport?: google.maps.LatLngBounds | null) => {
-        const radius = viewport ? calculateRadiusFromViewport(viewport) : 500.0;
+    const getSearchArea = (location: { lat: number, lng: number }, viewport?: google.maps.LatLngBounds | null, radiusOverride?: number) => {
+        const radius = radiusOverride ?? (viewport ? calculateRadiusFromViewport(viewport) : 500.0);
         return {
             center: location,
             radius: radius
@@ -37,12 +38,13 @@ export function usePlacesSearch() {
         location: { lat: number, lng: number },
         categories: string[],
         numResults: number,
-        viewport?: google.maps.LatLngBounds | null) => {
+        viewport?: google.maps.LatLngBounds | null,
+        radius?: number) => {
 
         if (!placesLib.current) return;
 
         // Check in-memory cache before hitting Google
-        const cacheKey = buildCacheKey(location.lat, location.lng, categories);
+        const cacheKey = buildCacheKey(location.lat, location.lng, categories, radius);
         const cached = _searchCache.get(cacheKey);
         if (cached && Date.now() < cached.expiry) {
             console.log(`[PlacesSearch] CACHE HIT — returning ${cached.places.length} results for key: ${cacheKey}`);
@@ -57,7 +59,7 @@ export function usePlacesSearch() {
             const { Place, SearchNearbyRankPreference } = placesLib.current;
 
             const request: google.maps.places.SearchNearbyRequest = {
-                locationRestriction: getSearchArea(location, viewport),
+                locationRestriction: getSearchArea(location, viewport, radius),
                 includedPrimaryTypes: categories,
                 maxResultCount: numResults,
                 rankPreference: SearchNearbyRankPreference.POPULARITY,

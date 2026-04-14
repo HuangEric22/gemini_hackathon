@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import Image from "next/image";
 import { Calendar, MapPin, ChevronRight, Plane } from "lucide-react";
+import { DeleteTripButton } from "@/components/features/mytrip/delete-trip-button";
 
 export default async function MyTripsPage() {
   // 1. Fetch all trips from the database, newest first
@@ -68,8 +69,19 @@ function TripCard({ trip }: { trip: any }) {
     >
       {/* Trip Image / Placeholder */}
       <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-100">
+        {trip.imageUrl ? (
+          <img
+            src={trip.imageUrl}
+            alt={trip.destination}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-100">
             <MapPin className="w-10 h-10 text-indigo-200" />
+          </div>
+        )}
+        <div className="absolute top-4 left-4">
+          <DeleteTripButton tripId={trip.id} />
         </div>
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter text-indigo-600 shadow-sm">
           {trip.status}
