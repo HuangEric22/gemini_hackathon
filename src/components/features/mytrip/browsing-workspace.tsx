@@ -20,6 +20,12 @@ interface TripFeedProps {
     initialSelections?: Activity[];
     onHover: (id: number | null) => void;
     onGenerate: (activities: Activity[], preference?: string, dayAssignments?: DayAssignments) => void;
+    pace?: 'relaxed' | 'moderate' | 'packed';
+    onPaceChange?: (v: 'relaxed' | 'moderate' | 'packed') => void;
+    budget?: 'budget' | 'moderate' | 'luxury';
+    onBudgetChange?: (v: 'budget' | 'moderate' | 'luxury') => void;
+    startTime?: '7:00 AM' | '9:00 AM' | '11:00 AM';
+    onStartTimeChange?: (v: '7:00 AM' | '9:00 AM' | '11:00 AM') => void;
     onViewItinerary: (activities: Activity[]) => void;
     onPlacesChange?: (places: MapPlace[]) => void;
     focusedPlaceId?: string | null;
@@ -49,7 +55,7 @@ function getSearchParams(dayCount: number) {
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
-export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary }: TripFeedProps) => {
+export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary, pace, onPaceChange, budget, onBudgetChange, startTime, onStartTimeChange }: TripFeedProps) => {
     const [searching, setSearching] = useState('');
     const [wordIndex, setWordIndex] = useState(0);
     const [selectedChip, setSelectedChip] = useState<KeywordCategory>('All');
@@ -466,6 +472,9 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
                     if (act) toggleWantToGo(act);
                 }}
                 onGenerate={(acts, dayAssignments) => onGenerate(acts, undefined, dayAssignments)}
+                pace={pace} onPaceChange={onPaceChange}
+                budget={budget} onBudgetChange={onBudgetChange}
+                startTime={startTime} onStartTimeChange={onStartTimeChange}
                 currentItinerary={currentItinerary}
             />
 

@@ -1,18 +1,19 @@
-'use server'
-
 import { GoogleGenAI } from '@google/genai';
 import type { ItineraryGenerationResponse, TravelMatrix } from '@/shared';
 import type { OpeningPeriod } from '@/db/schema';
 import { runPlanningPhase } from '@/lib/gemini-planning-phase';
 import { formatOpeningHours } from '@/lib/trip-planning-tools';
-import { computeRouteMatrixAction } from './compute-route-matrix';
+import { computeRouteMatrixAction } from '@/app/actions/compute-route-matrix';
 
 const MODELS = [
   'gemini-3.1-pro-preview',
   'gemini-2.5-pro',
-  'gemini-3.1-flash-lite-preview',
+  'gemini-2.5-flash',
   'gemini-3-flash-preview',
+  'gemini-3.1-flash-lite-preview',
 ];
+
+// ─── Types (mirrors GenerateItineraryInput in the server action) ──────────────
 
 interface ActivityPick {
   name: string;
@@ -21,28 +22,29 @@ interface ActivityPick {
   category?: string | null;
   googlePlaceId?: string | null;
   openingHours?: OpeningPeriod[] | null;
-  averageDuration?: number | null;  // minutes, from DB
+  averageDuration?: number | null;
 }
 
 interface GenerateItineraryInput {
   activities: ActivityPick[];
   numDays: number;
-  transportMode?: string;          // 'DRIVE' | 'TRANSIT' | 'WALK'
+  transportMode?: string;
   currentItinerary?: ItineraryGenerationResponse | null;
   preference?: string;
-  dayAssignments?: Record<string, string[]>;  // { "day-1": ["Activity A"], "unassigned": ["Activity B"] }
+  dayAssignments?: Record<string, string[]>;
   pace?: 'relaxed' | 'moderate' | 'packed';
   budget?: 'budget' | 'moderate' | 'luxury';
-  startTime?: string;              // e.g. '7:00 AM', '9:00 AM', '11:00 AM'
+  startTime?: string;
 }
+
+// ─── Prompt builder (mirrors generate-itinerary.ts) ──────────────────────────
 
 function buildTravelMatrixBlock(matrix: TravelMatrix, mode: string): string {
   const lines: string[] = [];
   for (const origin of Object.keys(matrix)) {
     for (const dest of Object.keys(matrix[origin])) {
       if (origin === dest) continue;
-      const entry = matrix[origin][dest];
-      lines.push(`  ${origin} → ${dest}: ${entry.duration}`);
+      lines.push(`  ${origin} → ${dest}: ${matrix[origin][dest].duration}`);
     }
   }
   if (lines.length === 0) return '';
@@ -57,8 +59,7 @@ function buildDayAssignmentsBlock(assignments: Record<string, string[]>): string
     if (key === 'unassigned') {
       lines.push(`- Unassigned (place wherever fits best): ${names.join(', ')}`);
     } else {
-      const dayNum = key.replace('day-', '');
-      lines.push(`- Day ${dayNum}: ${names.join(', ')}`);
+      lines.push(`- Day ${key.replace('day-', '')}: ${names.join(', ')}`);
     }
   }
   if (lines.length === 0) return '';
@@ -74,52 +75,23 @@ function buildPrompt(input: GenerateItineraryInput, travelMatrix: TravelMatrix, 
       ...(a.category ? { category: a.category } : {}),
       ...(a.averageDuration ? { typical_visit_min: a.averageDuration } : {}),
     })),
-    null,
-    2,
+    null, 2,
   );
 
-  const modeLabel =
-    input.transportMode === 'TRANSIT' ? 'public transit' :
-    input.transportMode === 'WALK' ? 'walking' : 'driving';
+  const modeLabel = input.transportMode === 'TRANSIT' ? 'public transit' : input.transportMode === 'WALK' ? 'walking' : 'driving';
+  const matrixBlock = Object.keys(travelMatrix).length > 0 ? buildTravelMatrixBlock(travelMatrix, input.transportMode ?? 'DRIVE') : '';
+  const currentBlock = input.currentItinerary ? `\nCurrent Itinerary (refine based on user feedback):\n${JSON.stringify(input.currentItinerary, null, 2)}\n` : '';
+  const preferenceBlock = input.preference ? `\nUser Feedback: "${input.preference}"\n` : '';
+  const dayAssignmentsBlock = input.dayAssignments ? buildDayAssignmentsBlock(input.dayAssignments) : '';
 
-  const matrixBlock = Object.keys(travelMatrix).length > 0
-    ? buildTravelMatrixBlock(travelMatrix, input.transportMode ?? 'DRIVE')
-    : '';
-
-  const currentBlock = input.currentItinerary
-    ? `\nCurrent Itinerary (refine based on user feedback):\n${JSON.stringify(input.currentItinerary, null, 2)}\n`
-    : '';
-
-  const preferenceBlock = input.preference
-    ? `\nUser Feedback: "${input.preference}"\n`
-    : '';
-
-  const dayAssignmentsBlock = input.dayAssignments
-    ? buildDayAssignmentsBlock(input.dayAssignments)
-    : '';
-
-  const hoursLines = input.activities
-    .filter(a => a.openingHours?.length)
-    .map(a => `  ${a.name}: ${formatOpeningHours(a.openingHours!)}`);
-  const hoursBlock = hoursLines.length > 0
-    ? `\nOpening Hours (do NOT schedule outside these windows):\n${hoursLines.join('\n')}\n`
-    : '';
+  const hoursLines = input.activities.filter(a => a.openingHours?.length).map(a => `  ${a.name}: ${formatOpeningHours(a.openingHours!)}`);
+  const hoursBlock = hoursLines.length > 0 ? `\nOpening Hours (do NOT schedule outside these windows):\n${hoursLines.join('\n')}\n` : '';
 
   const hotel = input.activities.find(a => a.category === 'hotel');
-  const hotelBlock = hotel
-    ? `\nHome Base / Hotel: "${hotel.name}" at [${hotel.lat.toFixed(4)}, ${hotel.lng.toFixed(4)}]\nStart and end every day from this hotel. Add a short commute item at the beginning of each day (hotel → first activity) and at the end (last activity → hotel). Do not list the hotel as a standalone activity — only as a commute anchor.\n`
-    : '';
+  const hotelBlock = hotel ? `\nHome Base / Hotel: "${hotel.name}" at [${hotel.lat.toFixed(4)}, ${hotel.lng.toFixed(4)}]\nStart and end every day from this hotel. Add a short commute item at the beginning of each day (hotel → first activity) and at the end (last activity → hotel). Do not list the hotel as a standalone activity — only as a commute anchor.\n` : '';
 
-  const paceDesc = {
-    relaxed: '2–3 activities per day; generous meal breaks; no back-to-back rushing',
-    moderate: '3–4 activities per day; balanced pace with comfortable transitions',
-    packed: '5+ activities per day; tight schedule; maximize sightseeing',
-  };
-  const budgetDesc = {
-    budget: 'prefer free or inexpensive options for AI-suggested gap-fillers (parks, street food, free museums)',
-    moderate: 'mix of free and paid options for suggestions; mid-range restaurants',
-    luxury: 'prioritize premium experiences for suggestions; upscale restaurants and venues',
-  };
+  const paceDesc = { relaxed: '2–3 activities per day; generous meal breaks; no back-to-back rushing', moderate: '3–4 activities per day; balanced pace with comfortable transitions', packed: '5+ activities per day; tight schedule; maximize sightseeing' };
+  const budgetDesc = { budget: 'prefer free or inexpensive options for AI-suggested gap-fillers (parks, street food, free museums)', moderate: 'mix of free and paid options for suggestions; mid-range restaurants', luxury: 'prioritize premium experiences for suggestions; upscale restaurants and venues' };
   const paceBlock = input.pace ? `\nPace: ${input.pace} — ${paceDesc[input.pace]}\n` : '';
   const budgetBlock = input.budget ? `\nBudget: ${input.budget} — ${budgetDesc[input.budget]}\n` : '';
   const startTimeBlock = input.startTime ? `\nDay Start Time: ${input.startTime} — schedule the first activity of each day at or after this time.\n` : '';
@@ -151,7 +123,8 @@ Requirements:
 16. OPENING HOURS: Only schedule user-selected activities within their listed opening hours. Never schedule a venue before it opens or after it closes. If a venue is closed on a particular day, move it to a day when it is open. If no opening hours are provided for an activity, use common sense defaults.${dayAssignmentsBlock ? '\n17. DAY ASSIGNMENTS: Place activities on their user-specified day. Place unassigned activities wherever they fit best geographically and temporally.' : ''}`;
 }
 
-// JSON schema for Gemini structured output
+// ─── Schema (mirrors generate-itinerary.ts) ───────────────────────────────────
+
 const ITINERARY_SCHEMA = {
   type: 'object' as const,
   properties: {
@@ -160,23 +133,23 @@ const ITINERARY_SCHEMA = {
       items: {
         type: 'object' as const,
         properties: {
-          day_number: { type: 'integer' as const },
+          day_number:        { type: 'integer' as const },
           brief_description: { type: 'string' as const },
           items: {
             type: 'array' as const,
             items: {
               type: 'object' as const,
               properties: {
-                title: { type: 'string' as const },
-                description: { type: 'string' as const },
-                start_time: { type: 'string' as const },
-                end_time: { type: 'string' as const },
-                type: { type: 'string' as const },
-                commute_info: { type: 'string' as const },
+                title:           { type: 'string' as const },
+                description:     { type: 'string' as const },
+                start_time:      { type: 'string' as const },
+                end_time:        { type: 'string' as const },
+                type:            { type: 'string' as const },
+                commute_info:    { type: 'string' as const },
                 commute_seconds: { type: 'integer' as const },
-                is_suggested: { type: 'boolean' as const },
-                lat: { type: 'number' as const },
-                lng: { type: 'number' as const },
+                is_suggested:    { type: 'boolean' as const },
+                lat:             { type: 'number' as const },
+                lng:             { type: 'number' as const },
               },
               required: ['title', 'start_time', 'end_time', 'type', 'is_suggested', 'lat', 'lng'],
             },
@@ -189,98 +162,75 @@ const ITINERARY_SCHEMA = {
   required: ['days'],
 };
 
-function isRetryable(err: unknown): boolean {
-  if (!err || typeof err !== 'object') return false;
-  const e = err as { status?: number; message?: string };
-  if (e.status === 503 || e.status === 429) return true;
-  const msg = e.message ?? '';
-  return msg.includes('UNAVAILABLE') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('high demand');
-}
+// ─── Route handler ────────────────────────────────────────────────────────────
 
-const MAX_RETRIES = 2;
-const RETRY_DELAY_MS = 3000;
-
-async function tryAllModels(
-  ai: InstanceType<typeof GoogleGenAI>,
-  prompt: string,
-): Promise<ItineraryGenerationResponse> {
-  let lastError: unknown;
-
-  for (const model of MODELS) {
-    try {
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: ITINERARY_SCHEMA,
-        },
-      });
-
-      const text = response.text ?? '';
-      return JSON.parse(text) as ItineraryGenerationResponse;
-    } catch (err) {
-      if (isRetryable(err)) {
-        lastError = err;
-        continue;
-      }
-      throw err;
-    }
-  }
-
-  throw lastError;
-}
-
-export async function generateItineraryAction(
-  input: GenerateItineraryInput,
-): Promise<ItineraryGenerationResponse> {
+export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY is not set');
+  if (!apiKey) return new Response('GEMINI_API_KEY not set', { status: 500 });
 
-  const ai = new GoogleGenAI({ apiKey });
+  const input: GenerateItineraryInput = await request.json();
+  const encoder = new TextEncoder();
 
-  const mode = (input.transportMode ?? 'DRIVE') as 'DRIVE' | 'TRANSIT' | 'WALK';
+  const stream = new ReadableStream({
+    async start(controller) {
+      const emit = (event: Record<string, unknown>) => {
+        controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));
+      };
 
-  // Phase 1: planning notes + travel matrix run in parallel (independent of each other)
-  console.log('\n━━━ [Phase 1] Planning phase + travel matrix starting in parallel ━━━');
-  console.log(`  Activities (${input.activities.length}):`, input.activities.map(a => a.name).join(', '));
-  console.log(`  Days: ${input.numDays}`);
+      try {
+        const ai = new GoogleGenAI({ apiKey });
+        const mode = (input.transportMode ?? 'DRIVE') as 'DRIVE' | 'TRANSIT' | 'WALK';
 
-  const t0 = Date.now();
-  const [planningNotes, travelMatrix] = await Promise.all([
-    runPlanningPhase(input.activities, input.numDays, apiKey),
-    computeRouteMatrixAction(
-      input.activities.map(a => ({ name: a.name, lat: a.lat, lng: a.lng })),
-      mode,
-    ).catch(err => {
-      console.warn('[generateItinerary] Travel matrix failed, AI will estimate:', err);
-      return {} as TravelMatrix;
-    }),
-  ]);
-  console.log(`  Parallel phase done in ${Date.now() - t0}ms`);
+        // Phase 1 — planning + travel matrix in parallel
+        emit({ type: 'progress', phase: 'planning', message: 'Analyzing your activities...' });
 
-  if (planningNotes) {
-    console.log('\n━━━ [Phase 1] Planning notes ━━━\n', planningNotes);
-  } else {
-    console.log('[Phase 1] No planning notes returned (rate-limited or skipped)');
-  }
+        const [planningNotes, travelMatrix] = await Promise.all([
+          runPlanningPhase(input.activities, input.numDays, apiKey),
+          computeRouteMatrixAction(
+            input.activities.map(a => ({ name: a.name, lat: a.lat, lng: a.lng })),
+            mode,
+          ).catch(() => ({} as TravelMatrix)),
+        ]);
 
-  console.log('\n━━━ [Phase 2] Building structured itinerary ━━━');
-  const prompt = buildPrompt(input, travelMatrix, planningNotes || undefined);
-  console.log('[Phase 2] Prompt length:', prompt.length, 'chars | Planning notes injected:', !!planningNotes);
+        emit({ type: 'progress', phase: 'generating', message: 'Building your itinerary...' });
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      return await tryAllModels(ai, prompt);
-    } catch (err) {
-      if (attempt < MAX_RETRIES && isRetryable(err)) {
-        console.warn(`[generateItinerary] All models busy, retrying in ${RETRY_DELAY_MS}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`);
-        await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
-        continue;
+        // Phase 2 — structured output
+        const prompt = buildPrompt(input, travelMatrix, planningNotes || undefined);
+
+        let itinerary: ItineraryGenerationResponse | null = null;
+        let lastModelError: unknown;
+        for (const model of MODELS) {
+          try {
+            console.log(`[Phase 2] Trying model: ${model}`);
+            const response = await ai.models.generateContent({
+              model,
+              contents: prompt,
+              config: { responseMimeType: 'application/json', responseSchema: ITINERARY_SCHEMA },
+            });
+            itinerary = JSON.parse(response.text ?? '') as ItineraryGenerationResponse;
+            console.log(`[Phase 2] Success with model: ${model}`);
+            break;
+          } catch (err) {
+            lastModelError = err;
+            console.warn(`[Phase 2] Model ${model} failed:`, err);
+            continue;
+          }
+        }
+
+        if (!itinerary) {
+          throw new Error(`All models failed. Last error: ${String(lastModelError)}`);
+        }
+
+        emit({ type: 'complete', data: itinerary });
+      } catch (err) {
+        emit({ type: 'error', message: String(err) });
+      } finally {
+        controller.close();
       }
-      throw err;
-    }
-  }
+    },
+  });
 
-  throw new Error('All Gemini models are currently unavailable. Please try again shortly.');
+  return new Response(stream, {
+    headers: { 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-cache' },
+  });
 }

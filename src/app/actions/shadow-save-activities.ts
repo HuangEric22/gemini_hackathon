@@ -14,10 +14,10 @@ export interface PlaceSnapshot {
   category: string;
   rating: number | null;
   imageUrl: string | null;
-  description: string | null;
-  openingHours: OpeningHours | null;  // Google's period array format
-  priceLevel: string | null;           // Google's string enum e.g. 'MODERATE'
-  websiteUrl: string | null;
+  description?: string | null;
+  openingHours?: OpeningHours | null;  // Google's period array format
+  priceLevel?: string | null;          // Google's string enum e.g. 'MODERATE'
+  websiteUrl?: string | null;
 }
 
 // Called client-side after Google results arrive.

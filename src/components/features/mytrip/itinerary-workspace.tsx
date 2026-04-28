@@ -37,6 +37,8 @@ interface ItineraryProps {
   onBack: () => void;
   onGenerate: (activities: Activity[], preference?: string) => void;
   onRefreshData: () => void;
+  onRegenerateDay?: (dayNumber: number, preference?: string) => void;
+  regeneratingDay?: number | null;
   onRemoveItem?: (dayNumber: number, itemIndex: number) => void;
   onSwapAlternative?: (dayNumber: number, altIndex: number, primaryIndex: number) => void;
   onSave?: () => void;
@@ -45,6 +47,13 @@ interface ItineraryProps {
   onHoverActivity?: (legIndices: number[]) => void;
   onExpandedDaysChange?: (days: number[]) => void;
   isGenerating?: boolean;
+  generatingStatus?: string;
+  pace?: 'relaxed' | 'moderate' | 'packed';
+  onPaceChange?: (v: 'relaxed' | 'moderate' | 'packed') => void;
+  budget?: 'budget' | 'moderate' | 'luxury';
+  onBudgetChange?: (v: 'budget' | 'moderate' | 'luxury') => void;
+  startTime?: '7:00 AM' | '9:00 AM' | '11:00 AM';
+  onStartTimeChange?: (v: '7:00 AM' | '9:00 AM' | '11:00 AM') => void;
   onReorder?: (updated: ItineraryGenerationResponse) => void;
 }
 
@@ -132,6 +141,8 @@ export const ItineraryWorkspace = ({
   onBack,
   onGenerate,
   onRefreshData,
+  onRegenerateDay,
+  regeneratingDay = null,
   onRemoveItem,
   onSwapAlternative,
   onSave,
@@ -140,6 +151,13 @@ export const ItineraryWorkspace = ({
   onHoverActivity,
   onExpandedDaysChange,
   isGenerating = false,
+  generatingStatus = 'Building your itinerary...',
+  pace = 'moderate',
+  onPaceChange,
+  budget = 'moderate',
+  onBudgetChange,
+  startTime = '9:00 AM',
+  onStartTimeChange,
   onReorder,
 }: ItineraryProps) => {
   const [expandedDays, setExpandedDays] = useState<number[]>([1]);
@@ -310,9 +328,43 @@ export const ItineraryWorkspace = ({
         </div>
       </header>
 
-      {/* Regeneration Input Box */}
-      <div className="p-6 bg-white border-b border-slate-200">
-        <div className="max-w-3xl mx-auto relative">
+      {/* Regeneration Input Box + Settings */}
+      <div className="px-6 pt-4 pb-5 bg-white border-b border-slate-200 space-y-3">
+        {/* Settings row */}
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
+          {/* Pace */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wide">Pace</span>
+            {(['relaxed', 'moderate', 'packed'] as const).map(p => (
+              <button key={p} onClick={() => onPaceChange?.(p)}
+                className={`px-2.5 py-1 rounded-full font-semibold capitalize transition-colors ${pace === p ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                {p}
+              </button>
+            ))}
+          </div>
+          {/* Budget */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wide">Budget</span>
+            {(['budget', 'moderate', 'luxury'] as const).map(b => (
+              <button key={b} onClick={() => onBudgetChange?.(b)}
+                className={`px-2.5 py-1 rounded-full font-semibold capitalize transition-colors ${budget === b ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                {b}
+              </button>
+            ))}
+          </div>
+          {/* Start Time */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-400 font-semibold uppercase tracking-wide">Start</span>
+            {(['7:00 AM', '9:00 AM', '11:00 AM'] as const).map(t => (
+              <button key={t} onClick={() => onStartTimeChange?.(t)}
+                className={`px-2.5 py-1 rounded-full font-semibold transition-colors ${startTime === t ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Preference input */}
+        <div className="max-w-3xl relative">
           <input
             type="text"
             value={preference}
@@ -337,7 +389,7 @@ export const ItineraryWorkspace = ({
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-indigo-500 animate-spin" />
             <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-indigo-500" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800">Building your itinerary...</h3>
+          <h3 className="text-lg font-bold text-slate-800">{generatingStatus}</h3>
           <p className="text-sm text-slate-500 mt-2 max-w-xs">
             Our AI is optimizing your schedule based on locations, travel times, and preferences.
           </p>
@@ -385,16 +437,28 @@ export const ItineraryWorkspace = ({
 
             return (
               <div key={dayNum} className="border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-sm">
-                <button
-                  onClick={() => toggleDay(dayNum)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
-                >
-                  <div className="text-left">
-                    <h3 className="font-black text-slate-800">Day {dayNum}</h3>
-                    <p className="text-xs text-slate-400 font-medium italic">{day.brief_description}</p>
-                  </div>
-                  {isExpanded ? <ChevronDown className="w-5 h-5 text-slate-400" /> : <ChevronRight className="w-5 h-5 text-slate-400" />}
-                </button>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => toggleDay(dayNum)}
+                    className="flex-1 flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left"
+                  >
+                    <div>
+                      <h3 className="font-black text-slate-800">Day {dayNum}</h3>
+                      <p className="text-xs text-slate-400 font-medium italic">{day.brief_description}</p>
+                    </div>
+                    {isExpanded ? <ChevronDown className="w-5 h-5 text-slate-400" /> : <ChevronRight className="w-5 h-5 text-slate-400" />}
+                  </button>
+                  {onRegenerateDay && (
+                    <button
+                      onClick={e => { e.stopPropagation(); onRegenerateDay(dayNum, preference || undefined); }}
+                      disabled={regeneratingDay === dayNum || isGenerating}
+                      title="Regenerate this day"
+                      className="mr-3 p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${regeneratingDay === dayNum ? 'animate-spin text-indigo-500' : ''}`} />
+                    </button>
+                  )}
+                </div>
 
                 <AnimatePresence>
                   {isExpanded && (

@@ -1,18 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, useMemo, use } from 'react';
 import { type Trip, Activity, ItineraryItem} from "@/db/schema";
 import { Panel, Group} from 'react-resizable-panels';
+import { AnimatePresence, motion } from 'framer-motion';
 import { MyTripFeed } from '@/components/features/mytrip/browsing-workspace'
 import { ResizeSeparator } from '@/components/layout/resizeable-separator';
 import { MapArea } from '@/components/features/map/map';
+import { PlaceDetailPanel } from '@/components/features/map/place-detail-panel';
 import { getTripById, getTripSelectionsByTripId, getItineraryItemsByTripId, saveGeneratedItinerary, saveTripSelections, updateWantToGo } from '@/app/actions/crud-trip'
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities'
 import { ItineraryWorkspace } from '@/components/features/mytrip/itinerary-workspace'
 import { itineraryService } from '@/hooks/itinerary-generate';
-import { useDistanceMatrix } from '@/hooks/use-distance-matrix';
+import { regenerateDayAction } from '@/app/actions/regenerate-day';
 import { useDirections } from '@/hooks/use-directions';
-import { ItineraryGenerationResponse, ItineraryMapMarker, LegTransport, MapPlace } from '@/shared';
+import { ItineraryGenerationResponse, ItineraryMapMarker, MapPlace } from '@/shared';
 
 function hydrateItinerary(items: ItineraryItem[]): ItineraryGenerationResponse {
   const daysMap: Record<number, any> = {};
@@ -42,7 +44,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const { id } = use(params);
   const [trip, setTrip] = useState<Trip | null>(null);
   const [viewMode, setViewMode] = useState<'browsing' | 'itinerary'>('browsing')
-  const [hoveredActivityId, setHoveredActivityId] = useState<number | null>(null);
+  const [, setHoveredActivityId] = useState<number | null>(null);
   const [focusedPlaceId, setFocusedPlaceId] = useState<string | null>(null);
   const [focusedItineraryMarkerId, setFocusedItineraryMarkerId] = useState<string | null>(null);
   const [highlightedLegIndices, setHighlightedLegIndices] = useState<number[]>([]);
@@ -50,13 +52,19 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [mapPlaces, setMapPlaces] = useState<MapPlace[]>([]);
 
   // Data states
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingStatus, setGeneratingStatus] = useState<string>('Building your itinerary...');
+  const [regeneratingDay, setRegeneratingDay] = useState<number | null>(null);
+  // Trip generation preferences — shared between DayPlanner and ItineraryWorkspace
+  const [pace, setPace] = useState<'relaxed' | 'moderate' | 'packed'>('moderate');
+  const [budget, setBudget] = useState<'budget' | 'moderate' | 'luxury'>('moderate');
+  const [startTime, setStartTime] = useState<'7:00 AM' | '9:00 AM' | '11:00 AM'>('9:00 AM');
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]); // From want-to-go browser
   const [currentItinerary, setCurrentItinerary] = useState<ItineraryGenerationResponse | null>(null); // From DB
+  const [detailPlace, setDetailPlace] = useState<MapPlace | null>(null);
 
   // Transport hooks
-  const { computeMatrix } = useDistanceMatrix();
   const { legTransports, computeRoutes, isComputing: isComputingRoutes } = useDirections();
 
   // Define function to query trip info
@@ -189,7 +197,11 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  const handleGenerate = async (activities: Activity[], preference?: string, dayAssignments?: Record<string, Activity[]>) => {
+  const handleGenerate = async (
+    activities: Activity[],
+    preference?: string,
+    dayAssignments?: Record<string, Activity[]>,
+  ) => {
     if (activities.length === 0) {
       alert("Please select at least one activity before generating.");
       return;
@@ -203,33 +215,26 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       // 0. Persist selections so they survive page reloads
       saveTripSelections(Number(id), activities.map(a => a.id));
 
-      // 1. Pre-compute travel time matrix for the AI prompt
-      let travelMatrix;
-      try {
-        travelMatrix = await computeMatrix(
-          activities.map(a => ({ name: a.name, lat: a.lat, lng: a.lng })),
-          transportMode,
-        );
-      } catch (err) {
-        console.warn('Distance matrix failed, AI will estimate:', err);
-      }
-
-      // 2. Build day assignment hints for the AI
+      // 1. Build day assignment hints for the AI
       const dayAssignmentHints = dayAssignments
         ? Object.fromEntries(
             Object.entries(dayAssignments).map(([key, acts]) => [key, acts.map(a => a.name)])
           )
         : undefined;
 
-      // 3. Generate itinerary via server action
+      // 2. Generate itinerary via server action
+      // (travel matrix + planning phase now run in parallel server-side)
       const result = await itineraryService.generate(
         activities,
         trip?.dayCount || 1,
         currentItinerary,
         preference,
-        travelMatrix,
         transportMode,
         dayAssignmentHints,
+        pace,
+        budget,
+        startTime,
+        (msg) => setGeneratingStatus(msg),
       );
       setCurrentItinerary(result);
       await saveGeneratedItinerary(Number(id), result);
@@ -282,8 +287,35 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
+  const handleRegenerateDay = async (dayNumber: number, preference?: string) => {
+    if (!currentItinerary || !selectedActivities.length) return;
+    setRegeneratingDay(dayNumber);
+    try {
+      const result = await regenerateDayAction({
+        currentItinerary,
+        dayNumber,
+        activities: selectedActivities.map(a => ({
+          name: a.name,
+          lat: a.lat,
+          lng: a.lng,
+          category: a.category ?? null,
+          openingHours: a.openingHours,
+          averageDuration: a.averageDuration,
+        })),
+        transportMode,
+        preference,
+      });
+      setCurrentItinerary(result);
+      await saveGeneratedItinerary(Number(id), result);
+    } catch (err) {
+      console.error('[RegenDay] Failed:', err);
+    } finally {
+      setRegeneratingDay(null);
+    }
+  };
+
   // Build itinerary markers + visible leg indices for the map, filtered by expanded days
-  const { filteredMarkers: itineraryMarkers, visibleLegIndices } = (() => {
+  const { filteredMarkers: itineraryMarkers, visibleLegIndices } = useMemo(() => {
     if (!currentItinerary || viewMode !== 'itinerary') return { filteredMarkers: [] as ItineraryMapMarker[], visibleLegIndices: new Set<number>() };
 
     const findActivity = (title: string) =>
@@ -325,6 +357,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               isSuggested: item.is_suggested === true,
               dayNumber: day.day_number,
               order: globalOrder,
+              googlePlaceId: act?.googlePlaceId ?? null,
+              imageUrl: act?.imageUrl ?? null,
+              description: act?.description ?? item.description ?? null,
             });
           }
         }
@@ -340,7 +375,12 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       if (isVisible && crossDayLegIdx >= 0) visLegs.add(crossDayLegIdx);
     }
     return { filteredMarkers: markers, visibleLegIndices: visLegs };
-  })();
+  }, [currentItinerary, viewMode, visibleDays, selectedActivities]);
+
+  const mapCenter = useMemo(
+    () => ({ lat: trip?.lat ?? 35.6762, lng: trip?.lng ?? 139.6503 }),
+    [trip?.lat, trip?.lng],
+  );
 
   // Track which Google Place IDs are in the selections (for the map "Add to Trip" button)
   const addedPlaceIds = new Set(
@@ -443,41 +483,82 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       <Group orientation="horizontal" className="w-full">
         {/* Left Panel: Discovery Feed */}
         <Panel defaultSize={60} minSize={30}>
-          {trip ? (
-            viewMode === 'browsing' ? (
-              <MyTripFeed
-                trip={trip}
-                initialSelections={selectedActivities}
-                onHover={setHoveredActivityId}
-                onGenerate={handleGenerate}
-                onViewItinerary={handleTransitionToItinerary}
-                onPlacesChange={setMapPlaces}
-                focusedPlaceId={focusedPlaceId}
-                onFocusPlace={setFocusedPlaceId}
-                currentItinerary={currentItinerary}
-              />
-            ) : (
-              <ItineraryWorkspace
-                trip={trip}
-                selections={selectedActivities}
-                currentItinerary={currentItinerary}
-                legTransports={legTransports}
-                isComputingRoutes={isComputingRoutes}
-                onBack={()=>setViewMode('browsing')}
-                onGenerate={handleGenerate}
-                onRefreshData={loadTripData}
-                onRemoveItem={handleRemoveItem}
-                onSwapAlternative={handleSwapAlternative}
-                onSave={handleSave}
-                isSaved={isSaved}
-                onActivityClick={setFocusedItineraryMarkerId}
-                onHoverActivity={setHighlightedLegIndices}
-                onExpandedDaysChange={setVisibleDays}
-                isGenerating={isGenerating}
-                onReorder={handleReorder}
-              />
-            )
-          ) : (<div>Loading feed...</div>)}
+          <div className="relative h-full overflow-hidden">
+            {trip ? (
+              viewMode === 'browsing' ? (
+                <MyTripFeed
+                  trip={trip}
+                  initialSelections={selectedActivities}
+                  onHover={setHoveredActivityId}
+                  onGenerate={handleGenerate}
+                  onViewItinerary={handleTransitionToItinerary}
+                  onPlacesChange={setMapPlaces}
+                  focusedPlaceId={focusedPlaceId}
+                  onFocusPlace={setFocusedPlaceId}
+                  currentItinerary={currentItinerary}
+                  pace={pace} onPaceChange={setPace}
+                  budget={budget} onBudgetChange={setBudget}
+                  startTime={startTime} onStartTimeChange={setStartTime}
+                />
+              ) : (
+                <ItineraryWorkspace
+                  trip={trip}
+                  selections={selectedActivities}
+                  currentItinerary={currentItinerary}
+                  legTransports={legTransports}
+                  isComputingRoutes={isComputingRoutes}
+                  onBack={()=>setViewMode('browsing')}
+                  onGenerate={handleGenerate}
+                  onRefreshData={loadTripData}
+                  onRemoveItem={handleRemoveItem}
+                  onSwapAlternative={handleSwapAlternative}
+                  onSave={handleSave}
+                  isSaved={isSaved}
+                  onActivityClick={setFocusedItineraryMarkerId}
+                  onHoverActivity={setHighlightedLegIndices}
+                  onExpandedDaysChange={setVisibleDays}
+                  isGenerating={isGenerating}
+                  generatingStatus={generatingStatus}
+                  onRegenerateDay={handleRegenerateDay}
+                  regeneratingDay={regeneratingDay}
+                  pace={pace} onPaceChange={setPace}
+                  budget={budget} onBudgetChange={setBudget}
+                  startTime={startTime} onStartTimeChange={setStartTime}
+                  onReorder={handleReorder}
+                />
+              )
+            ) : (<div>Loading feed...</div>)}
+
+            {/* Place detail panel — slides in from the right over the itinerary list */}
+            <AnimatePresence>
+              {detailPlace && (
+                <>
+                  <motion.div
+                    className="absolute inset-0 z-10 bg-black/20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => { setDetailPlace(null); setFocusedItineraryMarkerId(null); }}
+                  />
+                  <motion.div
+                    className="absolute inset-y-0 right-0 z-20"
+                    initial={{ x: '100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '100%' }}
+                    transition={{ type: 'spring', damping: 30, stiffness: 250 }}
+                  >
+                    <PlaceDetailPanel
+                      place={detailPlace}
+                      onClose={() => { setDetailPlace(null); setFocusedItineraryMarkerId(null); }}
+                      variant="panel"
+                      isAdded={addedPlaceIds.has(detailPlace.id)}
+                      onToggle={() => handleMapAddToTrip(detailPlace)}
+                    />
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </Panel>
 
         {/* Resize Handle */}
@@ -486,16 +567,15 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         {/* Right Panel: Map */}
         <Panel defaultSize={40} minSize={20}>
           <MapArea
-            center={{ lat: trip?.lat ?? 35.6762, lng: trip?.lng ?? 139.6503 }}
+            center={mapCenter}
             places={mapPlaces}
             focusedPlaceId={focusedPlaceId}
             onPinClick={setFocusedPlaceId}
             routeLegs={viewMode === 'itinerary' ? legTransports.filter((_, i) => visibleLegIndices.has(i)) : []}
             itineraryMarkers={itineraryMarkers}
-            onAddToTrip={handleMapAddToTrip}
-            addedPlaceIds={addedPlaceIds}
             focusedItineraryMarkerId={focusedItineraryMarkerId}
             highlightedLegIndices={highlightedLegIndices}
+            onPlaceDetail={place => setDetailPlace(place)}
           />
         </Panel>
       </Group>

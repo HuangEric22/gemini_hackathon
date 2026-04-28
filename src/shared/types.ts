@@ -77,6 +77,9 @@ export interface ItineraryMapMarker {
   isSuggested: boolean;
   dayNumber: number;
   order: number; // position within the day for numbering
+  googlePlaceId?: string | null;
+  imageUrl?: string | null;
+  description?: string | null;
 }
 
 // Travel matrix passed to the generation server action

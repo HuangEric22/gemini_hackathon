@@ -1,11 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 import { LoadMapsLibrary, LoadMarkerLibrary, LoadPlacesLibrary } from '@/lib/google-maps';
 import { ItineraryMapMarker, LegTransport, MapPlace } from '@/shared';
 import { LEG_COLORS } from '@/shared/constants';
-import { PlaceDetailPanel } from './place-detail-panel';
 
 interface MapAreaProps {
   center: { lat: number; lng: number };
@@ -14,10 +12,9 @@ interface MapAreaProps {
   onPinClick: (placeId: string) => void;
   routeLegs?: LegTransport[];
   itineraryMarkers?: ItineraryMapMarker[];
-  onAddToTrip?: (place: MapPlace) => void;
-  addedPlaceIds?: Set<string>;
   focusedItineraryMarkerId?: string | null;
   highlightedLegIndices?: number[];
+  onPlaceDetail?: (place: MapPlace | null) => void;
 }
 
 type MarkerEntry = {
@@ -57,13 +54,13 @@ function decodePolyline(encoded: string): { lat: number; lng: number }[] {
   return points;
 }
 
-export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs = [], itineraryMarkers = [], onAddToTrip, addedPlaceIds, focusedItineraryMarkerId, highlightedLegIndices = [] }: MapAreaProps) {
+export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs = [], itineraryMarkers = [], focusedItineraryMarkerId, highlightedLegIndices = [], onPlaceDetail }: MapAreaProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<Map<string, MarkerEntry>>(new Map());
   const itinMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
-  const [poiPlace, setPoiPlace] = useState<MapPlace | null>(null);
+  const routeFingerprintRef = useRef<string>('');
   const showItinerary = itineraryMarkers.length > 0;
 
   // Initialize map once
@@ -82,7 +79,7 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
       // Handle clicks on Google's built-in POI icons
       mapRef.current.addListener('click', async (event: any) => {
         if (!event.placeId) {
-          setPoiPlace(null); // clicked empty space — close card
+          onPlaceDetail?.(null); // clicked empty space — close panel
           return;
         }
         event.stop(); // suppress Google's default info window
@@ -98,7 +95,7 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
             ],
           });
 
-          setPoiPlace({
+          onPlaceDetail?.({
             id: place.id ?? event.placeId,
             name: place.displayName ?? '',
             lat: place.location?.lat() ?? event.latLng?.lat() ?? 0,
@@ -161,12 +158,12 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
         const marker = new AdvancedMarkerElement({
           map: mapRef.current!,
           position: { lat: place.lat, lng: place.lng },
-          content: pin.element,
+          content: pin,
           title: place.name,
         });
 
-        marker.addListener('click', () => {
-          setPoiPlace(null);
+        marker.addListener('gmp-click', () => {
+          onPlaceDetail?.(null);
           onPinClick(place.id);
         });
         markersRef.current.set(place.id, { marker, pin });
@@ -184,10 +181,15 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
 
     if (!mapRef.current || !showItinerary) return;
 
+    // Cancel flag prevents React StrictMode's double-invoke from adding duplicate markers
+    let cancelled = false;
+
     const build = async () => {
       const { AdvancedMarkerElement } = await LoadMarkerLibrary() as google.maps.MarkerLibrary;
+      if (cancelled) return;
 
       for (const item of itineraryMarkers) {
+        if (cancelled) return;
         // Create a custom marker element with a number badge
         const el = document.createElement('div');
         el.style.cssText = `
@@ -203,6 +205,8 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
         `;
         el.textContent = String(item.order);
         el.title = item.title;
+        // Store the marker ID so the highlight effect can match by identity, not array index
+        el.dataset.markerId = item.id;
 
         const marker = new AdvancedMarkerElement({
           map: mapRef.current!,
@@ -218,6 +222,7 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
     build();
 
     return () => {
+      cancelled = true;
       itinMarkersRef.current.forEach(m => (m.map = null));
       itinMarkersRef.current = [];
     };
@@ -272,8 +277,10 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
       polylinesRef.current.push(polyline);
     });
 
-    // Fit map bounds to show all routes + itinerary markers
-    if (polylinesRef.current.length > 0) {
+    // Only fit bounds when the actual set of routes changes, not on every re-render
+    const fingerprint = routeLegs.map(l => `${l.originTitle}→${l.destinationTitle}`).join('|');
+    if (fingerprint !== routeFingerprintRef.current && polylinesRef.current.length > 0) {
+      routeFingerprintRef.current = fingerprint;
       const bounds = new google.maps.LatLngBounds();
       polylinesRef.current.forEach(p => {
         p.getPath().forEach(pt => bounds.extend(pt));
@@ -288,9 +295,22 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
     };
   }, [routeLegs, itineraryMarkers]);
 
-  // Pan to focused itinerary marker + visually highlight it
+  // Pan to focused itinerary marker + visually highlight it + fire detail callback
   useEffect(() => {
-    if (!focusedItineraryMarkerId || !mapRef.current) return;
+    if (!mapRef.current) return;
+
+    // When focus is cleared, reset all markers to normal
+    if (!focusedItineraryMarkerId) {
+      itinMarkersRef.current.forEach(m => {
+        const el = m.content as HTMLElement;
+        if (!el) return;
+        el.style.transform = '';
+        el.style.opacity = '';
+        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+        el.style.zIndex = '';
+      });
+      return;
+    }
 
     const markerData = itineraryMarkers.find(m => m.id === focusedItineraryMarkerId);
     if (!markerData) return;
@@ -298,17 +318,16 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
     mapRef.current.panTo({ lat: markerData.lat, lng: markerData.lng });
     mapRef.current.setZoom(16);
 
-    // Highlight the focused marker, dim others
-    itinMarkersRef.current.forEach((marker, idx) => {
+    // Highlight focused marker, dim others — use data-marker-id for identity, not array index
+    itinMarkersRef.current.forEach((marker) => {
       const el = marker.content as HTMLElement;
       if (!el) return;
-      const item = itineraryMarkers[idx];
-      if (!item) return;
 
-      if (item.id === focusedItineraryMarkerId) {
+      if (el.dataset.markerId === focusedItineraryMarkerId) {
         el.style.transform = 'scale(1.5)';
         el.style.boxShadow = '0 0 12px 4px rgba(79, 70, 229, 0.5)';
         el.style.zIndex = '10';
+        el.style.opacity = '';
       } else {
         el.style.transform = 'scale(0.85)';
         el.style.opacity = '0.5';
@@ -317,19 +336,68 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
       }
     });
 
-    // Reset after 2.5s
-    const timer = setTimeout(() => {
-      itinMarkersRef.current.forEach(marker => {
-        const el = marker.content as HTMLElement;
-        if (!el) return;
-        el.style.transform = '';
-        el.style.opacity = '';
-        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
-        el.style.zIndex = '';
-      });
-    }, 2500);
+    // Fetch place details and surface to parent via onPlaceDetail
+    let cancelled = false;
+    const showDetail = async () => {
+      if (markerData.googlePlaceId) {
+        try {
+          const lib = await LoadPlacesLibrary();
+          const place = new lib.Place({ id: markerData.googlePlaceId });
+          await place.fetchFields({
+            fields: [
+              'id', 'displayName', 'photos', 'formattedAddress', 'location',
+              'rating', 'editorialSummary', 'regularOpeningHours',
+              'websiteURI', 'reviews', 'primaryType',
+            ],
+          });
+          if (cancelled) return;
+          onPlaceDetail?.({
+            id: place.id ?? markerData.googlePlaceId,
+            name: place.displayName ?? markerData.title,
+            lat: place.location?.lat() ?? markerData.lat,
+            lng: place.location?.lng() ?? markerData.lng,
+            rating: place.rating ?? null,
+            address: place.formattedAddress ?? null,
+            imageUrl: place.photos?.[0]?.getURI({ maxWidth: 400 }) ?? markerData.imageUrl ?? null,
+            images: place.photos?.slice(0, 8).map((ph: any) => ph.getURI({ maxWidth: 800 })) ?? [],
+            type: place.primaryType ?? null,
+            description: place.editorialSummary ?? markerData.description ?? null,
+            websiteUrl: place.websiteURI ?? null,
+            openingHoursText: place.regularOpeningHours?.weekdayDescriptions ?? null,
+            reviews: place.reviews?.slice(0, 5).map((r: any) => ({
+              author: r.authorAttribution?.displayName ?? 'Anonymous',
+              authorPhoto: r.authorAttribution?.photoURI ?? null,
+              rating: r.rating ?? 0,
+              text: r.text ?? '',
+              relativeTime: r.relativePublishTimeDescription ?? '',
+            })) ?? null,
+          });
+        } catch {
+          if (cancelled) return;
+          onPlaceDetail?.({
+            id: markerData.id,
+            name: markerData.title,
+            lat: markerData.lat,
+            lng: markerData.lng,
+            imageUrl: markerData.imageUrl ?? null,
+            description: markerData.description ?? null,
+          });
+        }
+      } else {
+        if (cancelled) return;
+        onPlaceDetail?.({
+          id: markerData.id,
+          name: markerData.title,
+          lat: markerData.lat,
+          lng: markerData.lng,
+          imageUrl: markerData.imageUrl ?? null,
+          description: markerData.description ?? null,
+        });
+      }
+    };
+    showDetail();
 
-    return () => clearTimeout(timer);
+    return () => { cancelled = true; };
   }, [focusedItineraryMarkerId, itineraryMarkers]);
 
   // Highlight polylines connected to hovered itinerary card
@@ -357,36 +425,6 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
   return (
     <aside className="relative w-full h-screen hidden lg:block">
       <div ref={containerRef} className="w-full h-full" />
-
-      {/* POI detail panel — slides in from the right, same style as discovery feed */}
-      <AnimatePresence>
-        {poiPlace && (
-          <>
-            <motion.div
-              className="absolute inset-0 z-10 bg-black/20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setPoiPlace(null)}
-            />
-            <motion.div
-              className="absolute inset-y-0 left-0 z-20"
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 250 }}
-            >
-              <PlaceDetailPanel
-                place={poiPlace}
-                onClose={() => setPoiPlace(null)}
-                variant="panel"
-                isAdded={addedPlaceIds?.has(poiPlace.id)}
-                onToggle={onAddToTrip ? () => onAddToTrip(poiPlace) : undefined}
-              />
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </aside>
   );
 }

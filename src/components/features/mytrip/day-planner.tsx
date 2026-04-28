@@ -34,6 +34,12 @@ interface DayPlannerProps {
   dayCount: number;
   onRemove: (id: number) => void;
   onGenerate: (activities: Activity[], dayAssignments?: DayAssignments) => void;
+  pace?: 'relaxed' | 'moderate' | 'packed';
+  onPaceChange?: (v: 'relaxed' | 'moderate' | 'packed') => void;
+  budget?: 'budget' | 'moderate' | 'luxury';
+  onBudgetChange?: (v: 'budget' | 'moderate' | 'luxury') => void;
+  startTime?: '7:00 AM' | '9:00 AM' | '11:00 AM';
+  onStartTimeChange?: (v: '7:00 AM' | '9:00 AM' | '11:00 AM') => void;
   currentItinerary?: ItineraryGenerationResponse | null;
 }
 
@@ -196,6 +202,12 @@ export function DayPlanner({
   dayCount,
   onRemove,
   onGenerate,
+  pace = 'moderate',
+  onPaceChange,
+  budget = 'moderate',
+  onBudgetChange,
+  startTime = '9:00 AM',
+  onStartTimeChange,
   currentItinerary,
 }: DayPlannerProps) {
   // Build columns seeded from saved itinerary (if available)
@@ -430,8 +442,48 @@ export function DayPlanner({
           )}
         </div>
 
-        {/* Footer — Generate button */}
+        {/* Footer — Settings + Generate button */}
         <div className="shrink-0 p-5 border-t border-slate-200 bg-white space-y-3">
+          {/* Trip settings */}
+          <div className="space-y-2">
+            {/* Pace */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400 w-14 shrink-0">Pace</span>
+              <div className="flex gap-1">
+                {(['relaxed', 'moderate', 'packed'] as const).map(p => (
+                  <button key={p} onClick={() => onPaceChange?.(p)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize transition-colors ${pace === p ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Budget */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400 w-14 shrink-0">Budget</span>
+              <div className="flex gap-1">
+                {(['budget', 'moderate', 'luxury'] as const).map(b => (
+                  <button key={b} onClick={() => onBudgetChange?.(b)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize transition-colors ${budget === b ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Start time */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400 w-14 shrink-0">Start</span>
+              <div className="flex gap-1">
+                {(['7:00 AM', '9:00 AM', '11:00 AM'] as const).map(t => (
+                  <button key={t} onClick={() => onStartTimeChange?.(t)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${startTime === t ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-start gap-2 p-3 bg-indigo-50 rounded-lg">
             <Sparkles className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
             <p className="text-xs text-indigo-700">
