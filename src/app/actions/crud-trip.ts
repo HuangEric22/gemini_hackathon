@@ -1,10 +1,11 @@
 'use server'
 
-import { db } from "@/db";
+import { db, ensureDbSchema } from "@/db";
 import { itineraryItems, trips, tripSelections, activities} from "@/db/schema";
 import { revalidatePath } from "next/cache";
 import { and, eq} from "drizzle-orm";
 import { ItineraryGenerationResponse } from "@/shared";
+import { auth } from "@clerk/nextjs/server";
 
 // create
 export async function createTripAction(formData: {
@@ -23,10 +24,10 @@ export async function createTripAction(formData: {
 
   console.log("--- 1. Action Started ---", formData.tripName);
 
-  let newTripId: number | undefined;
-
   // Insert into Database
   try {
+    await ensureDbSchema();
+
     console.log("--- 2. Attempting DB Insert ---");
 
     let dayCount: number | null = null;
@@ -41,6 +42,9 @@ export async function createTripAction(formData: {
       dayCount = formData.dayCount; // from flexible dropdown
     }
 
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "Not signed in." };
+
     const [newTrip] = await db.insert(trips).values({
       tripName: formData.tripName,
       destination: formData.destination,
@@ -53,7 +57,8 @@ export async function createTripAction(formData: {
       budget: formData.budget,
       commute: formData.commute,
       imageUrl: formData.imageUrl || null,
-      status: 'upcoming', // Default for new trips
+      status: 'upcoming',
+      userId,
     }).returning();
 
     console.log("--- 3. DB Insert Successful, ID:", newTrip?.id);
@@ -61,13 +66,17 @@ export async function createTripAction(formData: {
 
     return { success: true, id: newTrip.id };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
 
     console.error("--- 4. Caught Error ---");
-    console.log("Message:", error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const causeMessage =
+      error instanceof Error &&
+      "cause" in error &&
+      error.cause instanceof Error
+        ? error.cause.message
+        : "";
 
-    const errorMessage = error.message || "";
-    const causeMessage = error.cause?.message || "";
     const isDuplicate = errorMessage.includes("UNIQUE") || causeMessage.includes("UNIQUE");
 
 
@@ -116,7 +125,13 @@ export async function saveGeneratedItinerary(tripId: number, itinerary: Itinerar
 // read
 export async function getTripById(tripId: number) {
   try {
-    const result = await db.select().from(trips).where(eq(trips.id, tripId));
+    await ensureDbSchema();
+    const { userId } = await auth();
+    const result = await db.select().from(trips).where(
+      userId
+        ? and(eq(trips.id, tripId), eq(trips.userId, userId))
+        : eq(trips.id, tripId)
+    );
     return result[0] || null;
   } catch (error) {
     console.error("Database error:", error);
@@ -160,7 +175,10 @@ export async function getItineraryItemsByTripId(tripId: number) {
 // delete
 export async function deleteTripAction(tripId: number) {
   try {
-    await db.delete(trips).where(eq(trips.id, tripId));
+    await ensureDbSchema();
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "Not signed in." };
+    await db.delete(trips).where(and(eq(trips.id, tripId), eq(trips.userId, userId)));
     revalidatePath('/mytrip');
     return { success: true };
   } catch (error) {

@@ -1,14 +1,18 @@
-import { db } from "@/db";
-import { trips } from "@/db/schema";
+import { db, ensureDbSchema } from "@/db";
+import { trips, type Trip } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
-import Image from "next/image";
 import { Calendar, MapPin, ChevronRight, Plane } from "lucide-react";
 import { DeleteTripButton } from "@/components/features/mytrip/delete-trip-button";
+import { syncClerkUser } from "@/app/actions/sync-user";
 
 export default async function MyTripsPage() {
-  // 1. Fetch all trips from the database, newest first
-  const allTrips = await db.select().from(trips).orderBy(desc(trips.id));
+  await ensureDbSchema();
+  const user = await syncClerkUser();
+
+  const allTrips = user
+    ? await db.select().from(trips).where(eq(trips.userId, user.clerkId)).orderBy(desc(trips.id))
+    : [];
 
   // 2. Filter into categories
   const upcomingTrips = allTrips.filter((t) => t.status === "upcoming");
@@ -61,7 +65,7 @@ export default async function MyTripsPage() {
   );
 }
 
-function TripCard({ trip }: { trip: any }) {
+function TripCard({ trip }: { trip: Trip }) {
   return (
     <Link 
       href={`/mytrip/${trip.id}`} 

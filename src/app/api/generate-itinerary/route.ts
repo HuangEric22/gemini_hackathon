@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import type { ItineraryGenerationResponse, TravelMatrix } from '@/shared';
+import { auth } from '@clerk/nextjs/server';
 import type { OpeningPeriod } from '@/db/schema';
 import { runPlanningPhase } from '@/lib/gemini-planning-phase';
 import { formatOpeningHours } from '@/lib/trip-planning-tools';
@@ -165,6 +166,9 @@ const ITINERARY_SCHEMA = {
 // ─── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+  if (!userId) return new Response('Unauthorized', { status: 401 });
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return new Response('GEMINI_API_KEY not set', { status: 500 });
 

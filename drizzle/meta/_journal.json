@@ -15,6 +15,20 @@
       "when": 1776142518220,
       "tag": "0001_early_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777369387671,
+      "tag": "0002_nervous_captain_britain",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1777370554146,
+      "tag": "0003_glorious_agent_zero",
+      "breakpoints": true
     }
   ]
 }
