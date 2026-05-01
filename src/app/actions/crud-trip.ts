@@ -7,6 +7,20 @@ import { and, eq} from "drizzle-orm";
 import { ItineraryGenerationResponse } from "@/shared";
 import { auth } from "@clerk/nextjs/server";
 
+async function requireOwnedTrip(tripId: number) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Not signed in.");
+
+  const [trip] = await db
+    .select({ id: trips.id })
+    .from(trips)
+    .where(and(eq(trips.id, tripId), eq(trips.userId, userId)))
+    .limit(1);
+
+  if (!trip) throw new Error("Trip not found or not allowed.");
+  return { userId, tripId: trip.id };
+}
+
 // create
 export async function createTripAction(formData: {
   tripName: string;
@@ -95,6 +109,8 @@ export async function createTripAction(formData: {
 }
 
 export async function saveGeneratedItinerary(tripId: number, itinerary: ItineraryGenerationResponse) {
+  await requireOwnedTrip(tripId);
+
   // 1. Delete old items for this trip
   await db.delete(itineraryItems).where(eq(itineraryItems.tripId, tripId));
 
@@ -126,12 +142,8 @@ export async function saveGeneratedItinerary(tripId: number, itinerary: Itinerar
 export async function getTripById(tripId: number) {
   try {
     await ensureDbSchema();
-    const { userId } = await auth();
-    const result = await db.select().from(trips).where(
-      userId
-        ? and(eq(trips.id, tripId), eq(trips.userId, userId))
-        : eq(trips.id, tripId)
-    );
+    const { userId } = await requireOwnedTrip(tripId);
+    const result = await db.select().from(trips).where(and(eq(trips.id, tripId), eq(trips.userId, userId)));
     return result[0] || null;
   } catch (error) {
     console.error("Database error:", error);
@@ -141,6 +153,8 @@ export async function getTripById(tripId: number) {
 
 export async function getTripSelectionsByTripId(tripId: number) {
   try {
+    await requireOwnedTrip(tripId);
+
     const results = await db
       .select({
         activity: activities,
@@ -159,6 +173,8 @@ export async function getTripSelectionsByTripId(tripId: number) {
 
 export async function getItineraryItemsByTripId(tripId: number) {
   try {
+    await requireOwnedTrip(tripId);
+
     const items = await db
       .select()
       .from(itineraryItems)
@@ -188,6 +204,8 @@ export async function deleteTripAction(tripId: number) {
 }
 
 export async function saveTripSelections(tripId: number, activityIds: number[]) {
+  await requireOwnedTrip(tripId);
+
   await db.delete(tripSelections).where(eq(tripSelections.tripId, tripId));
   if (activityIds.length > 0) {
     await db.insert(tripSelections).values(
@@ -202,6 +220,8 @@ export async function updateWantToGo(tripId: number, activityId: number, isAddin
     console.error("updateWantToGo called with missing IDs", { tripId, activityId });
     return;
   }
+
+  await requireOwnedTrip(tripId);
 
   if (isAdding) {
     await db.insert(tripSelections).values({ tripId, activityId }).onConflictDoNothing();
