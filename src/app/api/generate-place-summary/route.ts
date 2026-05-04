@@ -1,14 +1,25 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest } from 'next/server';
 
+type PlaceSummaryReview = {
+  author?: string;
+  rating?: number;
+  text?: string;
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { name, type, address, reviews } = await req.json();
+    const { name, type, address, reviews } = await req.json() as {
+      name?: string;
+      type?: string;
+      address?: string;
+      reviews?: PlaceSummaryReview[];
+    };
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
     const reviewBlock = reviews?.length
-      ? reviews.slice(0, 3).map((r: any) => `${r.author} (${r.rating}/5): "${r.text}"`).join(' | ')
+      ? reviews.slice(0, 3).map((r) => `${r.author} (${r.rating}/5): "${r.text}"`).join(' | ')
       : '';
 
     const prompt = `Write 1-2 sentences about ${name}${type ? ` (${type.replace(/_/g, ' ')})` : ''}${address ? ` at ${address}` : ''} for a traveler. Be specific and engaging. Don't start with the place name.${reviewBlock ? ` Context from reviews: ${reviewBlock}` : ''} Only write the description.`;

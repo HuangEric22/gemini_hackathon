@@ -1,4 +1,5 @@
 import { Star, MapPin, Check, Plus } from 'lucide-react';
+import Image from 'next/image';
 import { type Activity } from '@/db/schema'
 
 // ─── Photo card (used in discovery horizontal scroll) ─────────────────────────
@@ -13,10 +14,13 @@ export function HighlightActivityCard({ activity, isAdded, onToggle }: Discovery
         <div className="min-w-[240px] group cursor-pointer snap-start shrink-0">
             <div className="relative w-80 h-60 bg-slate-100 rounded-3xl mb-3 overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-[0.98]">
                 {activity.imageUrl ? (
-                    <img
+                    <Image
                         src={activity.imageUrl}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="320px"
+                        className="object-cover"
                         alt={activity.name}
+                        unoptimized
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-300">

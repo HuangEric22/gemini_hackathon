@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Loader2, MapPin, Plus, Sparkles, Star, X } from 'lucide-react';
 import { MapPlace, Place } from '@/shared'
@@ -174,6 +175,7 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
     ], numSearchResults, location.viewport);
     events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], numSearchResults, location.viewport);
     hotels.searchNearby(coords, ['hotel', 'motel', 'resort_hotel', 'extended_stay_hotel'], numSearchResults, location.viewport);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, attractions.isLoaded, restaurants.isLoaded, events.isLoaded, hotels.isLoaded, attractions.searchNearby, restaurants.searchNearby, events.searchNearby, hotels.searchNearby]);
 
   // ── When API results arrive, update state + persist to localStorage ─────────
@@ -189,7 +191,8 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
     setMapPlaces(fresh);
     onPlacesChange(fresh);
     if (location) saveCachedPlaces(location.id, fresh);
-  }, [attractions.results, restaurants.results, events.results, hotels.results]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attractions.results, restaurants.results, events.results, hotels.results]);
 
   // ── Shadow-save to DB ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -371,7 +374,7 @@ function Section({ title, data, isLoading, focusedPlaceId, onFocusPlace }: {
             >
               <div className="relative h-60 bg-slate-100 rounded-3xl mb-3 overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-[0.98]">
                 {place.imageUrl ? (
-                  <img src={place.imageUrl} className="w-full h-full object-cover" alt="" />
+                  <Image src={place.imageUrl} fill sizes="240px" className="object-cover" alt="" unoptimized />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-300">
                     <MapPin size={32} />

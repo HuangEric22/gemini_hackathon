@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Activity } from "@/db/schema";
 import { Check, Clock, Heart, MapPin, Mountain, Plus, Star, Utensils, Landmark, Music, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 // ─── Category tag config ───────────────────────────────────────────────────────
 const CATEGORY_TAG: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
@@ -57,10 +58,13 @@ export function TripActivityCard({ activity, isAdded, onToggle, onHover }: TripA
             {/* ── Image ── */}
             <div className="relative h-44 w-full bg-slate-100 overflow-hidden shrink-0">
                 {activity.imageUrl ? (
-                    <img
+                    <Image
                         src={activity.imageUrl}
                         alt={activity.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        unoptimized
                     />
                 ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-300 bg-slate-50">

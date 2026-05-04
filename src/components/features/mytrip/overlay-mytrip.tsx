@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { X, Trash2, Sparkles, MapPin, ChevronRight, Calendar } from 'lucide-react';
 import { type Activity } from '@/db/schema';
 
@@ -46,9 +47,9 @@ export const OverlayMyList = ({
                     key={place.id} 
                     className="flex gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm transition-all hover:border-indigo-200"
                 >
-                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 shadow-inner">
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 shadow-inner">
                     {place.imageUrl ? (
-                      <img src={place.imageUrl} className="w-full h-full object-cover" alt={place.name} />
+                      <Image src={place.imageUrl} fill sizes="80px" className="object-cover" alt={place.name} unoptimized />
                     ) : (
                       <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                         <MapPin size={24} className="text-slate-300" />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import {
   DndContext,
   DragOverlay,
@@ -81,10 +82,13 @@ function SortableActivityCard({
       </button>
 
       {activity.imageUrl ? (
-        <img
+        <Image
           src={activity.imageUrl}
           alt={activity.name}
-          className="w-10 h-10 rounded-lg object-cover shrink-0"
+          width={40}
+          height={40}
+          className="rounded-lg object-cover shrink-0"
+          unoptimized
         />
       ) : (
         <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
@@ -123,7 +127,7 @@ function DragOverlayCard({ activity }: { activity: Activity }) {
     <div className="flex items-center gap-3 p-3 bg-white rounded-lg border-2 border-indigo-400 shadow-xl">
       <GripVertical className="w-4 h-4 text-indigo-400 shrink-0" />
       {activity.imageUrl ? (
-        <img src={activity.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+        <Image src={activity.imageUrl} alt="" width={40} height={40} className="rounded-lg object-cover shrink-0" unoptimized />
       ) : (
         <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
           <MapPin className="w-4 h-4 text-slate-300" />
@@ -293,7 +297,7 @@ export function DayPlanner({
 
     const activeColumn = findColumn(active.id as number);
     // over.id could be a column ID or an item ID
-    let overColumn = Object.keys(columns).includes(over.id as string)
+    const overColumn = Object.keys(columns).includes(over.id as string)
       ? (over.id as string)
       : findColumn(over.id as number);
 

@@ -49,9 +49,9 @@ vi.mock('@/components/features/map/place-detail-panel', () => ({
 vi.mock('framer-motion', async () => {
   const React = (await import('react')).default;
   return {
-    AnimatePresence: ({ children }: any) => children,
+    AnimatePresence: ({ children }: React.PropsWithChildren) => children,
     motion: {
-      div: ({ children, ...props }: any) => React.createElement('div', props, children),
+      div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => React.createElement('div', props, children),
     },
   };
 });

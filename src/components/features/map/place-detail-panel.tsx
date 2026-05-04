@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Star, MapPin, Globe, Clock, User, Sparkles, Plus, Check } from 'lucide-react';
 import { MapPlace } from '@/shared';
@@ -273,7 +274,7 @@ export function PlaceDetailPanel({ place, onClose, variant = 'panel', isAdded, o
                 <div key={i} className="space-y-2">
                   <div className="flex items-center gap-2">
                     {review.authorPhoto ? (
-                      <img src={review.authorPhoto} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" alt="" />
+                      <Image src={review.authorPhoto} width={32} height={32} referrerPolicy="no-referrer" className="rounded-full object-cover" alt="" unoptimized />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
                         <User size={14} className="text-slate-400" />

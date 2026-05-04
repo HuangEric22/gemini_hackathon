@@ -55,7 +55,7 @@ function getSearchParams(dayCount: number) {
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
-export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary, pace, onPaceChange, budget, onBudgetChange, startTime, onStartTimeChange }: TripFeedProps) => {
+export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary, pace, onPaceChange, budget, onBudgetChange, startTime, onStartTimeChange }: TripFeedProps) => {
     const [searching, setSearching] = useState('');
     const [wordIndex, setWordIndex] = useState(0);
     const [selectedChip, setSelectedChip] = useState<KeywordCategory>('All');
@@ -108,10 +108,12 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
             'sandwich_shop', 'ice_cream_shop',
         ], count, null, radius);
         events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], count, null, radius);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         trip.lat, trip.lng,
         attractions.isLoaded, restaurants.isLoaded, events.isLoaded,
         attractions.searchNearby, restaurants.searchNearby, events.searchNearby,
+        trip.dayCount,
     ]);
 
     // Shadow-save each section → Activity[] with integer IDs for the add button
@@ -120,21 +122,21 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
         shadowSaveActivities(
             attractions.results.map(p => extractSnapshot(p, trip.destination, 'attraction'))
         ).then(setAttractionActivities).catch(console.error);
-    }, [attractions.results]);
+    }, [attractions.results, trip.destination]);
 
     useEffect(() => {
         if (!restaurants.results.length) return;
         shadowSaveActivities(
             restaurants.results.map(p => extractSnapshot(p, trip.destination, 'restaurant'))
         ).then(setRestaurantActivities).catch(console.error);
-    }, [restaurants.results]);
+    }, [restaurants.results, trip.destination]);
 
     useEffect(() => {
         if (!events.results.length) return;
         shadowSaveActivities(
             events.results.map(p => extractSnapshot(p, trip.destination, 'culture'))
         ).then(setEventActivities).catch(console.error);
-    }, [events.results]);
+    }, [events.results, trip.destination]);
 
     // Shadow-save text search results
     useEffect(() => {
@@ -142,7 +144,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
         shadowSaveActivities(
             textSearch.results.map(p => extractSnapshot(p, trip.destination, 'activity'))
         ).then(setSearchActivities).catch(console.error);
-    }, [textSearch.results]);
+    }, [textSearch.results, trip.destination]);
 
     // Emit all discovered places to parent (for map pins)
     useEffect(() => {
@@ -173,7 +175,8 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
             }));
         mapPlacesRef.current = mapPlaces;
         onPlacesChange?.(mapPlaces);
-    }, [attractions.results, restaurants.results, events.results]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [attractions.results, restaurants.results, events.results]);
 
     const handleActivitySelect = (activity: Activity) => {
         const place = mapPlacesRef.current.find(p => p.id === activity.googlePlaceId);
@@ -215,7 +218,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
             setSearchActivities([]);
             textSearch.setResults([]);
         }
-    }, [searching]);
+    }, [searching, textSearch]);
 
     const handleLoadMore = async () => {
         if (trip.lat && trip.lng) {
@@ -346,7 +349,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
                                 <ArrowLeft className="w-4 h-4 text-slate-500" />
                             </button>
                             <h2 className="text-lg font-bold text-slate-800">
-                                Results for <span className="text-indigo-600">"{searching}"</span>
+                                Results for <span className="text-indigo-600">&quot;{searching}&quot;</span>
                                 <span className="text-slate-400 font-normal"> near {trip.destination}</span>
                             </h2>
                         </div>

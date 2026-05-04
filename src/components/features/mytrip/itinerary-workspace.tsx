@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Trip, Activity } from '@/db/schema';
 import {
-  ArrowLeft, Save, RefreshCw, Clock, Trash2, GripVertical,
+  ArrowLeft, Save, RefreshCw, Trash2, GripVertical,
   MapPin, Sparkles, ChevronDown, ChevronRight, X, Lightbulb, Check, ArrowRightLeft
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -121,7 +122,7 @@ function DragOverlayCard({ title, imageUrl }: { title: string; imageUrl: string 
     <div className="flex items-center gap-3 p-3 bg-white rounded-lg border-2 border-indigo-400 shadow-xl max-w-md">
       <GripVertical className="w-4 h-4 text-indigo-400 shrink-0" />
       {imageUrl ? (
-        <img src={imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+        <Image src={imageUrl} alt="" width={40} height={40} className="rounded-lg object-cover shrink-0" unoptimized />
       ) : (
         <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
           <MapPin className="w-4 h-4 text-slate-300" />
@@ -140,7 +141,6 @@ export const ItineraryWorkspace = ({
   isComputingRoutes = false,
   onBack,
   onGenerate,
-  onRefreshData,
   onRegenerateDay,
   regeneratingDay = null,
   onRemoveItem,
@@ -413,13 +413,13 @@ export const ItineraryWorkspace = ({
             const alternatives = day.items.filter(i => i.type === 'alternative');
 
             // Cross-day leg: arriving from previous day's last item to this day's first
-            const crossDayArrivingLegIdx = (dayIndex > 0 && filtered.length > 0) ? globalLegIdx++ : -1;
+            if (dayIndex > 0 && filtered.length > 0) globalLegIdx++;
 
             // Pre-compute order numbers and per-day local order for marker IDs
             const dayItemOrders: number[] = [];
             const dayLocalOrders: number[] = [];
             let localOrder = 0;
-            for (const item of filtered) {
+            for (let i = 0; i < filtered.length; i++) {
               globalOrder++;
               localOrder++;
               dayItemOrders.push(globalOrder);
@@ -545,10 +545,13 @@ export const ItineraryWorkspace = ({
 
                                     {/* Thumbnail */}
                                     {imageUrl ? (
-                                      <img
+                                      <Image
                                         src={imageUrl}
                                         alt={item.title}
-                                        className="w-12 h-12 rounded-lg object-cover shrink-0"
+                                        width={48}
+                                        height={48}
+                                        className="rounded-lg object-cover shrink-0"
+                                        unoptimized
                                       />
                                     ) : (
                                       <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${
