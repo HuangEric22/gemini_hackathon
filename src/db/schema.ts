@@ -1,12 +1,13 @@
 import { InferSelectModel } from "drizzle-orm";
 import { real, int, sqliteTable, text, unique, primaryKey } from "drizzle-orm/sqlite-core";
 
-// User Table
-export const usersTable = sqliteTable("users_table", {
-  id: int().primaryKey({ autoIncrement: true }),
-  name: text().notNull(),
-  age: int().notNull(),
-  email: text().notNull().unique(),
+// User Table (synced from Clerk on sign-in)
+export const users = sqliteTable("users", {
+  id: int("id").primaryKey({ autoIncrement: true }),
+  clerkId: text("clerk_id").notNull().unique(),
+  email: text("email").notNull(),
+  name: text("name"),
+  imageUrl: text("image_url"),
 });
 
 // Trip Table (For the Dashboard cards)
@@ -26,6 +27,7 @@ export const trips = sqliteTable("trips", {
   lastAiPreference: text("last_ai_preference"),
   isItineraryPublished: int("is_published", { mode: 'boolean' }).default(false),
   imageUrl: text("image_url"),
+  userId: text("user_id"),
 
 }, (t) => [
   unique().on(t.tripName, t.destination)
@@ -104,3 +106,4 @@ export const tripSelections = sqliteTable("trip_selections", {
 export type Trip = InferSelectModel<typeof trips>;
 export type Activity = InferSelectModel<typeof activities>;
 export type ItineraryItem = InferSelectModel<typeof itineraryItems>;
+export type User = InferSelectModel<typeof users>;
