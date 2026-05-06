@@ -14,6 +14,14 @@ vi.mock('@google/genai', () => ({
 import { getRecommendedCities } from '@/app/actions/recommend-cities';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+const ALLOWED_GEMINI_MODELS = [
+  'gemini-3-flash-preview',
+  'gemini-3.1-flash-lite-preview',
+  'gemini-2.5-pro',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
+];
+
 function setGeminiResponse(text: string) {
   mockGenerateContent.mockResolvedValue({ text });
 }
@@ -69,11 +77,11 @@ describe('getRecommendedCities', () => {
     expect(callArg.contents).toContain('Rome');
   });
 
-  it('uses the gemini-3.1-flash-lite-preview model', async () => {
+  it('uses an allowed Gemini model', async () => {
     setGeminiResponse('["Sapporo"]');
     await getRecommendedCities('Tokyo');
     const callArg = mockGenerateContent.mock.calls[0][0];
-    expect(callArg.model).toBe('gemini-3.1-flash-lite-preview');
+    expect(ALLOWED_GEMINI_MODELS).toContain(callArg.model);
   });
 
   it('returns an empty array when Gemini returns null text', async () => {

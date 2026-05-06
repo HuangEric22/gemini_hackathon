@@ -106,7 +106,7 @@ describe('PlaceDetailPanel', () => {
 
   it('renders as a full-height panel when variant="panel" (default)', () => {
     const { container } = render(<PlaceDetailPanel place={BASE_PLACE} onClose={vi.fn()} />);
-    expect(container.firstChild).toHaveClass('w-[560px]');
+    expect(container.firstChild).toHaveClass('w-[min(420px,40vw)]');
   });
 
   it('renders the address on the overview tab', () => {

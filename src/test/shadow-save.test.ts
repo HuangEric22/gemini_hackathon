@@ -3,13 +3,14 @@ import type { PlaceSnapshot } from '@/app/actions/shadow-save-activities';
 
 // --------------------------------------------------------------------------
 // vi.hoisted() ensures these spies exist before vi.mock() factories run.
-// The Drizzle call chain is: db.insert().values().onConflictDoUpdate()
+// The Drizzle call chain is: db.insert().values().onConflictDoUpdate().returning()
 // --------------------------------------------------------------------------
-const { mockInsert, mockValues, mockOnConflictDoUpdate } = vi.hoisted(() => {
-  const mockOnConflictDoUpdate = vi.fn().mockResolvedValue(undefined);
+const { mockInsert, mockValues, mockOnConflictDoUpdate, mockReturning } = vi.hoisted(() => {
+  const mockReturning = vi.fn().mockResolvedValue([]);
+  const mockOnConflictDoUpdate = vi.fn().mockReturnValue({ returning: mockReturning });
   const mockValues = vi.fn().mockReturnValue({ onConflictDoUpdate: mockOnConflictDoUpdate });
   const mockInsert = vi.fn().mockReturnValue({ values: mockValues });
-  return { mockInsert, mockValues, mockOnConflictDoUpdate };
+  return { mockInsert, mockValues, mockOnConflictDoUpdate, mockReturning };
 });
 
 vi.mock('@/db', () => ({
@@ -50,6 +51,7 @@ describe('shadowSaveActivities', () => {
     mockInsert.mockClear();
     mockValues.mockClear();
     mockOnConflictDoUpdate.mockClear();
+    mockReturning.mockClear();
   });
 
   it('inserts all provided snapshots into the activities table', async () => {
@@ -70,16 +72,24 @@ describe('shadowSaveActivities', () => {
   it('uses googlePlaceId as the conflict target for upserts', async () => {
     await shadowSaveActivities([makeSnapshot()]);
 
-    const conflictArg = mockOnConflictDoUpdate.mock.calls[0][0];
-    expect(conflictArg.target).toBeDefined();
+    expect(mockOnConflictDoUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: expect.anything(),
+      }),
+    );
   });
 
   it('updates rating and imageUrl on conflict so fresh data wins on re-save', async () => {
     await shadowSaveActivities([makeSnapshot()]);
 
-    const conflictArg = mockOnConflictDoUpdate.mock.calls[0][0];
-    expect(conflictArg.set).toHaveProperty('rating');
-    expect(conflictArg.set).toHaveProperty('imageUrl');
+    expect(mockOnConflictDoUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        set: expect.objectContaining({
+          rating: expect.anything(),
+          imageUrl: expect.anything(),
+        }),
+      }),
+    );
   });
 
   it('handles a single snapshot without throwing', async () => {

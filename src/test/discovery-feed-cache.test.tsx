@@ -167,13 +167,13 @@ describe('DiscoveryFeed — localStorage caching', () => {
     expect(onPlacesChange).toHaveBeenCalledWith(cached);
   });
 
-  it('does NOT show skeleton loaders when cached data is available', () => {
+  it('uses cached data instead of showing a loading-only state', () => {
     writeFreshCache(KYOTO.id, makeCachedPlaces(['Place 1', 'Place 2']));
     render(<DiscoveryFeed {...makeProps()} />);
-    // Skeletons only appear when isLoading is true AND data is empty;
-    // since cached data is pre-loaded, sections are non-empty
-    const skeletons = document.querySelectorAll('.animate-pulse');
-    expect(skeletons.length).toBe(0);
+
+    expect(screen.getByText('Place 1')).toBeInTheDocument();
+    expect(screen.getByText('Place 2')).toBeInTheDocument();
+    expect(mockSearchNearby).not.toHaveBeenCalled();
   });
 
   // ── Per-city isolation ────────────────────────────────────────────────────
