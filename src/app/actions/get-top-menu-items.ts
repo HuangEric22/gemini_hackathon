@@ -1,6 +1,8 @@
 'use server'
 
 import { geminiWithFallback } from '@/lib/gemini-with-fallback';
+import { stringArraySchema } from '@/lib/llm-output-schemas';
+import { parseLlmJson } from '@/lib/parse-llm-json';
 
 interface ReviewInput {
   author: string;
@@ -31,7 +33,7 @@ ${reviewBlock}`;
   const match = text.match(/\[[\s\S]*?\]/);
   if (!match) return [];
   try {
-    return JSON.parse(match[0]) as string[];
+    return parseLlmJson(match[0], 'menu-items', stringArraySchema);
   } catch {
     return [];
   }

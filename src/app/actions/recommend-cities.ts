@@ -1,6 +1,8 @@
 'use server'
 
 import { GoogleGenAI } from "@google/genai";
+import { stringArraySchema } from "@/lib/llm-output-schemas";
+import { parseLlmJson } from "@/lib/parse-llm-json";
 
 // Returns a short list of cities a traveler visiting `currentCity` might also enjoy.
 export async function getRecommendedCities(currentCity: string): Promise<string[]> {
@@ -17,7 +19,7 @@ export async function getRecommendedCities(currentCity: string): Promise<string[
 
     const text = response.text ?? "";
     const match = text.match(/\[[\s\S]*?\]/);
-    if (match) return JSON.parse(match[0]) as string[];
+    if (match) return parseLlmJson(match[0], "recommend-cities", stringArraySchema);
   } catch (err) {
     console.error("Gemini recommendation error:", err);
   }

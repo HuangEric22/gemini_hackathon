@@ -3,6 +3,8 @@ import type { ItineraryGenerationResponse, TravelMatrix } from '@/shared';
 import { auth } from '@clerk/nextjs/server';
 import type { OpeningPeriod } from '@/db/schema';
 import { runPlanningPhase } from '@/lib/gemini-planning-phase';
+import { itineraryGenerationResponseSchema } from '@/lib/llm-output-schemas';
+import { parseLlmJson } from '@/lib/parse-llm-json';
 import { formatOpeningHours } from '@/lib/trip-planning-tools';
 import { computeRouteMatrixAction } from '@/app/actions/compute-route-matrix';
 
@@ -211,7 +213,7 @@ export async function POST(request: Request) {
               contents: prompt,
               config: { responseMimeType: 'application/json', responseSchema: ITINERARY_SCHEMA },
             });
-            itinerary = JSON.parse(response.text ?? '') as ItineraryGenerationResponse;
+            itinerary = parseLlmJson(response.text, model, itineraryGenerationResponseSchema);
             console.log(`[Phase 2] Success with model: ${model}`);
             break;
           } catch (err) {

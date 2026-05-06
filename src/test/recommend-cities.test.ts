@@ -89,4 +89,10 @@ describe('getRecommendedCities', () => {
     const result = await getRecommendedCities('Seoul');
     expect(result).toEqual([]);
   });
+
+  it('returns an empty array when Gemini returns a non-string array', async () => {
+    mockGenerateContent.mockResolvedValue({ text: '[123, true]' });
+    const result = await getRecommendedCities('Seoul');
+    expect(result).toEqual([]);
+  });
 });

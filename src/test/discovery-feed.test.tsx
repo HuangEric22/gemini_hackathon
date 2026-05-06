@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { DiscoveryFeed } from './discovery-feed';
+import { DiscoveryFeed } from '@/components/features/discovery/discovery-feed';
 
 vi.mock('@/hooks/places-search', () => ({
   usePlacesSearch: () => ({

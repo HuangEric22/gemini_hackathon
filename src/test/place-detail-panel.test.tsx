@@ -34,7 +34,7 @@ vi.mock('framer-motion', async () => {
 });
 
 // ── Import after mocks ────────────────────────────────────────────────────────
-import { PlaceDetailPanel } from './place-detail-panel';
+import { PlaceDetailPanel } from '@/components/features/map/place-detail-panel';
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 const BASE_PLACE: MapPlace = {
