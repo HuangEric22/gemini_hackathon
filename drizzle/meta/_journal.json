@@ -29,6 +29,13 @@
       "when": 1777370554146,
       "tag": "0003_glorious_agent_zero",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1777370554147,
+      "tag": "0004_scope_trip_uniqueness_to_user",
+      "breakpoints": true
     }
   ]
 }

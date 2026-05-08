@@ -87,6 +87,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
     const restaurants = usePlacesSearch();
     const events = usePlacesSearch();
     const textSearch = usePlacesSearch();
+    const { setResults: setTextSearchResults } = textSearch;
 
     // Trigger nearby searches once all hooks are ready
     useEffect(() => {
@@ -216,9 +217,9 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         setHasLoadedMore(false);
         if (!searching) {
             setSearchActivities([]);
-            textSearch.setResults([]);
+            setTextSearchResults([]);
         }
-    }, [searching, textSearch]);
+    }, [searching, setTextSearchResults]);
 
     const handleLoadMore = async () => {
         if (trip.lat && trip.lng) {

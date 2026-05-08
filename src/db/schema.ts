@@ -30,7 +30,7 @@ export const trips = sqliteTable("trips", {
   userId: text("user_id"),
 
 }, (t) => [
-  unique().on(t.tripName, t.destination)
+  unique("trips_user_trip_name_destination_unique").on(t.userId, t.tripName, t.destination)
 ]);
 
 

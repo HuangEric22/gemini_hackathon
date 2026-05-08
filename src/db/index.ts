@@ -36,6 +36,11 @@ async function initSchema() {
       if (!(e instanceof Error && e.message.includes('duplicate column name'))) throw e;
     });
   }
+
+  await client.execute("DROP INDEX IF EXISTS `trips_trip_name_destination_unique`");
+  await client.execute(
+    "CREATE UNIQUE INDEX IF NOT EXISTS `trips_user_trip_name_destination_unique` ON `trips` (`user_id`, `trip_name`, `destination`)"
+  );
 }
 
 const schemaReadyPromise = initSchema();
