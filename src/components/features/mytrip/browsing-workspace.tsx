@@ -10,6 +10,7 @@ import { DayPlanner, type DayAssignments } from './day-planner';
 import { usePlacesSearch, extractSnapshot } from '@/hooks/places-search';
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities';
 import { updateWantToGo } from '@/app/actions/crud-trip';
+import { searchTextPlaces } from '@/app/actions/search-text-places';
 import { ItineraryGenerationResponse, MapPlace, Place } from '@/shared';
 import { CATEGORY_KEYWORDS, KeywordCategory, PROMPT_SUGGESTIONS } from '@/shared/activity-keywords';
 import { TripActivityCard } from './trip-activity-card';
@@ -34,12 +35,8 @@ interface TripFeedProps {
 }
 
 const CHIPS: KeywordCategory[] = ['All', 'Outdoor', 'Food', 'Culture', 'Nightlife'];
-
-const SEARCH_FIELDS = [
-    'id', 'displayName', 'location', 'formattedAddress',
-    'types', 'rating', 'priceLevel', 'websiteURI',
-    'photos', 'regularOpeningHours', 'editorialSummary',
-];
+const SEARCH_PAGE_SIZE = 10;
+const SEARCH_RESULT_LIMIT = 100;
 
 const placeholderWords = [
     'Photo spots', 'Local food', 'Sunset views', 'Hidden gems',
@@ -54,9 +51,21 @@ function getSearchParams(dayCount: number) {
     return { radius: 25000, count: 20 }; // 7+ days
 }
 
+function mergeUniqueActivities(existing: Activity[], incoming: Activity[]) {
+    const seen = new Set(existing.map(activity => activity.googlePlaceId ?? `id:${activity.id}`));
+    const uniqueIncoming = incoming.filter(activity => {
+        const key = activity.googlePlaceId ?? `id:${activity.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    return [...existing, ...uniqueIncoming];
+}
+
 // ─── Main component ────────────────────────────────────────────────────────────
 export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary, pace, onPaceChange, budget, onBudgetChange, startTime, onStartTimeChange }: TripFeedProps) => {
     const [searching, setSearching] = useState('');
+    const [activeSearchQuery, setActiveSearchQuery] = useState('');
     const [wordIndex, setWordIndex] = useState(0);
     const [selectedChip, setSelectedChip] = useState<KeywordCategory>('All');
     const [wantToGoActivities, setWantToGoActivities] = useState<Activity[]>(initialSelections);
@@ -81,13 +90,13 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
     const [restaurantActivities, setRestaurantActivities] = useState<Activity[]>([]);
     const [eventActivities, setEventActivities] = useState<Activity[]>([]);
     const [searchActivities, setSearchActivities] = useState<Activity[]>([]);
-    const [hasLoadedMore, setHasLoadedMore] = useState(false);
+    const [searchNextPageToken, setSearchNextPageToken] = useState<string | null>(null);
+    const [isSearchingText, setIsSearchingText] = useState(false);
+    const [isLoadingMoreSearch, setIsLoadingMoreSearch] = useState(false);
 
     const attractions = usePlacesSearch();
     const restaurants = usePlacesSearch();
     const events = usePlacesSearch();
-    const textSearch = usePlacesSearch();
-    const { setResults: setTextSearchResults } = textSearch;
 
     // Trigger nearby searches once all hooks are ready
     useEffect(() => {
@@ -138,14 +147,6 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
             events.results.map(p => extractSnapshot(p, trip.destination, 'culture'))
         ).then(setEventActivities).catch(console.error);
     }, [events.results, trip.destination]);
-
-    // Shadow-save text search results
-    useEffect(() => {
-        if (!textSearch.results.length) return;
-        shadowSaveActivities(
-            textSearch.results.map(p => extractSnapshot(p, trip.destination, 'activity'))
-        ).then(setSearchActivities).catch(console.error);
-    }, [textSearch.results, trip.destination]);
 
     // Emit all discovered places to parent (for map pins)
     useEffect(() => {
@@ -212,19 +213,42 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, [focusedPlaceId]);
 
-    // Clear search when input emptied; reset load-more when keyword changes
+    // Clear search when input emptied
     useEffect(() => {
-        setHasLoadedMore(false);
         if (!searching) {
             setSearchActivities([]);
-            setTextSearchResults([]);
+            setSearchNextPageToken(null);
+            setActiveSearchQuery('');
         }
-    }, [searching, setTextSearchResults]);
+    }, [searching]);
+
+    const handleSearchInputChange = (value: string) => {
+        setSearching(value);
+        if (value !== activeSearchQuery) {
+            setSearchActivities([]);
+            setSearchNextPageToken(null);
+        }
+    };
 
     const handleLoadMore = async () => {
-        if (trip.lat && trip.lng) {
-            await textSearch.searchByText(searching, SEARCH_FIELDS, { lat: trip.lat, lng: trip.lng }, 20);
-            setHasLoadedMore(true);
+        const remainingResults = SEARCH_RESULT_LIMIT - searchActivities.length;
+        if (!trip.lat || !trip.lng || !searchNextPageToken || isLoadingMoreSearch || remainingResults <= 0) return;
+        setIsLoadingMoreSearch(true);
+        try {
+            const { activities, nextPageToken } = await searchTextPlaces({
+                query: activeSearchQuery,
+                location: { lat: trip.lat, lng: trip.lng },
+                city: trip.destination,
+                pageToken: searchNextPageToken,
+                pageSize: Math.min(SEARCH_PAGE_SIZE, remainingResults),
+            });
+            const nextActivities = mergeUniqueActivities(searchActivities, activities).slice(0, SEARCH_RESULT_LIMIT);
+            setSearchActivities(nextActivities);
+            setSearchNextPageToken(nextActivities.length >= SEARCH_RESULT_LIMIT ? null : nextPageToken);
+        } catch (error) {
+            console.error('Load more text search error:', error);
+        } finally {
+            setIsLoadingMoreSearch(false);
         }
     };
 
@@ -240,8 +264,28 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
     const handleSearchSubmit = async (data: Place | string) => {
         const keyword = typeof data === 'string' ? data : data.name;
         setSearching(keyword);
+        setActiveSearchQuery(keyword);
+        setSearchActivities([]);
+        setSearchNextPageToken(null);
         if (trip.lat && trip.lng) {
-            await textSearch.searchByText(keyword, SEARCH_FIELDS, { lat: trip.lat, lng: trip.lng }, 10);
+            setIsSearchingText(true);
+            try {
+                const { activities, nextPageToken } = await searchTextPlaces({
+                    query: keyword,
+                    location: { lat: trip.lat, lng: trip.lng },
+                    city: trip.destination,
+                    pageSize: SEARCH_PAGE_SIZE,
+                });
+                const limitedActivities = activities.slice(0, SEARCH_RESULT_LIMIT);
+                setSearchActivities(limitedActivities);
+                setSearchNextPageToken(limitedActivities.length >= SEARCH_RESULT_LIMIT ? null : nextPageToken);
+            } catch (error) {
+                console.error('Text search error:', error);
+                setSearchActivities([]);
+                setSearchNextPageToken(null);
+            } finally {
+                setIsSearchingText(false);
+            }
         }
     };
 
@@ -271,7 +315,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
     };
 
     const isAdded = (id: number) => wantToGoActivities.some(a => a.id === id);
-    const isSearchLoading = searching !== '' && (textSearch.isLoading || searchActivities.length === 0);
+    const isSearchLoading = searching !== '' && isSearchingText;
     const prompts = PROMPT_SUGGESTIONS(trip.dayCount ?? 3);
 
     return (
@@ -311,7 +355,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
 
                 <SearchCard
                     onSearch={handleSearchSubmit}
-                    onChange={setSearching}
+                    onChange={handleSearchInputChange}
                     variant="inline"
                     mode="activity"
                     locationContext={trip.lat && trip.lng ? { lat: trip.lat, lng: trip.lng } : undefined}
@@ -375,15 +419,15 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                                         </div>
                                     ))}
                                 </div>
-                                {!hasLoadedMore && (
+                                {searchNextPageToken && (
                                     <div className="flex justify-center pt-2">
                                         <button
                                             onClick={handleLoadMore}
-                                            disabled={textSearch.isLoading}
+                                            disabled={isLoadingMoreSearch}
                                             className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-slate-200 text-sm font-semibold text-slate-600 hover:border-indigo-300 hover:text-indigo-600 transition-all disabled:opacity-50"
                                         >
-                                            {textSearch.isLoading ? <Loader2 size={14} className="animate-spin" /> : null}
-                                            {textSearch.isLoading ? 'Loading…' : 'Load more'}
+                                            {isLoadingMoreSearch ? <Loader2 size={14} className="animate-spin" /> : null}
+                                            {isLoadingMoreSearch ? 'Loading…' : 'Load more'}
                                         </button>
                                     </div>
                                 )}
