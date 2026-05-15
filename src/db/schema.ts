@@ -94,6 +94,7 @@ export const activities = sqliteTable("activities", {
   priceLevel: text("price_level"), // Google PriceLevel string: 'FREE' | 'INEXPENSIVE' | 'MODERATE' | 'EXPENSIVE' | 'VERY_EXPENSIVE'
   websiteUrl: text("website_url"),
   imageUrl: text("image_url"),
+  userRatingCount: int("user_rating_count"),
 });
 
 export const tripSelections = sqliteTable("trip_selections", {

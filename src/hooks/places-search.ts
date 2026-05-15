@@ -75,6 +75,7 @@ export function usePlacesSearch() {
                     'regularOpeningHours',
                     'priceLevel',
                     'websiteURI',
+                    'userRatingCount',
                     'reviews',
                 ]
             };
@@ -158,5 +159,6 @@ export function extractSnapshot(
         })) ?? null,
         priceLevel: p.priceLevel ?? null,
         websiteUrl: p.websiteURI ?? null,
+        userRatingCount: p.userRatingCount ?? null,
     };
 }

@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "781da9b1-23e0-48c7-969b-75c51610cc2d",
-  "prevId": "8a6a06d4-516f-4cca-9f7a-8d73c0da7867",
+  "id": "3e1c45db-7dc9-493e-97a6-e28399478aed",
+  "prevId": "781da9b1-23e0-48c7-969b-75c51610cc2d",
   "tables": {
     "activities": {
       "name": "activities",
@@ -109,6 +109,13 @@
         "image_url": {
           "name": "image_url",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_rating_count": {
+          "name": "user_rating_count",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

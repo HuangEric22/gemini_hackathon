@@ -13,6 +13,7 @@ export const TEXT_SEARCH_FIELD_MASK = [
   'places.websiteUri',
   'places.photos',
   'places.editorialSummary',
+  'places.userRatingCount',
   'nextPageToken',
 ].join(',');
 
@@ -26,6 +27,7 @@ export interface RestTextSearchPlace {
   websiteUri?: string;
   photos?: { name?: string }[];
   editorialSummary?: { text?: string };
+  userRatingCount?: number;
 }
 
 export interface RestTextSearchResponse {
@@ -63,5 +65,6 @@ export function mapRestPlaceToSnapshot(
     openingHours: null,
     priceLevel: place.priceLevel ?? null,
     websiteUrl: place.websiteUri ?? null,
+    userRatingCount: place.userRatingCount ?? null,
   };
 }

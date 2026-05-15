@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
 import { type Trip, Activity } from '@/db/schema'
 import { Map as MapIcon, X, Calendar, Loader2, Sparkles, UtensilsCrossed, PartyPopper, Lightbulb, ArrowLeft, ChevronLeft, ChevronRight, ListPlus } from 'lucide-react';
@@ -15,6 +15,7 @@ import { ItineraryGenerationResponse, MapPlace, Place } from '@/shared';
 import { CATEGORY_KEYWORDS, KeywordCategory, PROMPT_SUGGESTIONS } from '@/shared/activity-keywords';
 import { TripActivityCard } from './trip-activity-card';
 import { PlaceDetailPanel } from '../map/place-detail-panel';
+import { getDistanceMeters, rankActivities, type MatchType } from '@/lib/place-ranking';
 
 interface TripFeedProps {
     trip: Trip;
@@ -43,6 +44,17 @@ const placeholderWords = [
     'Day trips', 'Museums', 'Night markets', 'Hiking trails',
 ];
 
+type RankedSearchActivity = Activity & {
+    score?: number;
+    distanceMeters?: number;
+    matchType?: MatchType;
+    scoreReasons?: string[];
+};
+
+type DisplayActivity = Activity & {
+    distanceMeters?: number;
+};
+
 function getSearchParams(dayCount: number) {
     if (dayCount <= 1) return { radius: 2000, count: 10 };
     if (dayCount <= 2) return { radius: 5000, count: 12 };
@@ -51,7 +63,7 @@ function getSearchParams(dayCount: number) {
     return { radius: 25000, count: 20 }; // 7+ days
 }
 
-function mergeUniqueActivities(existing: Activity[], incoming: Activity[]) {
+function mergeUniqueActivities<T extends Activity>(existing: T[], incoming: T[]) {
     const seen = new Set(existing.map(activity => activity.googlePlaceId ?? `id:${activity.id}`));
     const uniqueIncoming = incoming.filter(activity => {
         const key = activity.googlePlaceId ?? `id:${activity.id}`;
@@ -60,6 +72,29 @@ function mergeUniqueActivities(existing: Activity[], incoming: Activity[]) {
         return true;
     });
     return [...existing, ...uniqueIncoming];
+}
+
+function rankSearchBatch(
+    activities: Activity[],
+    trip: Trip,
+    query: string,
+    radiusMeters: number,
+): RankedSearchActivity[] {
+    return rankActivities(activities, {
+        center: { lat: trip.lat, lng: trip.lng },
+        query,
+        radiusMeters,
+    });
+}
+
+function addDistanceFromTripCenter<T extends Activity>(activities: T[], trip: Trip): (T & DisplayActivity)[] {
+    return activities.map(activity => ({
+        ...activity,
+        distanceMeters: getDistanceMeters(
+            { lat: trip.lat, lng: trip.lng },
+            { lat: activity.lat, lng: activity.lng },
+        ),
+    }));
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
@@ -89,7 +124,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
     const [attractionActivities, setAttractionActivities] = useState<Activity[]>([]);
     const [restaurantActivities, setRestaurantActivities] = useState<Activity[]>([]);
     const [eventActivities, setEventActivities] = useState<Activity[]>([]);
-    const [searchActivities, setSearchActivities] = useState<Activity[]>([]);
+    const [searchActivities, setSearchActivities] = useState<RankedSearchActivity[]>([]);
     const [searchNextPageToken, setSearchNextPageToken] = useState<string | null>(null);
     const [isSearchingText, setIsSearchingText] = useState(false);
     const [isLoadingMoreSearch, setIsLoadingMoreSearch] = useState(false);
@@ -234,6 +269,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         const remainingResults = SEARCH_RESULT_LIMIT - searchActivities.length;
         if (!trip.lat || !trip.lng || !searchNextPageToken || isLoadingMoreSearch || remainingResults <= 0) return;
         setIsLoadingMoreSearch(true);
+        const { radius } = getSearchParams(trip.dayCount ?? 1);
         try {
             const { activities, nextPageToken } = await searchTextPlaces({
                 query: activeSearchQuery,
@@ -241,8 +277,10 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                 city: trip.destination,
                 pageToken: searchNextPageToken,
                 pageSize: Math.min(SEARCH_PAGE_SIZE, remainingResults),
+                radius: radius,
             });
-            const nextActivities = mergeUniqueActivities(searchActivities, activities).slice(0, SEARCH_RESULT_LIMIT);
+            const rankedActivities = rankSearchBatch(activities, trip, activeSearchQuery, radius);
+            const nextActivities = mergeUniqueActivities(searchActivities, rankedActivities).slice(0, SEARCH_RESULT_LIMIT);
             setSearchActivities(nextActivities);
             setSearchNextPageToken(nextActivities.length >= SEARCH_RESULT_LIMIT ? null : nextPageToken);
         } catch (error) {
@@ -269,14 +307,16 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         setSearchNextPageToken(null);
         if (trip.lat && trip.lng) {
             setIsSearchingText(true);
+            const { radius } = getSearchParams(trip.dayCount ?? 1);
             try {
                 const { activities, nextPageToken } = await searchTextPlaces({
                     query: keyword,
                     location: { lat: trip.lat, lng: trip.lng },
                     city: trip.destination,
                     pageSize: SEARCH_PAGE_SIZE,
+                    radius: radius,
                 });
-                const limitedActivities = activities.slice(0, SEARCH_RESULT_LIMIT);
+                const limitedActivities = rankSearchBatch(activities, trip, keyword, radius).slice(0, SEARCH_RESULT_LIMIT);
                 setSearchActivities(limitedActivities);
                 setSearchNextPageToken(limitedActivities.length >= SEARCH_RESULT_LIMIT ? null : nextPageToken);
             } catch (error) {
@@ -317,6 +357,18 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
     const isAdded = (id: number) => wantToGoActivities.some(a => a.id === id);
     const isSearchLoading = searching !== '' && isSearchingText;
     const prompts = PROMPT_SUGGESTIONS(trip.dayCount ?? 3);
+    const attractionCards = useMemo(
+        () => addDistanceFromTripCenter(attractionActivities, trip),
+        [attractionActivities, trip],
+    );
+    const restaurantCards = useMemo(
+        () => addDistanceFromTripCenter(restaurantActivities, trip),
+        [restaurantActivities, trip],
+    );
+    const eventCards = useMemo(
+        () => addDistanceFromTripCenter(eventActivities, trip),
+        [eventActivities, trip],
+    );
 
     return (
         <main className="relative h-full overflow-hidden bg-white">
@@ -410,7 +462,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                             <>
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
                                     {searchActivities.map(activity => (
-                                        <div key={activity.id} className="cursor-pointer" onClick={() => handleActivitySelect(activity)}>
+                                        <div key={activity.id} className="h-full cursor-pointer" onClick={() => handleActivitySelect(activity)}>
                                             <TripActivityCard
                                                 activity={activity}
                                                 isAdded={isAdded(activity.id)}
@@ -440,7 +492,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                         <DiscoverySection
                             icon={<Sparkles className="w-5 h-5 text-amber-500" />}
                             title="Top Experiences"
-                            activities={attractionActivities}
+                            activities={attractionCards}
                             isLoading={attractions.isLoading || !attractions.isLoaded}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
@@ -450,7 +502,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                         <DiscoverySection
                             icon={<UtensilsCrossed className="w-5 h-5 text-rose-500" />}
                             title="Must-Try Restaurants"
-                            activities={restaurantActivities}
+                            activities={restaurantCards}
                             isLoading={restaurants.isLoading || !restaurants.isLoaded}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
@@ -460,7 +512,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                         <DiscoverySection
                             icon={<PartyPopper className="w-5 h-5 text-violet-500" />}
                             title="Events During Your Trip"
-                            activities={eventActivities}
+                            activities={eventCards}
                             isLoading={events.isLoading || !events.isLoaded}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
@@ -571,7 +623,7 @@ function DiscoverySection({
 }: {
     icon: React.ReactNode;
     title: string;
-    activities: Activity[];
+    activities: DisplayActivity[];
     isLoading: boolean;
     isAdded: (id: number) => boolean;
     onToggle: (activity: Activity) => void;

@@ -33,6 +33,7 @@ function makeActivity(overrides: Partial<Activity> = {}): Activity {
     priceLevel: 'PRICE_LEVEL_MODERATE',
     websiteUrl: 'https://example.com',
     imageUrl: 'https://example.com/photo.jpg',
+    userRatingCount: 1000,
     ...overrides,
   };
 }
@@ -49,6 +50,7 @@ describe('google places text search mapping', () => {
       websiteUri: 'https://example.com',
       photos: [{ name: 'places/fake-1/photos/photo-1' }],
       editorialSummary: { text: 'A useful place.' },
+      userRatingCount: 1000,
     }, 'Tokyo', 'test-key');
 
     expect(snapshot).toMatchObject({
@@ -63,6 +65,7 @@ describe('google places text search mapping', () => {
       description: 'A useful place.',
       priceLevel: 'PRICE_LEVEL_MODERATE',
       websiteUrl: 'https://example.com',
+      userRatingCount: 1000,
     });
     expect(snapshot.imageUrl).toBe('https://places.googleapis.com/v1/places/fake-1/photos/photo-1/media?maxWidthPx=400&key=test-key');
   });
@@ -80,6 +83,7 @@ describe('google places text search mapping', () => {
       description: null,
       priceLevel: null,
       websiteUrl: null,
+      userRatingCount: null,
     });
   });
 
@@ -124,6 +128,7 @@ describe('searchTextPlaces', () => {
       query: 'museums',
       location: { lat: 35, lng: 139 },
       city: 'Tokyo',
+      radius: 500,
     });
 
     expect(mockFetch).toHaveBeenCalledWith('https://places.googleapis.com/v1/places:searchText', expect.objectContaining({
@@ -166,6 +171,7 @@ describe('searchTextPlaces', () => {
       city: 'Tokyo',
       pageToken: 'next-token',
       pageSize: 10,
+      radius: 500
     });
 
     expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toMatchObject({

@@ -1,15 +1,26 @@
 import { Star, MapPin, Check, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { type Activity } from '@/db/schema'
+import { formatDistance } from '@/lib/place-ranking';
+
+function formatRatingCount(count: number | null | undefined): string | null {
+    if (!count) return null;
+    return count.toLocaleString();
+}
 
 // ─── Photo card (used in discovery horizontal scroll) ─────────────────────────
 interface DiscoveryActivityCardProps {
-    activity: Activity;
+    activity: Activity & {
+        distanceMeters?: number;
+    };
     isAdded: boolean;
     onToggle: () => void;
 }
 
 export function HighlightActivityCard({ activity, isAdded, onToggle }: DiscoveryActivityCardProps) {
+    const ratingCount = formatRatingCount(activity.userRatingCount);
+    const distance = activity.distanceMeters === undefined ? null : formatDistance(activity.distanceMeters);
+
     return (
         <div className="min-w-[240px] group cursor-pointer snap-start shrink-0">
             <div className="relative w-80 h-60 bg-slate-100 rounded-3xl mb-3 overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-[0.98]">
@@ -31,6 +42,7 @@ export function HighlightActivityCard({ activity, isAdded, onToggle }: Discovery
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-bold shadow-sm text-gray-500">
                         <Star size={12} className="fill-yellow-400 stroke-yellow-400" />
                         {activity.rating}
+                        {ratingCount && <span className="font-semibold text-slate-500">({ratingCount})</span>}
                     </div>
                 )}
                 <button
@@ -45,7 +57,10 @@ export function HighlightActivityCard({ activity, isAdded, onToggle }: Discovery
                 </button>
             </div>
             <h4 className="font-bold text-slate-900 px-1 truncate">{activity.name}</h4>
-            <p className="text-xs text-slate-500 px-1 capitalize">{activity.category?.replace(/_/g, ' ')}</p>
+            <p className="text-xs text-slate-500 px-1 capitalize">
+                {activity.category?.replace(/_/g, ' ')}
+                {distance ? ` · ${distance} from center` : ''}
+            </p>
         </div>
     );
 }

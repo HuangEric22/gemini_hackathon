@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Activity } from "@/db/schema";
 import { Check, Clock, Heart, MapPin, Mountain, Plus, Star, Utensils, Landmark, Music, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { formatDistance } from "@/lib/place-ranking";
 
 // ─── Category tag config ───────────────────────────────────────────────────────
 const CATEGORY_TAG: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
@@ -32,9 +33,18 @@ function formatDuration(minutes: number | null | undefined): string | null {
     return m === 0 ? `${h} hr${h > 1 ? 's' : ''}` : `${h}.${Math.round(m / 6)} hrs`;
 }
 
+function formatRatingCount(count: number | null | undefined): string | null {
+    if (!count) return null;
+    return count.toLocaleString();
+}
+
 // ─── Card ──────────────────────────────────────────────────────────────────────
 interface TripActivityCardProps {
-    activity: Activity;
+    activity: Activity & {
+        scoreReasons?: string[];
+        distanceMeters?: number;
+        matchType?: string;
+    };
     isAdded: boolean;
     onToggle: () => void;
     onHover?: (id: number | null) => void;
@@ -48,10 +58,13 @@ export function TripActivityCard({ activity, isAdded, onToggle, onHover }: TripA
     const tag = CATEGORY_TAG[activity.category ?? 'activity'] ?? CATEGORY_TAG['activity'];
     const price = activity.priceLevel ? PRICE_LABEL[activity.priceLevel] : null;
     const duration = formatDuration(activity.averageDuration);
+    const reasonTag = activity.scoreReasons?.[0] ?? null;
+    const ratingCount = formatRatingCount(activity.userRatingCount);
+    const distance = activity.distanceMeters === undefined ? null : formatDistance(activity.distanceMeters);
 
     return (
         <div
-            className="group flex flex-col rounded-[14px] overflow-hidden border border-slate-100 bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+            className="group flex h-full flex-col rounded-[14px] overflow-hidden border border-slate-100 bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
             onMouseEnter={() => onHover?.(activity.id)}
             onMouseLeave={() => onHover?.(null)}
         >
@@ -78,6 +91,7 @@ export function TripActivityCard({ activity, isAdded, onToggle, onHover }: TripA
                     <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-bold shadow-sm text-slate-800">
                         <Star size={11} className="fill-yellow-400 stroke-yellow-400" />
                         {activity.rating.toFixed(1)}
+                        {ratingCount && <span className="font-semibold text-slate-500">({ratingCount})</span>}
                     </div>
                 )}
 
@@ -97,19 +111,27 @@ export function TripActivityCard({ activity, isAdded, onToggle, onHover }: TripA
 
             {/* ── Body ── */}
             <div className="flex flex-col flex-1 px-3.5 pt-3 pb-3.5 gap-2">
-                {/* Category tag */}
-                <div className={`self-start flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${tag.className}`}>
-                    {tag.icon}
-                    {tag.label}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* Category tag */}
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${tag.className}`}>
+                        {tag.icon}
+                        {tag.label}
+                    </div>
+                    {reasonTag && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+                            <Sparkles size={10} />
+                            {reasonTag}
+                        </div>
+                    )}
                 </div>
 
                 {/* Title */}
-                <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                <h4 className="min-h-[2.5rem] font-bold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
                     {activity.name}
                 </h4>
 
                 {/* Metadata row */}
-                <div className="flex items-center gap-2.5 text-[11px] text-slate-500 flex-wrap">
+                <div className="flex min-h-[1rem] items-center gap-2.5 text-[11px] text-slate-500 flex-wrap">
                     {duration && (
                         <span className="flex items-center gap-1">
                             <Clock size={10} />
@@ -119,15 +141,23 @@ export function TripActivityCard({ activity, isAdded, onToggle, onHover }: TripA
                     {price && (
                         <span className="font-medium text-slate-600">{price}</span>
                     )}
+                    {distance && (
+                        <span className="flex items-center gap-1">
+                            <MapPin size={10} />
+                            {distance} from center
+                        </span>
+                    )}
                 </div>
 
                 {/* Location */}
-                {activity.address && (
+                <div className="min-h-[1rem]">
+                    {activity.address && (
                     <p className="text-[11px] text-slate-400 truncate flex items-center gap-1">
                         <MapPin size={10} className="shrink-0 text-slate-300" />
                         {activity.address}
                     </p>
-                )}
+                    )}
+                </div>
 
                 {/* CTA */}
                 <button

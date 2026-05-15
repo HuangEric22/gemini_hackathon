@@ -16,6 +16,7 @@ interface SearchTextPlacesInput {
   city: string;
   pageToken?: string;
   pageSize?: number;
+  radius: number;
 }
 
 interface SearchTextPlacesResult {
@@ -43,7 +44,7 @@ export async function searchTextPlaces(input: SearchTextPlacesInput): Promise<Se
           latitude: input.location.lat,
           longitude: input.location.lng,
         },
-        radius: 500,
+        radius: input.radius,
       },
     },
   };
