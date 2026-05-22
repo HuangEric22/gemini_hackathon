@@ -22,7 +22,7 @@ export function HighlightActivityCard({ activity, isAdded, onToggle }: Discovery
     const distance = activity.distanceMeters === undefined ? null : formatDistance(activity.distanceMeters);
 
     return (
-        <div className="min-w-[240px] group cursor-pointer snap-start shrink-0">
+        <div className="w-80 group cursor-pointer snap-start shrink-0">
             <div className="relative w-80 h-60 bg-slate-100 rounded-3xl mb-3 overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-[0.98]">
                 {activity.imageUrl ? (
                     <Image
@@ -56,8 +56,8 @@ export function HighlightActivityCard({ activity, isAdded, onToggle }: Discovery
                     {isAdded ? <Check size={14} /> : <Plus size={14} />}
                 </button>
             </div>
-            <h4 className="font-bold text-slate-900 px-1 truncate">{activity.name}</h4>
-            <p className="text-xs text-slate-500 px-1 capitalize">
+            <h4 className="w-full min-w-0 font-bold text-slate-900 px-1 truncate">{activity.name}</h4>
+            <p className="w-full min-w-0 text-xs text-slate-500 px-1 capitalize truncate">
                 {activity.category?.replace(/_/g, ' ')}
                 {distance ? ` · ${distance} from center` : ''}
             </p>

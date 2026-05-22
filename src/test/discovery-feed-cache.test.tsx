@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MapPlace, Place } from '@/shared';
 
@@ -35,6 +35,23 @@ vi.mock('@/app/actions/recommend-cities', () => ({
   getRecommendedCities: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock('@/app/actions/get-discovery-activities', () => ({
+  getDiscoveryActivityGroups: vi.fn().mockResolvedValue({
+    attractions: [],
+    restaurants: [],
+    events: [],
+    hotels: [],
+    mapPlaces: [],
+    missing: {
+      attractions: true,
+      restaurants: true,
+      events: true,
+      hotels: true,
+    },
+    source: 'empty',
+  }),
+}));
+
 vi.mock('@/lib/google-maps', () => ({
   LoadPlacesLibrary: vi.fn(),
 }));
@@ -63,10 +80,12 @@ const CACHE_TTL = 24 * 60 * 60 * 1000;
 const KYOTO: Place = { id: 'kyoto-id', name: 'Kyoto', lat: 35.01, lng: 135.76 };
 const OSAKA: Place = { id: 'osaka-id', name: 'Osaka', lat: 34.69, lng: 135.50 };
 
+// Builds the localStorage key used by DiscoveryFeed for a city.
 function cacheKey(cityId: string) {
   return `places:${cityId}`;
 }
 
+// Creates lightweight cached map places for cache behavior tests.
 function makeCachedPlaces(names: string[], category: MapPlace['category'] = 'attraction'): MapPlace[] {
   return names.map((name, i) => ({
     id: `place-${i}`,
@@ -86,6 +105,7 @@ function makeCachedPlaces(names: string[], category: MapPlace['category'] = 'att
   }));
 }
 
+// Writes a non-expired localStorage cache entry for a city.
 function writeFreshCache(cityId: string, places: MapPlace[]) {
   localStorage.setItem(cacheKey(cityId), JSON.stringify({
     data: places,
@@ -93,6 +113,7 @@ function writeFreshCache(cityId: string, places: MapPlace[]) {
   }));
 }
 
+// Writes an expired localStorage cache entry for a city.
 function writeExpiredCache(cityId: string, places: MapPlace[]) {
   localStorage.setItem(cacheKey(cityId), JSON.stringify({
     data: places,
@@ -101,6 +122,7 @@ function writeExpiredCache(cityId: string, places: MapPlace[]) {
 }
 
 // ── Default props ─────────────────────────────────────────────────────────────
+// Builds default DiscoveryFeed props with optional test overrides.
 function makeProps(overrides: Partial<Parameters<typeof DiscoveryFeed>[0]> = {}) {
   return {
     cities: [KYOTO],
@@ -124,16 +146,16 @@ describe('DiscoveryFeed — localStorage caching', () => {
 
   // ── Cache miss: API is called ──────────────────────────────────────────────
 
-  it('calls searchNearby (4×) when localStorage has no data for the city', () => {
+  it('calls searchNearby (4×) when localStorage has no data for the city', async () => {
     render(<DiscoveryFeed {...makeProps()} />);
     // Called once per category: attractions, restaurants, events, hotels
-    expect(mockSearchNearby).toHaveBeenCalledTimes(4);
+    await waitFor(() => expect(mockSearchNearby).toHaveBeenCalledTimes(4));
   });
 
-  it('calls searchNearby when the cached entry has expired', () => {
+  it('calls searchNearby when the cached entry has expired', async () => {
     writeExpiredCache(KYOTO.id, makeCachedPlaces(['Old Place']));
     render(<DiscoveryFeed {...makeProps()} />);
-    expect(mockSearchNearby).toHaveBeenCalled();
+    await waitFor(() => expect(mockSearchNearby).toHaveBeenCalled());
   });
 
   it('clears the expired cache entry from localStorage when it is read', () => {
@@ -178,11 +200,11 @@ describe('DiscoveryFeed — localStorage caching', () => {
 
   // ── Per-city isolation ────────────────────────────────────────────────────
 
-  it('calls searchNearby for a second city even if the first city is cached', () => {
+  it('calls searchNearby for a second city even if the first city is cached', async () => {
     writeFreshCache(KYOTO.id, makeCachedPlaces(['Fushimi Inari']));
     // Osaka has no cache entry
     render(<DiscoveryFeed {...makeProps({ cities: [KYOTO, OSAKA], activeCityId: OSAKA.id })} />);
-    expect(mockSearchNearby).toHaveBeenCalled();
+    await waitFor(() => expect(mockSearchNearby).toHaveBeenCalled());
   });
 
   it('does NOT call searchNearby for a city that has a fresh cache entry even when other cities exist', () => {
@@ -193,7 +215,7 @@ describe('DiscoveryFeed — localStorage caching', () => {
 
   // ── Rendering skeletons on cache miss ────────────────────────────────────
 
-  it('shows skeleton loaders while places are loading (cache miss)', () => {
+  it('shows skeleton loaders while places are loading (cache miss)', async () => {
     // No cache — hook returns isLoading: false but results: [], so sections show skeletons
     // because isLoading || !isLoaded would be false, but the Section logic shows skeletons
     // when data.length === 0 && isLoading
@@ -202,6 +224,6 @@ describe('DiscoveryFeed — localStorage caching', () => {
     // → No skeletons in this mock configuration; real skeletons appear before isLoaded=true
     render(<DiscoveryFeed {...makeProps()} />);
     // searchNearby was called (API path triggered)
-    expect(mockSearchNearby).toHaveBeenCalled();
+    await waitFor(() => expect(mockSearchNearby).toHaveBeenCalled());
   });
 });

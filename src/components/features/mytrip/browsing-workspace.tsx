@@ -11,6 +11,7 @@ import { usePlacesSearch, extractSnapshot } from '@/hooks/places-search';
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities';
 import { updateWantToGo } from '@/app/actions/crud-trip';
 import { searchTextPlaces } from '@/app/actions/search-text-places';
+import { getDiscoveryActivityGroups } from '@/app/actions/get-discovery-activities';
 import { ItineraryGenerationResponse, MapPlace, Place } from '@/shared';
 import { CATEGORY_KEYWORDS, KeywordCategory, PROMPT_SUGGESTIONS } from '@/shared/activity-keywords';
 import { TripActivityCard } from './trip-activity-card';
@@ -55,6 +56,7 @@ type DisplayActivity = Activity & {
     distanceMeters?: number;
 };
 
+// Chooses search radius and result count based on trip length.
 function getSearchParams(dayCount: number) {
     if (dayCount <= 1) return { radius: 2000, count: 10 };
     if (dayCount <= 2) return { radius: 5000, count: 12 };
@@ -63,6 +65,7 @@ function getSearchParams(dayCount: number) {
     return { radius: 25000, count: 20 }; // 7+ days
 }
 
+// Merges activity lists without duplicating Google place IDs or local IDs.
 function mergeUniqueActivities<T extends Activity>(existing: T[], incoming: T[]) {
     const seen = new Set(existing.map(activity => activity.googlePlaceId ?? `id:${activity.id}`));
     const uniqueIncoming = incoming.filter(activity => {
@@ -74,6 +77,7 @@ function mergeUniqueActivities<T extends Activity>(existing: T[], incoming: T[])
     return [...existing, ...uniqueIncoming];
 }
 
+// Ranks search results against the active trip and search query.
 function rankSearchBatch(
     activities: Activity[],
     trip: Trip,
@@ -87,6 +91,7 @@ function rankSearchBatch(
     });
 }
 
+// Adds distance metadata used by the browsing cards.
 function addDistanceFromTripCenter<T extends Activity>(activities: T[], trip: Trip): (T & DisplayActivity)[] {
     return activities.map(activity => ({
         ...activity,
@@ -97,7 +102,36 @@ function addDistanceFromTripCenter<T extends Activity>(activities: T[], trip: Tr
     }));
 }
 
+// Converts a DB activity row into a map pin/detail payload.
+function activityToMapPlace(activity: Activity): MapPlace | null {
+    if (!activity.googlePlaceId) return null;
+
+    return {
+        id: activity.googlePlaceId,
+        name: activity.name,
+        lat: activity.lat,
+        lng: activity.lng,
+        category: activity.category === 'restaurant'
+            ? 'restaurant'
+            : activity.category === 'hotel'
+                ? 'hotel'
+                : activity.category === 'culture' || activity.category === 'event'
+                    ? 'event'
+                    : 'attraction',
+        rating: activity.rating ?? null,
+        address: activity.address ?? null,
+        imageUrl: activity.imageUrl ?? null,
+        images: activity.imageUrl ? [activity.imageUrl] : [],
+        type: activity.category ?? null,
+        description: activity.description ?? null,
+        websiteUrl: activity.websiteUrl ?? null,
+        openingHoursText: null,
+        reviews: null,
+    };
+}
+
 // ─── Main component ────────────────────────────────────────────────────────────
+// Renders the trip browsing workspace with DB/default discovery before Google.
 export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary, pace, onPaceChange, budget, onBudgetChange, startTime, onStartTimeChange }: TripFeedProps) => {
     const [searching, setSearching] = useState('');
     const [activeSearchQuery, setActiveSearchQuery] = useState('');
@@ -133,26 +167,46 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
     const restaurants = usePlacesSearch();
     const events = usePlacesSearch();
 
-    // Trigger nearby searches once all hooks are ready
+    // Load DB/default discovery data first; only call Google for missing sections.
     useEffect(() => {
         if (!trip.lat || !trip.lng) return;
-        if (!attractions.isLoaded || !restaurants.isLoaded || !events.isLoaded) return;
 
-        const coords = { lat: trip.lat, lng: trip.lng };
-        const { radius, count } = getSearchParams(trip.dayCount ?? 1);
-        attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], count, null, radius);
-        restaurants.searchNearby(coords, [
-            'restaurant', 'cafe', 'bakery',
-            'chinese_restaurant', 'japanese_restaurant', 'korean_restaurant',
-            'indian_restaurant', 'thai_restaurant', 'vietnamese_restaurant',
-            'italian_restaurant', 'mexican_restaurant', 'american_restaurant',
-            'mediterranean_restaurant', 'french_restaurant', 'asian_restaurant',
-            'seafood_restaurant', 'pizza_restaurant', 'steak_house',
-            'sushi_restaurant', 'ramen_restaurant', 'fast_food_restaurant',
-            'breakfast_restaurant', 'brunch_restaurant', 'hamburger_restaurant',
-            'sandwich_shop', 'ice_cream_shop',
-        ], count, null, radius);
-        events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], count, null, radius);
+        let cancelled = false;
+
+        // Loads DB/default browsing sections and only falls back to Google when needed.
+        async function loadDiscoveryData() {
+            const cachedGroups = await getDiscoveryActivityGroups(trip.destination);
+            if (cancelled) return;
+
+            if (cachedGroups.attractions.length) setAttractionActivities(cachedGroups.attractions);
+            if (cachedGroups.restaurants.length) setRestaurantActivities(cachedGroups.restaurants);
+            if (cachedGroups.events.length) setEventActivities(cachedGroups.events);
+
+            const coords = { lat: trip.lat, lng: trip.lng };
+            const { radius, count } = getSearchParams(trip.dayCount ?? 1);
+            if (cachedGroups.missing.attractions && attractions.isLoaded) {
+                attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], count, null, radius);
+            }
+            if (cachedGroups.missing.restaurants && restaurants.isLoaded) {
+                restaurants.searchNearby(coords, [
+                    'restaurant', 'cafe', 'bakery',
+                    'chinese_restaurant', 'japanese_restaurant', 'korean_restaurant',
+                    'indian_restaurant', 'thai_restaurant', 'vietnamese_restaurant',
+                    'italian_restaurant', 'mexican_restaurant', 'american_restaurant',
+                    'mediterranean_restaurant', 'french_restaurant', 'asian_restaurant',
+                    'seafood_restaurant', 'pizza_restaurant', 'steak_house',
+                    'sushi_restaurant', 'ramen_restaurant', 'fast_food_restaurant',
+                    'breakfast_restaurant', 'brunch_restaurant', 'hamburger_restaurant',
+                    'sandwich_shop', 'ice_cream_shop',
+                ], count, null, radius);
+            }
+            if (cachedGroups.missing.events && events.isLoaded) {
+                events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], count, null, radius);
+            }
+        }
+
+        loadDiscoveryData().catch(console.error);
+        return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         trip.lat, trip.lng,
@@ -185,36 +239,17 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
 
     // Emit all discovered places to parent (for map pins)
     useEffect(() => {
-        const allResults = [...attractions.results, ...restaurants.results, ...events.results];
-        if (!allResults.length) { onPlacesChange?.([]); return; }
-        const mapPlaces: MapPlace[] = allResults
-            .filter(p => p.id && p.location)
-            .map(p => ({
-                id: p.id!,
-                name: p.displayName ?? '',
-                lat: p.location!.lat(),
-                lng: p.location!.lng(),
-                rating: p.rating ?? null,
-                address: p.formattedAddress ?? null,
-                imageUrl: p.photos?.[0]?.getURI({ maxWidth: 400 }) ?? null,
-                images: p.photos?.slice(0, 8).map(ph => ph.getURI({ maxWidth: 800 })) ?? [],
-                type: p.primaryType ?? null,
-                description: p.editorialSummary ?? null,
-                websiteUrl: p.websiteURI ?? null,
-                openingHoursText: p.regularOpeningHours?.weekdayDescriptions ?? null,
-                reviews: p.reviews?.slice(0, 5).map((r) => ({
-                    author: r.authorAttribution?.displayName ?? 'Anonymous',
-                    authorPhoto: r.authorAttribution?.photoURI ?? null,
-                    rating: r.rating ?? 0,
-                    text: r.text ?? '',
-                    relativeTime: r.relativePublishTimeDescription ?? '',
-                })) ?? null,
-            }));
+        const allActivities = [...attractionActivities, ...restaurantActivities, ...eventActivities];
+        if (!allActivities.length) { onPlacesChange?.([]); return; }
+        const mapPlaces: MapPlace[] = allActivities
+            .map(activityToMapPlace)
+            .filter((place): place is MapPlace => place !== null);
         mapPlacesRef.current = mapPlaces;
         onPlacesChange?.(mapPlaces);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [attractions.results, restaurants.results, events.results]);
+    }, [attractionActivities, restaurantActivities, eventActivities]);
 
+    // Opens a detail panel for the selected activity.
     const handleActivitySelect = (activity: Activity) => {
         const place = mapPlacesRef.current.find(p => p.id === activity.googlePlaceId);
         if (place) {
@@ -257,6 +292,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         }
     }, [searching]);
 
+    // Tracks text search input and clears stale results when the query changes.
     const handleSearchInputChange = (value: string) => {
         setSearching(value);
         if (value !== activeSearchQuery) {
@@ -265,6 +301,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         }
     };
 
+    // Fetches the next page of text-search results for the active query.
     const handleLoadMore = async () => {
         const remainingResults = SEARCH_RESULT_LIMIT - searchActivities.length;
         if (!trip.lat || !trip.lng || !searchNextPageToken || isLoadingMoreSearch || remainingResults <= 0) return;
@@ -299,6 +336,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         return () => clearInterval(interval);
     }, [searching]);
 
+    // Runs a keyword/place text search and ranks the returned activities.
     const handleSearchSubmit = async (data: Place | string) => {
         const keyword = typeof data === 'string' ? data : data.name;
         setSearching(keyword);
@@ -329,6 +367,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         }
     };
 
+    // Applies a category chip and optionally starts a matching search.
     const handleChipClick = (chip: KeywordCategory) => {
         setSelectedChip(chip);
         if (chip === 'All') {
@@ -338,6 +377,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         }
     };
 
+    // Toggles an activity in the persisted want-to-go selection.
     const toggleWantToGo = (activity: Activity) => {
         const already = wantToGoActivities.some(a => a.id === activity.id);
 
@@ -354,6 +394,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
         }
     };
 
+    // Checks whether an activity is already in the want-to-go list.
     const isAdded = (id: number) => wantToGoActivities.some(a => a.id === id);
     const isSearchLoading = searching !== '' && isSearchingText;
     const prompts = PROMPT_SUGGESTIONS(trip.dayCount ?? 3);
@@ -493,7 +534,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                             icon={<Sparkles className="w-5 h-5 text-amber-500" />}
                             title="Top Experiences"
                             activities={attractionCards}
-                            isLoading={attractions.isLoading || !attractions.isLoaded}
+                            isLoading={attractionCards.length === 0 && (attractions.isLoading || !attractions.isLoaded)}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
                             onSelect={handleActivitySelect}
@@ -503,7 +544,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                             icon={<UtensilsCrossed className="w-5 h-5 text-rose-500" />}
                             title="Must-Try Restaurants"
                             activities={restaurantCards}
-                            isLoading={restaurants.isLoading || !restaurants.isLoaded}
+                            isLoading={restaurantCards.length === 0 && (restaurants.isLoading || !restaurants.isLoaded)}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
                             onSelect={handleActivitySelect}
@@ -513,7 +554,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
                             icon={<PartyPopper className="w-5 h-5 text-violet-500" />}
                             title="Events During Your Trip"
                             activities={eventCards}
-                            isLoading={events.isLoading || !events.isLoaded}
+                            isLoading={eventCards.length === 0 && (events.isLoading || !events.isLoaded)}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
                             onSelect={handleActivitySelect}
@@ -618,6 +659,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewIti
 };
 
 // ─── Discovery section ─────────────────────────────────────────────────────────
+// Renders a horizontally scrolling row of discovery activity cards.
 function DiscoverySection({
     icon, title, activities, isLoading, isAdded, onToggle, onSelect,
 }: {
@@ -630,6 +672,7 @@ function DiscoverySection({
     onSelect: (activity: Activity) => void;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
+    // Moves the activity carousel by one viewport-sized chunk.
     const scroll = (dir: 'left' | 'right') => {
         scrollRef.current?.scrollBy({ left: dir === 'left' ? -1040 : 1040, behavior: 'smooth' });
     };

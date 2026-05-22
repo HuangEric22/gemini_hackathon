@@ -7,12 +7,15 @@ import type { PlaceSnapshot } from '@/app/actions/shadow-save-activities';
 // Keyed by lat/lng/categories so the same city never hits Google twice in one session.
 const _searchCache = new Map<string, { places: google.maps.places.Place[]; expiry: number }>();
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const USE_MOCK_PLACES = process.env.NEXT_PUBLIC_USE_MOCK_PLACES === 'true';
 
+// Builds a stable cache key for equivalent nearby searches.
 function buildCacheKey(lat: number, lng: number, categories: string[], radius?: number): string {
   const base = `${lat.toFixed(3)}_${lng.toFixed(3)}_${[...categories].sort().join(',')}`;
   return radius ? `${base}_r${radius}` : base;
 }
 
+// Provides cached Google Places nearby/text search helpers for client components.
 export function usePlacesSearch() {
     const [results, setResults] = useState<google.maps.places.Place[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -20,12 +23,18 @@ export function usePlacesSearch() {
     const placesLib = useRef<google.maps.PlacesLibrary | null>(null);
 
     useEffect(() => {
+        if (USE_MOCK_PLACES) {
+            setIsLoaded(true);
+            return;
+        }
+
         LoadPlacesLibrary().then((lib) => {
             placesLib.current = lib;
             setIsLoaded(true);
         });
     }, [])
 
+    // Builds the circular search area passed to Google Places requests.
     const getSearchArea = (location: { lat: number, lng: number }, viewport?: google.maps.LatLngBounds | null, radiusOverride?: number) => {
         const radius = radiusOverride ?? (viewport ? calculateRadiusFromViewport(viewport) : 500.0);
         return {
@@ -34,12 +43,18 @@ export function usePlacesSearch() {
         }
     };
 
+    // Runs a nearby search with in-memory caching for repeated city/category requests.
     const searchNearby = useCallback(async (
         location: { lat: number, lng: number },
         categories: string[],
         numResults: number,
         viewport?: google.maps.LatLngBounds | null,
         radius?: number) => {
+
+        if (USE_MOCK_PLACES) {
+            setResults([]);
+            return;
+        }
 
         if (!placesLib.current) return;
 
@@ -94,6 +109,7 @@ export function usePlacesSearch() {
         }
     }, []);
 
+    // Runs a text search near a location for user-entered queries.
     const searchByText = useCallback(async (
         query: string,
         categories: string[],
@@ -101,6 +117,11 @@ export function usePlacesSearch() {
         numQueries: number,
         viewport?: google.maps.LatLngBounds | null
     ) => {
+        if (USE_MOCK_PLACES) {
+            setResults([]);
+            return;
+        }
+
         if (!placesLib.current || !query) return;
         setIsLoading(true);
 
@@ -128,12 +149,14 @@ export function usePlacesSearch() {
 }
 
 // Exposed for tests only — clears the module-level cache between test runs
+// Clears the in-memory nearby search cache for deterministic tests.
 export function clearSearchCache() {
     _searchCache.clear();
 }
 
 // Extracts all storable fields from a Google Place object into our PlaceSnapshot shape.
 // Lives here because it is tightly coupled to what searchNearby fetches.
+// Converts a Google Place result into the DB snapshot shape.
 export function extractSnapshot(
     p: google.maps.places.Place,
     city: string,

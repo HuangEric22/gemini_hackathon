@@ -30,6 +30,23 @@ vi.mock('@/app/actions/recommend-cities', () => ({
   getRecommendedCities: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock('@/app/actions/get-discovery-activities', () => ({
+  getDiscoveryActivityGroups: vi.fn().mockResolvedValue({
+    attractions: [],
+    restaurants: [],
+    events: [],
+    hotels: [],
+    mapPlaces: [],
+    missing: {
+      attractions: true,
+      restaurants: true,
+      events: true,
+      hotels: true,
+    },
+    source: 'empty',
+  }),
+}));
+
 vi.mock('@/lib/google-maps', () => ({
   LoadPlacesLibrary: vi.fn(),
 }));
