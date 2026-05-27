@@ -3,6 +3,8 @@
 import { GoogleGenAI } from '@google/genai';
 import type { ItineraryGenerationResponse } from '@/shared';
 import type { OpeningPeriod } from '@/db/schema';
+import { itineraryDaySchema } from '@/lib/llm-output-schemas';
+import { parseLlmJson } from '@/lib/parse-llm-json';
 import { formatOpeningHours } from '@/lib/trip-planning-tools';
 
 // Re-use the same fast-model list for single-day regeneration
@@ -136,8 +138,7 @@ export async function regenerateDayAction(
         },
       });
 
-      const text = response.text ?? '';
-      const newDay = JSON.parse(text) as ItineraryGenerationResponse['days'][0];
+      const newDay = parseLlmJson(response.text, model, itineraryDaySchema);
 
       console.log(`[RegenDay] Day ${input.dayNumber} regenerated with ${newDay.items.length} items`);
 

@@ -111,10 +111,7 @@ export async function createTripAction(formData: {
 export async function saveGeneratedItinerary(tripId: number, itinerary: ItineraryGenerationResponse) {
   await requireOwnedTrip(tripId);
 
-  // 1. Delete old items for this trip
-  await db.delete(itineraryItems).where(eq(itineraryItems.tripId, tripId));
-
-  // 2. Flatten AI JSON into DB rows — save ALL items (commutes, suggestions, alternatives)
+  // Flatten AI JSON into DB rows — save ALL items (commutes, suggestions, alternatives)
   const itemsToInsert = itinerary.days.flatMap((day) =>
     day.items.map((item, idx) => ({
       tripId,
@@ -133,9 +130,14 @@ export async function saveGeneratedItinerary(tripId: number, itinerary: Itinerar
     }))
   );
 
-  if (itemsToInsert.length > 0) {
-    await db.insert(itineraryItems).values(itemsToInsert);
-  }
+  // make delete-reinsert transaction
+  await db.transaction(async (transactionDb) => {
+    await transactionDb.delete(itineraryItems).where(eq(itineraryItems.tripId, tripId));
+
+    if (itemsToInsert.length > 0) {
+      await transactionDb.insert(itineraryItems).values(itemsToInsert);
+    }
+  });
 }
 
 // read
@@ -206,12 +208,15 @@ export async function deleteTripAction(tripId: number) {
 export async function saveTripSelections(tripId: number, activityIds: number[]) {
   await requireOwnedTrip(tripId);
 
-  await db.delete(tripSelections).where(eq(tripSelections.tripId, tripId));
-  if (activityIds.length > 0) {
-    await db.insert(tripSelections).values(
-      activityIds.map(activityId => ({ tripId, activityId }))
-    ).onConflictDoNothing();
-  }
+  await db.transaction(async (tx) => {
+    await tx.delete(tripSelections).where(eq(tripSelections.tripId, tripId));
+
+    if (activityIds.length > 0) {
+      await tx.insert(tripSelections).values(
+        activityIds.map(activityId => ({ tripId, activityId }))
+      ).onConflictDoNothing();
+    }
+  });
 }
 
 // update

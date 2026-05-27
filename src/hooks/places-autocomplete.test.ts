@@ -2,6 +2,13 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePlacesAutocomplete } from './places-autocomplete';
 
+type MockPlacesLibrary = {
+    AutocompleteSuggestion: {
+        fetchAutocompleteSuggestions: ReturnType<typeof vi.fn>;
+    };
+    AutocompleteSessionToken: ReturnType<typeof vi.fn>;
+};
+
 describe('usePlacesAutocomplete', () => {
 
     beforeEach(() => {
@@ -22,7 +29,7 @@ describe('usePlacesAutocomplete', () => {
             { placePrediction: { text: { toString: () => 'London, ON, Canada' } } }
         ];
 
-        const { AutocompleteSuggestion } = await google.maps.importLibrary('places') as any;
+        const { AutocompleteSuggestion } = await google.maps.importLibrary('places') as unknown as MockPlacesLibrary;
         AutocompleteSuggestion.fetchAutocompleteSuggestions.mockResolvedValue({
             suggestions: mockData
         });
@@ -55,7 +62,7 @@ describe('usePlacesAutocomplete', () => {
     it('should refresh the session token', async () => {
         const { result } = renderHook(() => usePlacesAutocomplete());
 
-        const { AutocompleteSessionToken } = await google.maps.importLibrary('places') as any;
+        const { AutocompleteSessionToken } = await google.maps.importLibrary('places') as unknown as MockPlacesLibrary;
 
         await waitFor(() => {
             expect(AutocompleteSessionToken).toHaveBeenCalledTimes(1);

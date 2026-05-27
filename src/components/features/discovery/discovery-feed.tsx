@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Loader2, MapPin, Plus, Sparkles, Star, X } from 'lucide-react';
 import { MapPlace, Place } from '@/shared'
@@ -6,12 +7,14 @@ import { usePlacesSearch, extractSnapshot } from '@/hooks/places-search';
 import { usePlacesAutocomplete } from '@/hooks/places-autocomplete';
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities';
 import { getRecommendedCities } from '@/app/actions/recommend-cities';
+import { getDiscoveryActivityGroups } from '@/app/actions/get-discovery-activities';
 import { LoadPlacesLibrary } from '@/lib/google-maps';
 import { PlaceDetailPanel } from '../map/place-detail-panel';
 
 // ── Persistent localStorage cache ────────────────────────────────────────────
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
+// Reads fresh discovery results from the browser cache for the active city.
 function loadCachedPlaces(cityId: string): MapPlace[] | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -23,6 +26,7 @@ function loadCachedPlaces(cityId: string): MapPlace[] | null {
   } catch { return null; }
 }
 
+// Stores discovery results in the browser cache to avoid repeat lookups.
 function saveCachedPlaces(cityId: string, places: MapPlace[]) {
   if (typeof window === 'undefined') return;
   try {
@@ -34,6 +38,7 @@ function saveCachedPlaces(cityId: string, places: MapPlace[]) {
 }
 
 // ── City suggestion resolver ──────────────────────────────────────────────────
+// Resolves a suggested city name into coordinates and viewport details.
 async function resolveCity(name: string): Promise<Place | null> {
   const lib = await LoadPlacesLibrary();
   const { places } = await lib.Place.searchByText({
@@ -65,6 +70,7 @@ interface DiscoveryProps {
 }
 
 // ── Place extractor ───────────────────────────────────────────────────────────
+// Converts a Google Places result into the map/card shape used by discovery.
 function toMapPlace(p: google.maps.places.Place, category: MapPlace['category']): MapPlace {
   return {
     id: p.id!,
@@ -91,6 +97,7 @@ function toMapPlace(p: google.maps.places.Place, category: MapPlace['category'])
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
+// Renders city discovery sections while preferring cache/DB/default data over Google.
 export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, onSelectCity, onPlacesChange, focusedPlaceId, onFocusPlace }: DiscoveryProps) {
   const location = cities.find(c => c.id === activeCityId) ?? null;
   const attractions = usePlacesSearch();
@@ -110,6 +117,12 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
   // Gemini suggestions
   const [suggestedCities, setSuggestedCities] = useState<string[]>([]);
   const [resolvingCity, setResolvingCity] = useState<string | null>(null);
+  const missingGoogleSectionsRef = useRef({
+    attractions: true,
+    restaurants: true,
+    events: true,
+    hotels: true,
+  });
 
   // ── Load from localStorage when city changes ────────────────────────────────
   useEffect(() => {
@@ -127,6 +140,7 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
   }, [activeCityId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── City picker handlers ────────────────────────────────────────────────────
+  // Adds a city from an autocomplete prediction and refreshes the session token.
   const handleAddFromAutocomplete = async (s: google.maps.places.AutocompleteSuggestion) => {
     if (!s.placePrediction) return;
     setShowDropdown(false);
@@ -142,6 +156,7 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
     refreshSession();
   };
 
+  // Adds a Gemini-suggested city after resolving it through Places.
   const handleSuggestionClick = async (name: string) => {
     setResolvingCity(name);
     const place = await resolveCity(name);
@@ -154,26 +169,56 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
   // so the API is only skipped when fresh data exists in localStorage.
   useEffect(() => {
     if (!location) return;
+    const currentLocation = location;
     if (loadCachedPlaces(location.id) !== null) {
       console.log(`[DiscoveryFeed] Skipping Google Places API for "${location.name}" — localStorage cache is fresh`);
       return;
     }
-    console.log(`[DiscoveryFeed] Calling Google Places API for "${location.name}"`);
-    const coords = { lat: location.lat, lng: location.lng };
-    attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], numSearchResults, location.viewport);
-    restaurants.searchNearby(coords, [
-      'restaurant', 'cafe', 'bakery',
-      'chinese_restaurant', 'japanese_restaurant', 'korean_restaurant',
-      'indian_restaurant', 'thai_restaurant', 'vietnamese_restaurant',
-      'italian_restaurant', 'mexican_restaurant', 'american_restaurant',
-      'mediterranean_restaurant', 'french_restaurant', 'asian_restaurant',
-      'seafood_restaurant', 'pizza_restaurant', 'steak_house',
-      'sushi_restaurant', 'ramen_restaurant', 'fast_food_restaurant',
-      'breakfast_restaurant', 'brunch_restaurant', 'hamburger_restaurant',
-      'sandwich_shop', 'ice_cream_shop',
-    ], numSearchResults, location.viewport);
-    events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], numSearchResults, location.viewport);
-    hotels.searchNearby(coords, ['hotel', 'motel', 'resort_hotel', 'extended_stay_hotel'], numSearchResults, location.viewport);
+
+    let cancelled = false;
+
+    // Loads DB/default places first and calls Google only for missing sections.
+    async function loadPlaces() {
+      const cachedGroups = await getDiscoveryActivityGroups(currentLocation.name);
+      if (cancelled) return;
+
+      missingGoogleSectionsRef.current = cachedGroups.missing;
+
+      if (cachedGroups.mapPlaces.length > 0) {
+        console.log(`[DiscoveryFeed] ${cachedGroups.source.toUpperCase()} HIT — ${cachedGroups.mapPlaces.length} places for "${currentLocation.name}"`);
+        setMapPlaces(cachedGroups.mapPlaces);
+        onPlacesChange(cachedGroups.mapPlaces);
+        saveCachedPlaces(currentLocation.id, cachedGroups.mapPlaces);
+      }
+
+      const coords = { lat: currentLocation.lat, lng: currentLocation.lng };
+      if (cachedGroups.missing.attractions) {
+        attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], numSearchResults, currentLocation.viewport);
+      }
+      if (cachedGroups.missing.restaurants) {
+        restaurants.searchNearby(coords, [
+          'restaurant', 'cafe', 'bakery',
+          'chinese_restaurant', 'japanese_restaurant', 'korean_restaurant',
+          'indian_restaurant', 'thai_restaurant', 'vietnamese_restaurant',
+          'italian_restaurant', 'mexican_restaurant', 'american_restaurant',
+          'mediterranean_restaurant', 'french_restaurant', 'asian_restaurant',
+          'seafood_restaurant', 'pizza_restaurant', 'steak_house',
+          'sushi_restaurant', 'ramen_restaurant', 'fast_food_restaurant',
+          'breakfast_restaurant', 'brunch_restaurant', 'hamburger_restaurant',
+          'sandwich_shop', 'ice_cream_shop',
+        ], numSearchResults, currentLocation.viewport);
+      }
+      if (cachedGroups.missing.events) {
+        events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], numSearchResults, currentLocation.viewport);
+      }
+      if (cachedGroups.missing.hotels) {
+        hotels.searchNearby(coords, ['hotel', 'motel', 'resort_hotel', 'extended_stay_hotel'], numSearchResults, currentLocation.viewport);
+      }
+    }
+
+    loadPlaces().catch(console.error);
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, attractions.isLoaded, restaurants.isLoaded, events.isLoaded, hotels.isLoaded, attractions.searchNearby, restaurants.searchNearby, events.searchNearby, hotels.searchNearby]);
 
   // ── When API results arrive, update state + persist to localStorage ─────────
@@ -185,11 +230,22 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
       ...hotels.results.filter(p => p.id && p.location).map(p => toMapPlace(p, 'hotel')),
     ];
     if (fresh.length === 0) return; // don't overwrite cache with empty results
-    console.log(`[DiscoveryFeed] API returned ${fresh.length} places for "${location?.name}" — saving to localStorage`);
-    setMapPlaces(fresh);
-    onPlacesChange(fresh);
-    if (location) saveCachedPlaces(location.id, fresh);
-  }, [attractions.results, restaurants.results, events.results, hotels.results]); // eslint-disable-line react-hooks/exhaustive-deps
+    const sections = missingGoogleSectionsRef.current;
+    setMapPlaces(previous => {
+      const retained = previous.filter(place => (
+        (place.category === 'attraction' && !sections.attractions) ||
+        (place.category === 'restaurant' && !sections.restaurants) ||
+        (place.category === 'event' && !sections.events) ||
+        (place.category === 'hotel' && !sections.hotels)
+      ));
+      const merged = [...retained, ...fresh];
+      console.log(`[DiscoveryFeed] API returned ${fresh.length} places for "${location?.name}" — saving ${merged.length} total places to localStorage`);
+      onPlacesChange(merged);
+      if (location) saveCachedPlaces(location.id, merged);
+      return merged;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attractions.results, restaurants.results, events.results, hotels.results]);
 
   // ── Shadow-save to DB ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -331,6 +387,7 @@ export function DiscoveryFeed({ cities, activeCityId, onAddCity, onRemoveCity, o
 }
 
 // ── Section ───────────────────────────────────────────────────────────────────
+// Renders a horizontally scrolling discovery section for one place category.
 function Section({ title, data, isLoading, focusedPlaceId, onFocusPlace }: {
   title: string;
   data: MapPlace[];
@@ -339,6 +396,7 @@ function Section({ title, data, isLoading, focusedPlaceId, onFocusPlace }: {
   onFocusPlace: (id: string | null) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Moves the section carousel by one viewport-sized chunk.
   const scroll = (dir: 'left' | 'right') => {
     scrollRef.current?.scrollBy({ left: dir === 'left' ? -1040 : 1040, behavior: 'smooth' });
   };
@@ -371,7 +429,7 @@ function Section({ title, data, isLoading, focusedPlaceId, onFocusPlace }: {
             >
               <div className="relative h-60 bg-slate-100 rounded-3xl mb-3 overflow-hidden shadow-sm transition-transform duration-300 group-hover:scale-[0.98]">
                 {place.imageUrl ? (
-                  <img src={place.imageUrl} className="w-full h-full object-cover" alt="" />
+                  <Image src={place.imageUrl} fill sizes="240px" className="object-cover" alt="" unoptimized />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-300">
                     <MapPin size={32} />

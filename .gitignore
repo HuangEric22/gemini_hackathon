@@ -49,3 +49,6 @@ __pycache__/
 local.db
 # clerk configuration (can include secrets)
 /.clerk/
+
+# for personal learning
+AGENTS.md

@@ -30,7 +30,7 @@ export const trips = sqliteTable("trips", {
   userId: text("user_id"),
 
 }, (t) => [
-  unique().on(t.tripName, t.destination)
+  unique("trips_user_trip_name_destination_unique").on(t.userId, t.tripName, t.destination)
 ]);
 
 
@@ -94,6 +94,7 @@ export const activities = sqliteTable("activities", {
   priceLevel: text("price_level"), // Google PriceLevel string: 'FREE' | 'INEXPENSIVE' | 'MODERATE' | 'EXPENSIVE' | 'VERY_EXPENSIVE'
   websiteUrl: text("website_url"),
   imageUrl: text("image_url"),
+  userRatingCount: int("user_rating_count"),
 });
 
 export const tripSelections = sqliteTable("trip_selections", {

@@ -1,3 +1,5 @@
+import type { Activity } from '@/db/schema';
+
 export interface PlaceReview {
   author: string;
   authorPhoto: string | null;
@@ -87,4 +89,16 @@ export interface TravelMatrix {
   [originName: string]: {
     [destName: string]: { duration: string; seconds: number };
   };
+}
+
+export type DiscoverySectionKey = 'attractions' | 'restaurants' | 'events' | 'hotels';
+
+export interface DiscoveryActivityGroups {
+  attractions: Activity[];
+  restaurants: Activity[];
+  events: Activity[];
+  hotels: Activity[];
+  mapPlaces: MapPlace[];
+  missing: Record<DiscoverySectionKey, boolean>;
+  source: 'db' | 'mock' | 'empty';
 }

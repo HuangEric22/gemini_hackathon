@@ -17,18 +17,18 @@ import { useDirections } from '@/hooks/use-directions';
 import { ItineraryGenerationResponse, ItineraryMapMarker, MapPlace } from '@/shared';
 
 function hydrateItinerary(items: ItineraryItem[]): ItineraryGenerationResponse {
-  const daysMap: Record<number, any> = {};
+  const daysMap: Record<number, ItineraryGenerationResponse['days'][number]> = {};
 
   items.forEach(item => {
     if (!daysMap[item.dayNumber]) {
       daysMap[item.dayNumber] = { day_number: item.dayNumber, brief_description: "", items: [] };
     }
     daysMap[item.dayNumber].items.push({
-      title: item.title,
+      title: item.title ?? '',
       description: item.description ?? undefined,
-      start_time: item.startTime,
-      end_time: item.endTime,
-      type: item.type,
+      start_time: item.startTime ?? '',
+      end_time: item.endTime ?? '',
+      type: item.type ?? 'activity',
       commute_info: item.commuteInfo ?? undefined,
       commute_seconds: item.commuteSeconds ?? undefined,
       is_suggested: item.isSuggested ?? false,

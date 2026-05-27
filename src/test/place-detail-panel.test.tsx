@@ -15,17 +15,26 @@ vi.mock('@/app/actions/generate-place-summary', () => ({
 // ── Mock framer-motion (strip animation props from DOM elements) ──────────────
 vi.mock('framer-motion', async () => {
   const React = (await import('react')).default;
+  type MotionMockProps = React.PropsWithChildren<Record<string, unknown>>;
   const stripMotion = (tag: string) =>
-    ({ children, custom, variants, initial, animate, exit, transition, ...props }: any) =>
-      React.createElement(tag, props, children);
+    function MotionMock(props: MotionMockProps) {
+      delete props.custom;
+      delete props.variants;
+      delete props.initial;
+      delete props.animate;
+      delete props.exit;
+      delete props.transition;
+      const { children, ...domProps } = props;
+      return React.createElement(tag, domProps, children);
+    };
   return {
-    AnimatePresence: ({ children }: any) => children,
+    AnimatePresence: ({ children }: React.PropsWithChildren) => children,
     motion: { img: stripMotion('img'), div: stripMotion('div') },
   };
 });
 
 // ── Import after mocks ────────────────────────────────────────────────────────
-import { PlaceDetailPanel } from './place-detail-panel';
+import { PlaceDetailPanel } from '@/components/features/map/place-detail-panel';
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 const BASE_PLACE: MapPlace = {
@@ -97,7 +106,7 @@ describe('PlaceDetailPanel', () => {
 
   it('renders as a full-height panel when variant="panel" (default)', () => {
     const { container } = render(<PlaceDetailPanel place={BASE_PLACE} onClose={vi.fn()} />);
-    expect(container.firstChild).toHaveClass('w-[560px]');
+    expect(container.firstChild).toHaveClass('w-[min(420px,40vw)]');
   });
 
   it('renders the address on the overview tab', () => {

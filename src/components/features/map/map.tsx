@@ -22,6 +22,20 @@ type MarkerEntry = {
   pin: google.maps.marker.PinElement;
 };
 
+type GooglePhoto = {
+  getURI: (options: { maxWidth: number }) => string;
+};
+
+type GoogleReview = {
+  authorAttribution?: {
+    displayName?: string | null;
+    photoURI?: string | null;
+  } | null;
+  rating?: number | null;
+  text?: string | null;
+  relativePublishTimeDescription?: string | null;
+};
+
 /** Decode a Google encoded polyline string into LatLng array */
 function decodePolyline(encoded: string): { lat: number; lng: number }[] {
   const points: { lat: number; lng: number }[] = [];
@@ -77,7 +91,7 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
       });
 
       // Handle clicks on Google's built-in POI icons
-      mapRef.current.addListener('click', async (event: any) => {
+      mapRef.current.addListener('click', async (event: google.maps.IconMouseEvent) => {
         if (!event.placeId) {
           onPlaceDetail?.(null); // clicked empty space — close panel
           return;
@@ -103,12 +117,12 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
             rating: place.rating ?? null,
             address: place.formattedAddress ?? null,
             imageUrl: place.photos?.[0]?.getURI({ maxWidth: 400 }) ?? null,
-            images: place.photos?.slice(0, 8).map((ph: any) => ph.getURI({ maxWidth: 800 })) ?? [],
+            images: place.photos?.slice(0, 8).map((ph: GooglePhoto) => ph.getURI({ maxWidth: 800 })) ?? [],
             type: place.primaryType ?? null,
             description: place.editorialSummary ?? null,
             websiteUrl: place.websiteURI ?? null,
             openingHoursText: place.regularOpeningHours?.weekdayDescriptions ?? null,
-            reviews: place.reviews?.slice(0, 5).map((r: any) => ({
+            reviews: place.reviews?.slice(0, 5).map((r: GoogleReview) => ({
               author: r.authorAttribution?.displayName ?? 'Anonymous',
               authorPhoto: r.authorAttribution?.photoURI ?? null,
               rating: r.rating ?? 0,
@@ -122,9 +136,10 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
       });
     });
 
+    const markers = markersRef.current;
     return () => {
-      markersRef.current.forEach(({ marker }) => (marker.map = null));
-      markersRef.current.clear();
+      markers.forEach(({ marker }) => (marker.map = null));
+      markers.clear();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -171,7 +186,7 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
     };
 
     build();
-  }, [places, onPinClick, showItinerary]);
+  }, [places, onPinClick, onPlaceDetail, showItinerary]);
 
   // Itinerary markers — shown only in itinerary view
   useEffect(() => {
@@ -359,12 +374,12 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
             rating: place.rating ?? null,
             address: place.formattedAddress ?? null,
             imageUrl: place.photos?.[0]?.getURI({ maxWidth: 400 }) ?? markerData.imageUrl ?? null,
-            images: place.photos?.slice(0, 8).map((ph: any) => ph.getURI({ maxWidth: 800 })) ?? [],
+            images: place.photos?.slice(0, 8).map((ph: GooglePhoto) => ph.getURI({ maxWidth: 800 })) ?? [],
             type: place.primaryType ?? null,
             description: place.editorialSummary ?? markerData.description ?? null,
             websiteUrl: place.websiteURI ?? null,
             openingHoursText: place.regularOpeningHours?.weekdayDescriptions ?? null,
-            reviews: place.reviews?.slice(0, 5).map((r: any) => ({
+            reviews: place.reviews?.slice(0, 5).map((r: GoogleReview) => ({
               author: r.authorAttribution?.displayName ?? 'Anonymous',
               authorPhoto: r.authorAttribution?.photoURI ?? null,
               rating: r.rating ?? 0,
@@ -398,7 +413,7 @@ export function MapArea({ center, places, focusedPlaceId, onPinClick, routeLegs 
     showDetail();
 
     return () => { cancelled = true; };
-  }, [focusedItineraryMarkerId, itineraryMarkers]);
+  }, [focusedItineraryMarkerId, itineraryMarkers, onPlaceDetail]);
 
   // Highlight polylines connected to hovered itinerary card
   useEffect(() => {

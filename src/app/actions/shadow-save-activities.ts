@@ -18,6 +18,7 @@ export interface PlaceSnapshot {
   openingHours?: OpeningHours | null;  // Google's period array format
   priceLevel?: string | null;          // Google's string enum e.g. 'MODERATE'
   websiteUrl?: string | null;
+  userRatingCount?: number | null;
 }
 
 // Called client-side after Google results arrive.
@@ -43,6 +44,7 @@ export async function shadowSaveActivities(places: PlaceSnapshot[]) {
         openingHours: sql`excluded.opening_hours`,
         priceLevel: sql`excluded.price_level`,
         websiteUrl: sql`excluded.website_url`,
+        userRatingCount: sql`excluded.user_rating_count`,
       },
     })
     .returning();

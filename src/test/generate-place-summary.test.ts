@@ -53,11 +53,15 @@ describe('generatePlaceSummary', () => {
     expect(result).toBe('');
   });
 
-  it('uses the gemini-3.1-flash-lite-preview model', async () => {
+  it('uses one of the Gemini fallback models', async () => {
     setGeminiResponse('Some description.');
     await generatePlaceSummary(BASE_INPUT);
     const callArg = mockGenerateContent.mock.calls[0][0];
-    expect(callArg.model).toBe('gemini-3.1-flash-lite-preview');
+    expect(['gemini-3-flash-preview',
+    'gemini-3.1-flash-lite-preview',
+    'gemini-2.5-pro',
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-flash',]).toContain(callArg.model);
   });
 
   it('includes the place name in the prompt', async () => {

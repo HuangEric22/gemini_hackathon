@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { Footprints, Bus, Car, ChevronDown, Loader2 } from 'lucide-react';
+import { Footprints, Bus, Car, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { LegTransport, TransportOption } from '@/shared';
 

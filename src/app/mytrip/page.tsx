@@ -2,6 +2,7 @@ import { db, ensureDbSchema } from "@/db";
 import { trips, type Trip } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, MapPin, ChevronRight, Plane } from "lucide-react";
 import { DeleteTripButton } from "@/components/features/mytrip/delete-trip-button";
 import { syncClerkUser } from "@/app/actions/sync-user";
@@ -74,10 +75,13 @@ function TripCard({ trip }: { trip: Trip }) {
       {/* Trip Image / Placeholder */}
       <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
         {trip.imageUrl ? (
-          <img
+          <Image
             src={trip.imageUrl}
             alt={trip.destination}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            unoptimized
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-100">

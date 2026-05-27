@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
 import { type Trip, Activity } from '@/db/schema'
 import { Map as MapIcon, X, Calendar, Loader2, Sparkles, UtensilsCrossed, PartyPopper, Lightbulb, ArrowLeft, ChevronLeft, ChevronRight, ListPlus } from 'lucide-react';
@@ -10,10 +10,13 @@ import { DayPlanner, type DayAssignments } from './day-planner';
 import { usePlacesSearch, extractSnapshot } from '@/hooks/places-search';
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities';
 import { updateWantToGo } from '@/app/actions/crud-trip';
+import { searchTextPlaces } from '@/app/actions/search-text-places';
+import { getDiscoveryActivityGroups } from '@/app/actions/get-discovery-activities';
 import { ItineraryGenerationResponse, MapPlace, Place } from '@/shared';
 import { CATEGORY_KEYWORDS, KeywordCategory, PROMPT_SUGGESTIONS } from '@/shared/activity-keywords';
 import { TripActivityCard } from './trip-activity-card';
 import { PlaceDetailPanel } from '../map/place-detail-panel';
+import { getDistanceMeters, rankActivities, type MatchType } from '@/lib/place-ranking';
 
 interface TripFeedProps {
     trip: Trip;
@@ -34,18 +37,26 @@ interface TripFeedProps {
 }
 
 const CHIPS: KeywordCategory[] = ['All', 'Outdoor', 'Food', 'Culture', 'Nightlife'];
-
-const SEARCH_FIELDS = [
-    'id', 'displayName', 'location', 'formattedAddress',
-    'types', 'rating', 'priceLevel', 'websiteURI',
-    'photos', 'regularOpeningHours', 'editorialSummary',
-];
+const SEARCH_PAGE_SIZE = 10;
+const SEARCH_RESULT_LIMIT = 100;
 
 const placeholderWords = [
     'Photo spots', 'Local food', 'Sunset views', 'Hidden gems',
     'Day trips', 'Museums', 'Night markets', 'Hiking trails',
 ];
 
+type RankedSearchActivity = Activity & {
+    score?: number;
+    distanceMeters?: number;
+    matchType?: MatchType;
+    scoreReasons?: string[];
+};
+
+type DisplayActivity = Activity & {
+    distanceMeters?: number;
+};
+
+// Chooses search radius and result count based on trip length.
 function getSearchParams(dayCount: number) {
     if (dayCount <= 1) return { radius: 2000, count: 10 };
     if (dayCount <= 2) return { radius: 5000, count: 12 };
@@ -54,9 +65,76 @@ function getSearchParams(dayCount: number) {
     return { radius: 25000, count: 20 }; // 7+ days
 }
 
+// Merges activity lists without duplicating Google place IDs or local IDs.
+function mergeUniqueActivities<T extends Activity>(existing: T[], incoming: T[]) {
+    const seen = new Set(existing.map(activity => activity.googlePlaceId ?? `id:${activity.id}`));
+    const uniqueIncoming = incoming.filter(activity => {
+        const key = activity.googlePlaceId ?? `id:${activity.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    return [...existing, ...uniqueIncoming];
+}
+
+// Ranks search results against the active trip and search query.
+function rankSearchBatch(
+    activities: Activity[],
+    trip: Trip,
+    query: string,
+    radiusMeters: number,
+): RankedSearchActivity[] {
+    return rankActivities(activities, {
+        center: { lat: trip.lat, lng: trip.lng },
+        query,
+        radiusMeters,
+    });
+}
+
+// Adds distance metadata used by the browsing cards.
+function addDistanceFromTripCenter<T extends Activity>(activities: T[], trip: Trip): (T & DisplayActivity)[] {
+    return activities.map(activity => ({
+        ...activity,
+        distanceMeters: getDistanceMeters(
+            { lat: trip.lat, lng: trip.lng },
+            { lat: activity.lat, lng: activity.lng },
+        ),
+    }));
+}
+
+// Converts a DB activity row into a map pin/detail payload.
+function activityToMapPlace(activity: Activity): MapPlace | null {
+    if (!activity.googlePlaceId) return null;
+
+    return {
+        id: activity.googlePlaceId,
+        name: activity.name,
+        lat: activity.lat,
+        lng: activity.lng,
+        category: activity.category === 'restaurant'
+            ? 'restaurant'
+            : activity.category === 'hotel'
+                ? 'hotel'
+                : activity.category === 'culture' || activity.category === 'event'
+                    ? 'event'
+                    : 'attraction',
+        rating: activity.rating ?? null,
+        address: activity.address ?? null,
+        imageUrl: activity.imageUrl ?? null,
+        images: activity.imageUrl ? [activity.imageUrl] : [],
+        type: activity.category ?? null,
+        description: activity.description ?? null,
+        websiteUrl: activity.websiteUrl ?? null,
+        openingHoursText: null,
+        reviews: null,
+    };
+}
+
 // ─── Main component ────────────────────────────────────────────────────────────
-export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary, pace, onPaceChange, budget, onBudgetChange, startTime, onStartTimeChange }: TripFeedProps) => {
+// Renders the trip browsing workspace with DB/default discovery before Google.
+export const MyTripFeed = ({ trip, initialSelections = [], onGenerate, onViewItinerary, onPlacesChange, focusedPlaceId, onFocusPlace, currentItinerary, pace, onPaceChange, budget, onBudgetChange, startTime, onStartTimeChange }: TripFeedProps) => {
     const [searching, setSearching] = useState('');
+    const [activeSearchQuery, setActiveSearchQuery] = useState('');
     const [wordIndex, setWordIndex] = useState(0);
     const [selectedChip, setSelectedChip] = useState<KeywordCategory>('All');
     const [wantToGoActivities, setWantToGoActivities] = useState<Activity[]>(initialSelections);
@@ -80,38 +158,61 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
     const [attractionActivities, setAttractionActivities] = useState<Activity[]>([]);
     const [restaurantActivities, setRestaurantActivities] = useState<Activity[]>([]);
     const [eventActivities, setEventActivities] = useState<Activity[]>([]);
-    const [searchActivities, setSearchActivities] = useState<Activity[]>([]);
-    const [hasLoadedMore, setHasLoadedMore] = useState(false);
+    const [searchActivities, setSearchActivities] = useState<RankedSearchActivity[]>([]);
+    const [searchNextPageToken, setSearchNextPageToken] = useState<string | null>(null);
+    const [isSearchingText, setIsSearchingText] = useState(false);
+    const [isLoadingMoreSearch, setIsLoadingMoreSearch] = useState(false);
 
     const attractions = usePlacesSearch();
     const restaurants = usePlacesSearch();
     const events = usePlacesSearch();
-    const textSearch = usePlacesSearch();
 
-    // Trigger nearby searches once all hooks are ready
+    // Load DB/default discovery data first; only call Google for missing sections.
     useEffect(() => {
         if (!trip.lat || !trip.lng) return;
-        if (!attractions.isLoaded || !restaurants.isLoaded || !events.isLoaded) return;
 
-        const coords = { lat: trip.lat, lng: trip.lng };
-        const { radius, count } = getSearchParams(trip.dayCount ?? 1);
-        attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], count, null, radius);
-        restaurants.searchNearby(coords, [
-            'restaurant', 'cafe', 'bakery',
-            'chinese_restaurant', 'japanese_restaurant', 'korean_restaurant',
-            'indian_restaurant', 'thai_restaurant', 'vietnamese_restaurant',
-            'italian_restaurant', 'mexican_restaurant', 'american_restaurant',
-            'mediterranean_restaurant', 'french_restaurant', 'asian_restaurant',
-            'seafood_restaurant', 'pizza_restaurant', 'steak_house',
-            'sushi_restaurant', 'ramen_restaurant', 'fast_food_restaurant',
-            'breakfast_restaurant', 'brunch_restaurant', 'hamburger_restaurant',
-            'sandwich_shop', 'ice_cream_shop',
-        ], count, null, radius);
-        events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], count, null, radius);
+        let cancelled = false;
+
+        // Loads DB/default browsing sections and only falls back to Google when needed.
+        async function loadDiscoveryData() {
+            const cachedGroups = await getDiscoveryActivityGroups(trip.destination);
+            if (cancelled) return;
+
+            if (cachedGroups.attractions.length) setAttractionActivities(cachedGroups.attractions);
+            if (cachedGroups.restaurants.length) setRestaurantActivities(cachedGroups.restaurants);
+            if (cachedGroups.events.length) setEventActivities(cachedGroups.events);
+
+            const coords = { lat: trip.lat, lng: trip.lng };
+            const { radius, count } = getSearchParams(trip.dayCount ?? 1);
+            if (cachedGroups.missing.attractions && attractions.isLoaded) {
+                attractions.searchNearby(coords, ['tourist_attraction', 'museum', 'park'], count, null, radius);
+            }
+            if (cachedGroups.missing.restaurants && restaurants.isLoaded) {
+                restaurants.searchNearby(coords, [
+                    'restaurant', 'cafe', 'bakery',
+                    'chinese_restaurant', 'japanese_restaurant', 'korean_restaurant',
+                    'indian_restaurant', 'thai_restaurant', 'vietnamese_restaurant',
+                    'italian_restaurant', 'mexican_restaurant', 'american_restaurant',
+                    'mediterranean_restaurant', 'french_restaurant', 'asian_restaurant',
+                    'seafood_restaurant', 'pizza_restaurant', 'steak_house',
+                    'sushi_restaurant', 'ramen_restaurant', 'fast_food_restaurant',
+                    'breakfast_restaurant', 'brunch_restaurant', 'hamburger_restaurant',
+                    'sandwich_shop', 'ice_cream_shop',
+                ], count, null, radius);
+            }
+            if (cachedGroups.missing.events && events.isLoaded) {
+                events.searchNearby(coords, ['event_venue', 'movie_theater', 'art_gallery'], count, null, radius);
+            }
+        }
+
+        loadDiscoveryData().catch(console.error);
+        return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         trip.lat, trip.lng,
         attractions.isLoaded, restaurants.isLoaded, events.isLoaded,
         attractions.searchNearby, restaurants.searchNearby, events.searchNearby,
+        trip.dayCount,
     ]);
 
     // Shadow-save each section → Activity[] with integer IDs for the add button
@@ -120,61 +221,35 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
         shadowSaveActivities(
             attractions.results.map(p => extractSnapshot(p, trip.destination, 'attraction'))
         ).then(setAttractionActivities).catch(console.error);
-    }, [attractions.results]);
+    }, [attractions.results, trip.destination]);
 
     useEffect(() => {
         if (!restaurants.results.length) return;
         shadowSaveActivities(
             restaurants.results.map(p => extractSnapshot(p, trip.destination, 'restaurant'))
         ).then(setRestaurantActivities).catch(console.error);
-    }, [restaurants.results]);
+    }, [restaurants.results, trip.destination]);
 
     useEffect(() => {
         if (!events.results.length) return;
         shadowSaveActivities(
             events.results.map(p => extractSnapshot(p, trip.destination, 'culture'))
         ).then(setEventActivities).catch(console.error);
-    }, [events.results]);
-
-    // Shadow-save text search results
-    useEffect(() => {
-        if (!textSearch.results.length) return;
-        shadowSaveActivities(
-            textSearch.results.map(p => extractSnapshot(p, trip.destination, 'activity'))
-        ).then(setSearchActivities).catch(console.error);
-    }, [textSearch.results]);
+    }, [events.results, trip.destination]);
 
     // Emit all discovered places to parent (for map pins)
     useEffect(() => {
-        const allResults = [...attractions.results, ...restaurants.results, ...events.results];
-        if (!allResults.length) { onPlacesChange?.([]); return; }
-        const mapPlaces: MapPlace[] = allResults
-            .filter(p => p.id && p.location)
-            .map(p => ({
-                id: p.id!,
-                name: p.displayName ?? '',
-                lat: p.location!.lat(),
-                lng: p.location!.lng(),
-                rating: p.rating ?? null,
-                address: p.formattedAddress ?? null,
-                imageUrl: p.photos?.[0]?.getURI({ maxWidth: 400 }) ?? null,
-                images: p.photos?.slice(0, 8).map(ph => ph.getURI({ maxWidth: 800 })) ?? [],
-                type: p.primaryType ?? null,
-                description: p.editorialSummary ?? null,
-                websiteUrl: p.websiteURI ?? null,
-                openingHoursText: p.regularOpeningHours?.weekdayDescriptions ?? null,
-                reviews: p.reviews?.slice(0, 5).map((r) => ({
-                    author: r.authorAttribution?.displayName ?? 'Anonymous',
-                    authorPhoto: r.authorAttribution?.photoURI ?? null,
-                    rating: r.rating ?? 0,
-                    text: r.text ?? '',
-                    relativeTime: r.relativePublishTimeDescription ?? '',
-                })) ?? null,
-            }));
+        const allActivities = [...attractionActivities, ...restaurantActivities, ...eventActivities];
+        if (!allActivities.length) { onPlacesChange?.([]); return; }
+        const mapPlaces: MapPlace[] = allActivities
+            .map(activityToMapPlace)
+            .filter((place): place is MapPlace => place !== null);
         mapPlacesRef.current = mapPlaces;
         onPlacesChange?.(mapPlaces);
-    }, [attractions.results, restaurants.results, events.results]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [attractionActivities, restaurantActivities, eventActivities]);
 
+    // Opens a detail panel for the selected activity.
     const handleActivitySelect = (activity: Activity) => {
         const place = mapPlacesRef.current.find(p => p.id === activity.googlePlaceId);
         if (place) {
@@ -208,19 +283,47 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, [focusedPlaceId]);
 
-    // Clear search when input emptied; reset load-more when keyword changes
+    // Clear search when input emptied
     useEffect(() => {
-        setHasLoadedMore(false);
         if (!searching) {
             setSearchActivities([]);
-            textSearch.setResults([]);
+            setSearchNextPageToken(null);
+            setActiveSearchQuery('');
         }
     }, [searching]);
 
+    // Tracks text search input and clears stale results when the query changes.
+    const handleSearchInputChange = (value: string) => {
+        setSearching(value);
+        if (value !== activeSearchQuery) {
+            setSearchActivities([]);
+            setSearchNextPageToken(null);
+        }
+    };
+
+    // Fetches the next page of text-search results for the active query.
     const handleLoadMore = async () => {
-        if (trip.lat && trip.lng) {
-            await textSearch.searchByText(searching, SEARCH_FIELDS, { lat: trip.lat, lng: trip.lng }, 20);
-            setHasLoadedMore(true);
+        const remainingResults = SEARCH_RESULT_LIMIT - searchActivities.length;
+        if (!trip.lat || !trip.lng || !searchNextPageToken || isLoadingMoreSearch || remainingResults <= 0) return;
+        setIsLoadingMoreSearch(true);
+        const { radius } = getSearchParams(trip.dayCount ?? 1);
+        try {
+            const { activities, nextPageToken } = await searchTextPlaces({
+                query: activeSearchQuery,
+                location: { lat: trip.lat, lng: trip.lng },
+                city: trip.destination,
+                pageToken: searchNextPageToken,
+                pageSize: Math.min(SEARCH_PAGE_SIZE, remainingResults),
+                radius: radius,
+            });
+            const rankedActivities = rankSearchBatch(activities, trip, activeSearchQuery, radius);
+            const nextActivities = mergeUniqueActivities(searchActivities, rankedActivities).slice(0, SEARCH_RESULT_LIMIT);
+            setSearchActivities(nextActivities);
+            setSearchNextPageToken(nextActivities.length >= SEARCH_RESULT_LIMIT ? null : nextPageToken);
+        } catch (error) {
+            console.error('Load more text search error:', error);
+        } finally {
+            setIsLoadingMoreSearch(false);
         }
     };
 
@@ -233,14 +336,38 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
         return () => clearInterval(interval);
     }, [searching]);
 
+    // Runs a keyword/place text search and ranks the returned activities.
     const handleSearchSubmit = async (data: Place | string) => {
         const keyword = typeof data === 'string' ? data : data.name;
         setSearching(keyword);
+        setActiveSearchQuery(keyword);
+        setSearchActivities([]);
+        setSearchNextPageToken(null);
         if (trip.lat && trip.lng) {
-            await textSearch.searchByText(keyword, SEARCH_FIELDS, { lat: trip.lat, lng: trip.lng }, 10);
+            setIsSearchingText(true);
+            const { radius } = getSearchParams(trip.dayCount ?? 1);
+            try {
+                const { activities, nextPageToken } = await searchTextPlaces({
+                    query: keyword,
+                    location: { lat: trip.lat, lng: trip.lng },
+                    city: trip.destination,
+                    pageSize: SEARCH_PAGE_SIZE,
+                    radius: radius,
+                });
+                const limitedActivities = rankSearchBatch(activities, trip, keyword, radius).slice(0, SEARCH_RESULT_LIMIT);
+                setSearchActivities(limitedActivities);
+                setSearchNextPageToken(limitedActivities.length >= SEARCH_RESULT_LIMIT ? null : nextPageToken);
+            } catch (error) {
+                console.error('Text search error:', error);
+                setSearchActivities([]);
+                setSearchNextPageToken(null);
+            } finally {
+                setIsSearchingText(false);
+            }
         }
     };
 
+    // Applies a category chip and optionally starts a matching search.
     const handleChipClick = (chip: KeywordCategory) => {
         setSelectedChip(chip);
         if (chip === 'All') {
@@ -250,6 +377,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
         }
     };
 
+    // Toggles an activity in the persisted want-to-go selection.
     const toggleWantToGo = (activity: Activity) => {
         const already = wantToGoActivities.some(a => a.id === activity.id);
 
@@ -266,9 +394,22 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
         }
     };
 
+    // Checks whether an activity is already in the want-to-go list.
     const isAdded = (id: number) => wantToGoActivities.some(a => a.id === id);
-    const isSearchLoading = searching !== '' && (textSearch.isLoading || searchActivities.length === 0);
+    const isSearchLoading = searching !== '' && isSearchingText;
     const prompts = PROMPT_SUGGESTIONS(trip.dayCount ?? 3);
+    const attractionCards = useMemo(
+        () => addDistanceFromTripCenter(attractionActivities, trip),
+        [attractionActivities, trip],
+    );
+    const restaurantCards = useMemo(
+        () => addDistanceFromTripCenter(restaurantActivities, trip),
+        [restaurantActivities, trip],
+    );
+    const eventCards = useMemo(
+        () => addDistanceFromTripCenter(eventActivities, trip),
+        [eventActivities, trip],
+    );
 
     return (
         <main className="relative h-full overflow-hidden bg-white">
@@ -307,7 +448,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
 
                 <SearchCard
                     onSearch={handleSearchSubmit}
-                    onChange={setSearching}
+                    onChange={handleSearchInputChange}
                     variant="inline"
                     mode="activity"
                     locationContext={trip.lat && trip.lng ? { lat: trip.lat, lng: trip.lng } : undefined}
@@ -346,7 +487,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
                                 <ArrowLeft className="w-4 h-4 text-slate-500" />
                             </button>
                             <h2 className="text-lg font-bold text-slate-800">
-                                Results for <span className="text-indigo-600">"{searching}"</span>
+                                Results for <span className="text-indigo-600">&quot;{searching}&quot;</span>
                                 <span className="text-slate-400 font-normal"> near {trip.destination}</span>
                             </h2>
                         </div>
@@ -362,7 +503,7 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
                             <>
                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
                                     {searchActivities.map(activity => (
-                                        <div key={activity.id} className="cursor-pointer" onClick={() => handleActivitySelect(activity)}>
+                                        <div key={activity.id} className="h-full cursor-pointer" onClick={() => handleActivitySelect(activity)}>
                                             <TripActivityCard
                                                 activity={activity}
                                                 isAdded={isAdded(activity.id)}
@@ -371,15 +512,15 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
                                         </div>
                                     ))}
                                 </div>
-                                {!hasLoadedMore && (
+                                {searchNextPageToken && (
                                     <div className="flex justify-center pt-2">
                                         <button
                                             onClick={handleLoadMore}
-                                            disabled={textSearch.isLoading}
+                                            disabled={isLoadingMoreSearch}
                                             className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-slate-200 text-sm font-semibold text-slate-600 hover:border-indigo-300 hover:text-indigo-600 transition-all disabled:opacity-50"
                                         >
-                                            {textSearch.isLoading ? <Loader2 size={14} className="animate-spin" /> : null}
-                                            {textSearch.isLoading ? 'Loading…' : 'Load more'}
+                                            {isLoadingMoreSearch ? <Loader2 size={14} className="animate-spin" /> : null}
+                                            {isLoadingMoreSearch ? 'Loading…' : 'Load more'}
                                         </button>
                                     </div>
                                 )}
@@ -392,8 +533,8 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
                         <DiscoverySection
                             icon={<Sparkles className="w-5 h-5 text-amber-500" />}
                             title="Top Experiences"
-                            activities={attractionActivities}
-                            isLoading={attractions.isLoading || !attractions.isLoaded}
+                            activities={attractionCards}
+                            isLoading={attractionCards.length === 0 && (attractions.isLoading || !attractions.isLoaded)}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
                             onSelect={handleActivitySelect}
@@ -402,8 +543,8 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
                         <DiscoverySection
                             icon={<UtensilsCrossed className="w-5 h-5 text-rose-500" />}
                             title="Must-Try Restaurants"
-                            activities={restaurantActivities}
-                            isLoading={restaurants.isLoading || !restaurants.isLoaded}
+                            activities={restaurantCards}
+                            isLoading={restaurantCards.length === 0 && (restaurants.isLoading || !restaurants.isLoaded)}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
                             onSelect={handleActivitySelect}
@@ -412,8 +553,8 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
                         <DiscoverySection
                             icon={<PartyPopper className="w-5 h-5 text-violet-500" />}
                             title="Events During Your Trip"
-                            activities={eventActivities}
-                            isLoading={events.isLoading || !events.isLoaded}
+                            activities={eventCards}
+                            isLoading={eventCards.length === 0 && (events.isLoading || !events.isLoaded)}
                             isAdded={isAdded}
                             onToggle={toggleWantToGo}
                             onSelect={handleActivitySelect}
@@ -518,18 +659,20 @@ export const MyTripFeed = ({ trip, initialSelections = [], onHover: _onHover, on
 };
 
 // ─── Discovery section ─────────────────────────────────────────────────────────
+// Renders a horizontally scrolling row of discovery activity cards.
 function DiscoverySection({
     icon, title, activities, isLoading, isAdded, onToggle, onSelect,
 }: {
     icon: React.ReactNode;
     title: string;
-    activities: Activity[];
+    activities: DisplayActivity[];
     isLoading: boolean;
     isAdded: (id: number) => boolean;
     onToggle: (activity: Activity) => void;
     onSelect: (activity: Activity) => void;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
+    // Moves the activity carousel by one viewport-sized chunk.
     const scroll = (dir: 'left' | 'right') => {
         scrollRef.current?.scrollBy({ left: dir === 'left' ? -1040 : 1040, behavior: 'smooth' });
     };

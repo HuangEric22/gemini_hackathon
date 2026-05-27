@@ -5,6 +5,8 @@ import type { ItineraryGenerationResponse, TravelMatrix } from '@/shared';
 import type { OpeningPeriod } from '@/db/schema';
 import { runPlanningPhase } from '@/lib/gemini-planning-phase';
 import { formatOpeningHours } from '@/lib/trip-planning-tools';
+import { itineraryGenerationResponseSchema } from '@/lib/llm-output-schemas';
+import { isLlmJsonResponseError, parseLlmJson } from '@/lib/parse-llm-json';
 import { computeRouteMatrixAction } from './compute-route-matrix';
 
 const MODELS = [
@@ -217,10 +219,9 @@ async function tryAllModels(
         },
       });
 
-      const text = response.text ?? '';
-      return JSON.parse(text) as ItineraryGenerationResponse;
+      return parseLlmJson(response.text, model, itineraryGenerationResponseSchema);
     } catch (err) {
-      if (isRetryable(err)) {
+      if (isRetryable(err) || isLlmJsonResponseError(err)) {
         lastError = err;
         continue;
       }

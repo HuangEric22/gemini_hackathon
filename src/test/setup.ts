@@ -18,7 +18,7 @@ importLibrary: vi.fn().mockImplementation(async (lib) => {
   }
 }),
   },
-} as any;
+} as unknown as typeof google;
 
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),

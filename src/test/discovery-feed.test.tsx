@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { DiscoveryFeed } from './discovery-feed';
+import { DiscoveryFeed } from '@/components/features/discovery/discovery-feed';
 
 vi.mock('@/hooks/places-search', () => ({
   usePlacesSearch: () => ({
@@ -28,6 +28,23 @@ vi.mock('@/app/actions/shadow-save-activities', () => ({
 
 vi.mock('@/app/actions/recommend-cities', () => ({
   getRecommendedCities: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('@/app/actions/get-discovery-activities', () => ({
+  getDiscoveryActivityGroups: vi.fn().mockResolvedValue({
+    attractions: [],
+    restaurants: [],
+    events: [],
+    hotels: [],
+    mapPlaces: [],
+    missing: {
+      attractions: true,
+      restaurants: true,
+      events: true,
+      hotels: true,
+    },
+    source: 'empty',
+  }),
 }));
 
 vi.mock('@/lib/google-maps', () => ({

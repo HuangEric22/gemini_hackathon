@@ -8,7 +8,7 @@ import { createTripAction } from '@/app/actions/crud-trip';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation'; // 1. Import Router
 
-const template = ({ children }: { children: React.ReactNode }) => {
+const Template = ({ children }: { children: React.ReactNode }) => {
 
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [newTripOpen, setNewTripOpen] = useState(false);
@@ -262,4 +262,4 @@ const template = ({ children }: { children: React.ReactNode }) => {
     )
 }
 
-export default template
+export default Template
