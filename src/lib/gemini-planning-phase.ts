@@ -12,6 +12,7 @@
 import { GoogleGenAI } from '@google/genai';
 import type { FunctionDeclaration } from '@google/genai';
 import type { OpeningPeriod } from '@/db/schema';
+import { isRetryableLlmError } from '@/lib/llm-errors';
 import { PLANNING_TOOL_DECLARATIONS, executePlanningTool, formatOpeningHours } from './trip-planning-tools';
 
 // Models to try in order (no structured output here, so all are valid)
@@ -80,14 +81,6 @@ After all tool calls, write "Planning Notes" summarizing:
 - Any opening hours constraints worth flagging (e.g. closed on certain days, limited hours)
 
 Do not write the actual itinerary. Do not skip tool calls — always call estimate_hike_duration for hikes.`;
-}
-
-function isRateLimitError(err: unknown): boolean {
-  if (!err || typeof err !== 'object') return false;
-  const e = err as { status?: number; message?: string };
-  if (e.status === 503 || e.status === 429) return true;
-  const msg = e.message ?? '';
-  return msg.includes('UNAVAILABLE') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('high demand');
 }
 
 export async function runPlanningPhase(
@@ -170,7 +163,7 @@ export async function runPlanningPhase(
 
       return planningNotes.trim() || '[No planning notes generated]';
     } catch (err) {
-      if (isRateLimitError(err)) {
+      if (isRetryableLlmError(err)) {
         lastError = err;
         continue; // try next model
       }
