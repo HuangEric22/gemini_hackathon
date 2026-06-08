@@ -1,5 +1,6 @@
 'use server'
 
+import { getOptionalGeminiApiKey } from '@/lib/env';
 import { geminiWithFallback } from '@/lib/gemini-with-fallback';
 
 interface ReviewInput {
@@ -16,7 +17,8 @@ interface GeneratePlaceSummaryInput {
 }
 
 export async function generatePlaceSummary(input: GeneratePlaceSummaryInput): Promise<string> {
-  if (!process.env.GEMINI_API_KEY) return '';
+  const apiKey = getOptionalGeminiApiKey();
+  if (!apiKey) return '';
 
   const reviewBlock = input.reviews.length
     ? input.reviews
@@ -34,6 +36,6 @@ ${reviewBlock}
 
 Write only the description, nothing else.`;
 
-  const text = await geminiWithFallback(process.env.GEMINI_API_KEY, prompt);
+  const text = await geminiWithFallback(apiKey, prompt);
   return text.trim();
 }

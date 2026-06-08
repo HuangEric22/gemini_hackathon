@@ -1,5 +1,6 @@
 'use server'
 
+import { getGoogleMapsServerApiKey } from '@/lib/env';
 import type { LegTransport, TransportOption } from '@/shared';
 
 interface DirectionsLeg {
@@ -83,8 +84,7 @@ async function fetchRoute(
 export async function computeDirectionsAction(
   legs: DirectionsLeg[],
 ): Promise<LegTransport[]> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-  if (!apiKey) throw new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_KEY');
+  const apiKey = getGoogleMapsServerApiKey();
 
   const MODES: RouteMode[] = ['WALK', 'TRANSIT', 'DRIVE'];
 

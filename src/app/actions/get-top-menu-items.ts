@@ -1,5 +1,6 @@
 'use server'
 
+import { getOptionalGeminiApiKey } from '@/lib/env';
 import { geminiWithFallback } from '@/lib/gemini-with-fallback';
 import { stringArraySchema } from '@/lib/llm-output-schemas';
 import { parseLlmJson } from '@/lib/parse-llm-json';
@@ -14,7 +15,8 @@ export async function getTopMenuItems(input: {
   name: string;
   reviews: ReviewInput[];
 }): Promise<string[]> {
-  if (!input.reviews.length || !process.env.GEMINI_API_KEY) return [];
+  const apiKey = getOptionalGeminiApiKey();
+  if (!input.reviews.length || !apiKey) return [];
 
   const reviewBlock = input.reviews
     .map(r => `- ${r.author} (${r.rating}/5): "${r.text}"`)
@@ -29,7 +31,7 @@ If no specific items are mentioned, return an empty array [].
 Reviews:
 ${reviewBlock}`;
 
-  const text = await geminiWithFallback(process.env.GEMINI_API_KEY, prompt);
+  const text = await geminiWithFallback(apiKey, prompt);
   const match = text.match(/\[[\s\S]*?\]/);
   if (!match) return [];
   try {

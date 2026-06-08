@@ -8,6 +8,7 @@
 
 import { Type } from '@google/genai';
 import type { OpeningPeriod } from '@/db/schema';
+import { getOptionalGoogleMapsServerApiKey } from '@/lib/env';
 
 // ---------------------------------------------------------------------------
 // Opening hours formatter (shared with generate-itinerary and planning phase)
@@ -150,7 +151,7 @@ async function getTravelTime(args: {
   dest_lng: number;
   mode: string;
 }): Promise<object> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  const apiKey = getOptionalGoogleMapsServerApiKey();
   if (!apiKey) {
     return { error: 'Google Maps API key not configured' };
   }
@@ -384,7 +385,7 @@ async function findNearbyRestaurants(args: {
   meal_type: string;
   budget?: string;
 }): Promise<object> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  const apiKey = getOptionalGoogleMapsServerApiKey();
   if (!apiKey) return { error: 'Google Maps API key not configured' };
 
   // Map budget to max price level (1=free, 2=inexpensive, 3=moderate, 4=expensive)

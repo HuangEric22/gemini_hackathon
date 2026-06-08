@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest } from 'next/server';
+import { getRequiredGeminiApiKey } from '@/lib/env';
 
 type PlaceSummaryReview = {
   author?: string;
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
       reviews?: PlaceSummaryReview[];
     };
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+    const ai = new GoogleGenAI({ apiKey: getRequiredGeminiApiKey() });
 
     const reviewBlock = reviews?.length
       ? reviews.slice(0, 3).map((r) => `${r.author} (${r.rating}/5): "${r.text}"`).join(' | ')

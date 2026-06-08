@@ -7,7 +7,7 @@ import { itineraryGenerationResponseSchema } from '@/lib/llm-output-schemas';
 import { isLlmJsonResponseError, parseLlmJson } from '@/lib/parse-llm-json';
 import { buildItineraryPrompt } from './prompt';
 import { repairItineraryStructure } from './repair';
-import { ITINERARY_SCHEMA } from './schema';
+import { ITINERARY_SCHEMA } from './output-schema';
 import { validateItinerary } from './validate';
 import type { GenerateItineraryInput, ItineraryProgressCallback } from './types';
 

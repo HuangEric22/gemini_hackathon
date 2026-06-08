@@ -2,6 +2,7 @@
 
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities';
 import type { Activity } from '@/db/schema';
+import { getGoogleMapsServerApiKey } from '@/lib/env';
 import {
   mapRestPlaceToSnapshot,
   normalizeTextSearchPageSize,
@@ -24,17 +25,11 @@ interface SearchTextPlacesResult {
   nextPageToken: string | null;
 }
 
-function getGoogleMapsApiKey() {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-  if (!apiKey) throw new Error('Missing GOOGLE_MAPS_API_KEY or NEXT_PUBLIC_GOOGLE_MAPS_KEY');
-  return apiKey;
-}
-
 export async function searchTextPlaces(input: SearchTextPlacesInput): Promise<SearchTextPlacesResult> {
   const query = input.query.trim();
   if (!query) return { activities: [], nextPageToken: null };
 
-  const apiKey = getGoogleMapsApiKey();
+  const apiKey = getGoogleMapsServerApiKey();
   const body: Record<string, unknown> = {
     textQuery: query,
     pageSize: normalizeTextSearchPageSize(input.pageSize),

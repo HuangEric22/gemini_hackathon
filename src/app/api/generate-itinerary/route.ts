@@ -1,12 +1,13 @@
 import { auth } from '@clerk/nextjs/server';
+import { getOptionalGeminiApiKey } from '@/lib/env';
 import { generateItineraryWorkflow, type GenerateItineraryInput } from '@/lib/itinerary/workflow';
 
 export async function POST(request: Request) {
   const { userId } = await auth();
   if (!userId) return new Response('Unauthorized', { status: 401 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return new Response('GEMINI_API_KEY not set', { status: 500 });
+  const apiKey = getOptionalGeminiApiKey();
+  if (!apiKey) return new Response('Missing required environment variable: GEMINI_API_KEY', { status: 500 });
 
   const input: GenerateItineraryInput = await request.json();
   const encoder = new TextEncoder();
@@ -37,4 +38,3 @@ export async function POST(request: Request) {
     headers: { 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-cache' },
   });
 }
-

@@ -1,12 +1,13 @@
 'use server'
 
 import { GoogleGenAI } from "@google/genai";
+import { getOptionalGeminiApiKey } from "@/lib/env";
 import { stringArraySchema } from "@/lib/llm-output-schemas";
 import { parseLlmJson } from "@/lib/parse-llm-json";
 
 // Returns a short list of cities a traveler visiting `currentCity` might also enjoy.
 export async function getRecommendedCities(currentCity: string): Promise<string[]> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getOptionalGeminiApiKey();
   if (!apiKey) return [];
 
   try {

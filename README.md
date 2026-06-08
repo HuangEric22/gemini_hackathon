@@ -1,33 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Geminigo
+
+Geminigo is a Next.js travel-planning app that uses Google Maps/Places data,
+Gemini, Clerk authentication, and Drizzle ORM with libSQL/Turso.
 
 ## Getting Started
 
-First, run the development server:
+Create your local environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in the required keys, then apply database migrations:
+
+```bash
+npm run db:migrate
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Use `.env.example` as the source of truth for required keys.
 
-## Learn More
+Required for production:
 
-To learn more about Next.js, take a look at the following resources:
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `NEXT_PUBLIC_GOOGLE_MAPS_KEY`
+- `GOOGLE_MAPS_API_KEY`
+- `GEMINI_API_KEY`
+- `DB_FILE_NAME`
+- `DB_AUTH_TOKEN`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Optional:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_USE_MOCK_PLACES`
+- `USE_MOCK_PLACES`
+
+`GOOGLE_MAPS_API_KEY` is used by server actions. Some server code falls back to
+`NEXT_PUBLIC_GOOGLE_MAPS_KEY`, but production should provide a server-side key so
+browser and server API restrictions can be managed separately.
+
+## Database Setup
+
+The app uses Drizzle migrations. Production code should not create tables or
+patch columns at runtime.
+
+Local libSQL/SQLite:
+
+```bash
+DB_FILE_NAME=file:local.db
+DB_AUTH_TOKEN=
+npm run db:migrate
+```
+
+Production Turso/libSQL:
+
+```bash
+DB_FILE_NAME=libsql://your-database-your-org.turso.io
+DB_AUTH_TOKEN=your-turso-auth-token
+npm run db:migrate
+```
+
+Confirm the production database URL and token in your deployment provider before
+deploying. For Turso, `DB_FILE_NAME` should be the remote `libsql://...` database
+URL, and `DB_AUTH_TOKEN` should be a token with permission to access that
+database.
+
+Useful Drizzle commands:
+
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:studio
+```
 
 ## Deploy on Vercel
 

@@ -1,5 +1,6 @@
 'use server'
 
+import { getGoogleMapsServerApiKey } from '@/lib/env';
 import type { TravelMatrix } from '@/shared';
 
 interface Activity {
@@ -29,8 +30,7 @@ export async function computeRouteMatrixAction(
 ): Promise<TravelMatrix> {
   if (activities.length < 2) return {};
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
-  if (!apiKey) throw new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_KEY');
+  const apiKey = getGoogleMapsServerApiKey();
 
   const toWaypoint = (a: Activity) => ({
     waypoint: {

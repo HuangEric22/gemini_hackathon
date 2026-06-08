@@ -3,6 +3,7 @@
 import { GoogleGenAI } from '@google/genai';
 import type { ItineraryGenerationResponse } from '@/shared';
 import type { OpeningPeriod } from '@/db/schema';
+import { getRequiredGeminiApiKey } from '@/lib/env';
 import { itineraryDaySchema } from '@/lib/llm-output-schemas';
 import { parseLlmJson } from '@/lib/parse-llm-json';
 import { formatOpeningHours } from '@/lib/trip-planning-tools';
@@ -118,10 +119,7 @@ Requirements:
 export async function regenerateDayAction(
   input: RegenerateDayInput,
 ): Promise<ItineraryGenerationResponse> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY is not set');
-
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: getRequiredGeminiApiKey() });
   const prompt = buildDayPrompt(input);
 
   console.log(`\n━━━ [RegenDay] Regenerating day ${input.dayNumber} ━━━`);
