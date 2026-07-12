@@ -9,8 +9,9 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import type { CheckResult, RunOutput, ScenarioResult } from './types';
+import type { CheckResult, JudgeScore, RunOutput, ScenarioResult } from './types';
 import { deterministicFailures } from './types';
+import { isQuotaFailure } from '../graders/phase2-llm-judge';
 
 export const RESULTS_DIR = path.join(process.cwd(), 'eval', 'results');
 
@@ -37,14 +38,15 @@ function sourceMix(r: ScenarioResult): string {
   return [...counts.entries()].map(([s, n]) => `${s} ×${n}`).join(', ') || '—';
 }
 
+// score 0 means the judge call itself failed (real scores are 1–5).
+function judgeLabel(j: JudgeScore): string {
+  if (j.score !== 0) return `${j.score}/5${j.cached ? '*' : ''}`;
+  return isQuotaFailure(j.justification) ? '⚠ quota' : '⚠ failed';
+}
+
 function judgeCell(r: ScenarioResult): string {
   if (r.judge.length === 0) return '—';
-  // score 0 means the judge call itself failed (real scores are 1–5).
-  return r.judge.map(j =>
-    j.score === 0
-      ? `${j.criterion.replace(/_/g, ' ')}: ⚠ failed`
-      : `${j.criterion.replace(/_/g, ' ')}: ${j.score}/5${j.cached ? '*' : ''}`,
-  ).join('<br>');
+  return r.judge.map(j => `${j.criterion.replace(/_/g, ' ')}: ${judgeLabel(j)}`).join('<br>');
 }
 
 // ---------------------------------------------------------------------------
@@ -86,7 +88,9 @@ export function renderScorecard(run: RunOutput): string {
     lines.push('## Judge justifications', '');
     for (const r of run.results) {
       for (const j of r.judge) {
-        const label = j.score === 0 ? '⚠ failed' : `${j.score}/5`;
+        const label = j.score === 0
+          ? (isQuotaFailure(j.justification) ? '⚠ quota' : '⚠ failed')
+          : `${j.score}/5`;
         lines.push(`- **${r.scenarioId} / ${j.criterion}** (${label}, ${j.model}${j.cached ? ', cached' : ''}): ${j.justification}`);
       }
     }
