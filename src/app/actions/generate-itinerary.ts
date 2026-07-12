@@ -5,6 +5,7 @@ import type { ItineraryGenerationResponse, TravelMatrix } from '@/shared';
 import type { OpeningPeriod } from '@/db/schema';
 import { runPlanningPhase } from '@/lib/gemini-planning-phase';
 import { formatOpeningHours } from '@/lib/trip-planning-tools';
+import { generateWithRepair } from '@/lib/itinerary-repair';
 import { computeRouteMatrixAction } from './compute-route-matrix';
 
 const MODELS = [
@@ -120,12 +121,16 @@ function buildPrompt(input: GenerateItineraryInput, travelMatrix: TravelMatrix, 
     moderate: 'mix of free and paid options for suggestions; mid-range restaurants',
     luxury: 'prioritize premium experiences for suggestions; upscale restaurants and venues',
   };
-  const paceBlock = input.pace ? `\nPace: ${input.pace} — ${paceDesc[input.pace]}\n` : '';
+  const paceBlock = input.pace
+    ? `\nPace: ${input.pace} — ${paceDesc[input.pace]}\nThe pace's activity count is a HARD requirement for every single day (meals, commutes, and alternatives do not count toward it). If the user selected too few activities to reach it, add is_suggested=true suggestions near each day's geographic cluster (matching the Budget, if one is set) until every day is within range.\n`
+    : '';
   const budgetBlock = input.budget ? `\nBudget: ${input.budget} — ${budgetDesc[input.budget]}\n` : '';
   const startTimeBlock = input.startTime ? `\nDay Start Time: ${input.startTime} — schedule the first activity of each day at or after this time.\n` : '';
 
   return `Role: Expert Travel Planner
 Task: Create a detailed, logical itinerary for EXACTLY ${input.numDays} day(s). You MUST output exactly ${input.numDays} day objects (day_number 1 through ${input.numDays}).
+
+NON-NEGOTIABLE: Every user-selected activity listed below MUST appear in your output exactly once — either as a scheduled item or, for surplus restaurants that do not fit a meal slot, as a type="alternative" item. Never drop, rename, or substitute a user-selected activity.
 
 User-Selected Activities:
 ${activitiesJson}
@@ -141,11 +146,11 @@ Requirements:
 6. Set commute_seconds to the travel duration in seconds.
 7. Ensure realistic time slots — activities should not overlap and should include buffer time. If an activity has a typical_visit_min field, use that as the duration instead of estimating.
 8. ${input.currentItinerary ? 'Respect the existing itinerary structure but apply the user feedback.' : 'Create a fresh itinerary.'}
-9. IMPORTANT: For user-selected activities, use the EXACT activity names provided — do not rename or paraphrase them. Set is_suggested to false for these. Copy the lat and lng from the provided coordinates.
+9. IMPORTANT: For user-selected activities, use the EXACT activity names provided — do not rename or paraphrase them. Set is_suggested to false for these — including any user-selected restaurant you output as type="alternative" (is_suggested=true is reserved for activities the AI invented). Copy the lat and lng from the provided coordinates.
 10. If there are time gaps of 1.5 hours or more between user activities (excluding commute), suggest a popular nearby attraction, cafe, or activity to fill the gap. Set is_suggested to true for these AI-suggested items. Include a short description and realistic lat/lng coordinates for each suggestion.
 11. CRITICAL: Spread activities evenly across all ${input.numDays} days. Each day should have a full schedule (morning through evening). If there are fewer user-selected activities than days, fill the extra days with AI-suggested activities and meals.
 12. GEOGRAPHIC CLUSTERING: If an activity is geographically far from the rest (>30 min travel), dedicate a separate half-day or full day to that area. Group nearby activities together on the same day.
-13. CONFLICT RESOLUTION: If the user selected multiple restaurants for the same meal slot (e.g., 3 dinner restaurants), pick the ONE that best fits the day's geographic cluster. Mark the remaining alternatives with is_suggested=true and type="alternative" so the user can swap them in. Add a description explaining the choice.
+13. CONFLICT RESOLUTION: Each day has exactly 3 meal slots (breakfast, lunch, dinner), so this trip has ${input.numDays * 3} meal slot(s) in total. If the user selected more restaurants than available meal slots, schedule exactly ONE restaurant per slot — chosen by geographic fit AND opening hours (a venue that opens at 11 AM cannot be a breakfast) — and output EVERY remaining restaurant as a type="alternative" item (with is_suggested=false, since it is still the user's pick) on the day whose meal it could replace, with a description explaining the trade-off. Never omit surplus restaurants from the output.
 14. MEAL BALANCE: Each day should have at most 1 breakfast, 1 lunch, and 1 dinner from the user's selections. If the user selected more restaurants than meal slots allow, distribute them across days or mark extras as alternatives.
 15. HIKE DURATIONS: If the Planning Notes contain a scheduling_instruction for a hike, you MUST follow it exactly. The start_time and end_time for that activity must be exactly the specified number of minutes apart. Never shorten a hike to fit — instead remove or reschedule other activities around it. Hikes that start at a trailhead should have a short commute item before them (the drive to the trailhead), but the hike block itself must use the full calculated duration.
 16. OPENING HOURS: Only schedule user-selected activities within their listed opening hours. Never schedule a venue before it opens or after it closes. If a venue is closed on a particular day, move it to a day when it is open. If no opening hours are provided for an activity, use common sense defaults.${dayAssignmentsBlock ? '\n17. DAY ASSIGNMENTS: Place activities on their user-specified day. Place unassigned activities wherever they fit best geographically and temporally.' : ''}`;
@@ -269,6 +274,23 @@ export async function generateItineraryAction(
   const prompt = buildPrompt(input, travelMatrix, planningNotes || undefined);
   console.log('[Phase 2] Prompt length:', prompt.length, 'chars | Planning notes injected:', !!planningNotes);
 
+  // Phase 3: validate the response against the hard contract and re-prompt
+  // once with any violations. generateWithRepair keeps the better attempt.
+  const { itinerary, violations, repairPasses } = await generateWithRepair(
+    p => generateWithRetry(ai, p),
+    prompt,
+    input,
+  );
+  if (repairPasses > 0) {
+    console.log(`[Phase 3] Repair pass ran; ${violations.length} violation(s) remain`);
+  }
+  return itinerary;
+}
+
+async function generateWithRetry(
+  ai: InstanceType<typeof GoogleGenAI>,
+  prompt: string,
+): Promise<ItineraryGenerationResponse> {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       return await tryAllModels(ai, prompt);
