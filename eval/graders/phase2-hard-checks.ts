@@ -77,7 +77,9 @@ export function gradePhase2(
   );
 
   // --- coords_present ------------------------------------------------------------
-  const badCoords = allItems.filter(i =>
+  // Commutes are transitions, not places — Gemini legitimately emits them
+  // without meaningful coordinates, so only real items are checked.
+  const badCoords = allItems.filter(i => !isCommute(i)).filter(i =>
     !Number.isFinite(i.lat) || !Number.isFinite(i.lng) ||
     Math.abs(i.lat!) > 90 || Math.abs(i.lng!) > 180 ||
     (i.lat === 0 && i.lng === 0),
