@@ -118,6 +118,16 @@ function isRetryable(err: unknown): boolean {
   return msg.includes('UNAVAILABLE') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('high demand');
 }
 
+/** Honors the API's advertised retry delay ("retryDelay":"15s"), else 20s. */
+function retryDelayMs(err: unknown): number {
+  const msg = err instanceof Error ? err.message : String(err);
+  const m = /retryDelay["':\s]+(\d+)/.exec(msg) ?? /retry in (\d+)/i.exec(msg);
+  return m ? (parseInt(m[1], 10) + 2) * 1000 : 20_000;
+}
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+const RETRIES_PER_MODEL = 3;
+
 async function judgeOne(
   ai: GoogleGenAI,
   scenario: EvalScenario,
@@ -141,30 +151,35 @@ ${JSON.stringify(itinerary, null, 2)}
 Return JSON: an integer score 1-5 and a 2-3 sentence justification citing specific items.`;
 
   let lastErr: unknown;
-  for (const model of [preferredModel, FALLBACK_JUDGE_MODEL]) {
-    try {
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: JUDGE_SCHEMA,
-          temperature: 0,
-        },
-      });
-      const parsed = JSON.parse(response.text ?? '{}') as { score?: number; justification?: string };
-      const score: JudgeScore = {
-        criterion: criterion.id,
-        score: Math.min(5, Math.max(1, Math.round(parsed.score ?? 0))),
-        justification: parsed.justification ?? '(no justification returned)',
-        model,
-        cached: false,
-      };
-      writeCache(key, score);
-      return score;
-    } catch (err) {
-      lastErr = err;
-      if (!isRetryable(err)) break;
+  outer: for (const model of [preferredModel, FALLBACK_JUDGE_MODEL]) {
+    for (let attempt = 0; attempt < RETRIES_PER_MODEL; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: JUDGE_SCHEMA,
+            temperature: 0,
+          },
+        });
+        const parsed = JSON.parse(response.text ?? '{}') as { score?: number; justification?: string };
+        const score: JudgeScore = {
+          criterion: criterion.id,
+          score: Math.min(5, Math.max(1, Math.round(parsed.score ?? 0))),
+          justification: parsed.justification ?? '(no justification returned)',
+          model,
+          cached: false,
+        };
+        writeCache(key, score);
+        return score;
+      } catch (err) {
+        lastErr = err;
+        if (!isRetryable(err)) break outer;
+        // Rate-limited (free-tier quotas are per-minute): wait the API's
+        // advertised delay and retry before falling back to the next model.
+        await sleep(retryDelayMs(err));
+      }
     }
   }
   return {
