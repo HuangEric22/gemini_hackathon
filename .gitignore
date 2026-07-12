@@ -45,6 +45,10 @@ venv
 __pycache__/
 *.py[cod]
 
+# eval harness outputs (fixtures ARE committed; results and caches are not)
+/eval/results/
+/eval/.cache/
+
 # database
 local.db
 # clerk configuration (can include secrets)
