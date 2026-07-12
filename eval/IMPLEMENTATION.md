@@ -949,11 +949,11 @@ Cache files live in `eval/.cache/judge/<hash>.json` (gitignored). Re-running the
 
 ---
 
-## 12. Scenario dataset generator (scratchpad, **not yet run** — pending your go-ahead)
+## 12. Scenario dataset (`eval/datasets/scenarios.json` — **generated and committed**)
 
-A one-off script was prepared in the session scratchpad (`build-scenarios.ts`) that emits `eval/datasets/scenarios.json`. It exists because the `OpeningPeriod` arrays (`{ open: {day, hour, minute}, close: {...} }` per weekday per venue) are extremely repetitive to hand-write; the script uses a `hours(days, openH, openM, closeH, closeM)` helper and real coordinates. Only the generated JSON would be committed — the script itself stays out of the repo.
+A one-off typed generator script emitted `eval/datasets/scenarios.json` (9 scenarios, 53 activities) and was then deleted — only the JSON is committed. The script existed because the `OpeningPeriod` arrays (`{ open: {day, hour, minute}, close: {...} }` per weekday per venue) are extremely repetitive to hand-write; it used a `hours(days, openH, openM, closeH, closeM)` helper and real coordinates, and typechecked every scenario against `EvalScenario` before emitting.
 
-The 9 scenarios it defines (plan's 8 + one addition):
+The 9 scenarios (plan's 8 + one addition):
 
 | # | id | Covers |
 |---|---|---|
@@ -971,13 +971,26 @@ Every scenario requires `get_weather_forecast` in Phase 1, because the planning 
 
 ---
 
-## 13. Still pending (not yet built)
+## 13. Completion (everything from the original pending list is built and verified)
 
-1. **`eval/harness/runner.ts`** — per-scenario driver: set hooks → call `generateItineraryAction` with a timeout → clear hooks in `finally` → save fixture (record mode) → run all graders.
-2. **`eval/harness/report.ts`** — `scorecard.md`, `raw.json`, and `diff.md` against the previous run in `eval/results/`.
-3. **`eval/harness/run.ts`** — CLI entrypoint: loads `.env.local` via dotenv, flags `--scenario <id>`, `--record`, `--no-judge`, `--regrade <run-dir>`, non-zero exit on deterministic failures.
-4. **Generate `eval/datasets/scenarios.json`** by running the scratchpad script (this is the step that was paused).
-5. **`package.json`**: add `"eval": "tsx eval/harness/run.ts"`.
-6. **`.gitignore`**: add `eval/results/` and `eval/.cache/`.
-7. **`plan.md`**: fill in the §API-cost strategy section with the implemented levers.
-8. **Verify**: `tsc --noEmit`, then a single-scenario smoke run (`npm run eval -- --scenario rome-gap-fill --no-judge`) — this makes live Gemini calls (a few cents).
+- **`eval/harness/runner.ts`** — per-scenario driver: hooks set → `generateItineraryAction` raced against a 240s timeout → hooks cleared in a `finally` → fixture saved only on success → all graders run (Phase-1 grading runs even when generation fails, since the trace is the best diagnostic then). Scenarios run sequentially — the hook registry is global.
+- **`eval/harness/report.ts`** — `raw.json` (full `RunOutput`, input to `--regrade`), `scorecard.md` (per-scenario row + every failing check's `details` verbatim + trace-source mix + judge justifications), `diff.md` (vs latest previous run: regressions first, fixes, judge deltas ≥ 1, generation changes).
+- **`eval/harness/run.ts`** — CLI: dotenv from `.env.local` (fails fast without `GEMINI_API_KEY`), flags `--scenario <id|prefix>`, `--record`, `--no-judge`, `--regrade <run-dir>`; exit 1 on generation errors or deterministic failures; judge scores never gate.
+- **Dataset + fixtures**: `scenarios.json` committed; `--record` run captured fixtures for all 9 scenarios (committed).
+- **Wiring**: `"eval": "tsx eval/harness/run.ts"` in `package.json`; `eval/results/` and `eval/.cache/` gitignored.
+- **Verified**: `tsc --noEmit` clean → pre-fixture smoke run (synthetic fallbacks, all green) → record run (all 9) → full judged replay (fixtures served, generation green on all 9).
+
+### Fixes the first runs forced
+
+1. `coords_present` now skips commute items — Gemini legitimately emits "12 min drive" transitions at (0,0); commutes aren't places.
+2. The judge honors the API's advertised `retryDelay` on 429 (up to 3 attempts per model before falling back) — free-tier keys have 5-req/min quotas and the first judged run lost several criteria to score-0 sentinels.
+
+### Real generator bugs found on the first record run (the baseline to improve)
+
+| Scenario | Finding |
+|---|---|
+| `sf-baseline` | SFMOMA scheduled 09:40 (opens 10:00); de Young 09:20 (opens 9:30) |
+| `tokyo-meals` | 3 of 6 selected restaurants dropped; `type="alternative"` barely used |
+| `iceland-clusters` | `get_travel_time` never called despite ~370 km spread |
+| `sf-packed-luxury` | packed pace not honored (3/2/2 activities/day) and no gap-fill suggestions added |
+| `rome-gap-fill` | planning phase silently no-opped once (rate-limited → empty trace) |

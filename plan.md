@@ -9,12 +9,12 @@ The graders, fixture layer, and production hook seam are **built** (see `eval/IM
 | `src/lib/eval-hooks.ts` (hook seam) + 4 prod-file integrations | ✅ done |
 | `eval/harness/types.ts`, `time-utils.ts`, `fixtures.ts` | ✅ done |
 | `eval/graders/phase1-tool-calls.ts`, `phase2-hard-checks.ts`, `phase2-llm-judge.ts` | ✅ done |
-| `eval/datasets/scenarios.json` (9 scenarios) | ⬜ step 1 |
-| `eval/harness/runner.ts` (per-scenario driver) | ⬜ step 2 |
-| `eval/harness/report.ts` (scorecard / raw / diff) | ⬜ step 3 |
-| `eval/harness/run.ts` (CLI entrypoint) | ⬜ step 4 |
-| `package.json` script, `.gitignore` entries | ⬜ step 5 |
-| Verification (typecheck → offline run → record → replay) | ⬜ step 6 |
+| `eval/datasets/scenarios.json` (9 scenarios) | ✅ done |
+| `eval/harness/runner.ts` (per-scenario driver) | ✅ done |
+| `eval/harness/report.ts` (scorecard / raw / diff) | ✅ done |
+| `eval/harness/run.ts` (CLI entrypoint) | ✅ done |
+| `package.json` script, `.gitignore` entries | ✅ done |
+| Verification (typecheck → offline run → record → replay) | ✅ done — see `eval/IMPLEMENTATION.md` §13 for findings |
 
 Established facts the steps below rely on:
 
