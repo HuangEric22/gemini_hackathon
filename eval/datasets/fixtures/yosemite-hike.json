@@ -1,0 +1,95 @@
+{
+  "scenarioId": "yosemite-hike",
+  "recordedAt": "2026-07-12T09:38:12.460Z",
+  "toolCalls": [
+    {
+      "name": "get_weather_forecast",
+      "args": {
+        "lng": -119.5936,
+        "location_name": "Yosemite National Park",
+        "lat": 37.7456
+      },
+      "result": {
+        "location": "Yosemite National Park",
+        "forecast": [
+          {
+            "date": "2026-07-12",
+            "condition": "Overcast",
+            "temp_max_c": 31.9,
+            "temp_min_c": 22.2,
+            "precipitation_probability_pct": 2
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "Overcast",
+            "temp_max_c": 31.7,
+            "temp_min_c": 22.1,
+            "precipitation_probability_pct": 10
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "Light drizzle",
+            "temp_max_c": 33.6,
+            "temp_min_c": 19.7,
+            "precipitation_probability_pct": 13
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "Partly cloudy",
+            "temp_max_c": 34.5,
+            "temp_min_c": 21,
+            "precipitation_probability_pct": 1
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "Partly cloudy",
+            "temp_max_c": 35.1,
+            "temp_min_c": 22.4,
+            "precipitation_probability_pct": 2
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "Overcast",
+            "temp_max_c": 33.9,
+            "temp_min_c": 21.4,
+            "precipitation_probability_pct": 8
+          },
+          {
+            "date": "2026-07-18",
+            "condition": "Overcast",
+            "temp_max_c": 33.5,
+            "temp_min_c": 20.5,
+            "precipitation_probability_pct": 15
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_travel_time",
+      "args": {
+        "origin_lng": -119.5869,
+        "dest_lat": 37.5019,
+        "origin_name": "Yosemite Valley Visitor Center",
+        "mode": "DRIVE",
+        "dest_name": "Mariposa Grove of Giant Sequoias",
+        "origin_lat": 37.7487,
+        "dest_lng": -119.6083
+      },
+      "result": {
+        "error": "Routes API error: 403"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": -119.5869,
+        "meal_type": "lunch",
+        "lat": 37.7487
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    }
+  ],
+  "routeMatrices": {}
+}

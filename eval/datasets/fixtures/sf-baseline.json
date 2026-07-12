@@ -1,0 +1,91 @@
+{
+  "scenarioId": "sf-baseline",
+  "recordedAt": "2026-07-12T09:38:03.234Z",
+  "toolCalls": [
+    {
+      "name": "get_weather_forecast",
+      "args": {
+        "lat": 37.7852,
+        "location_name": "Hotel Nikko San Francisco",
+        "lng": -122.4102
+      },
+      "result": {
+        "location": "Hotel Nikko San Francisco",
+        "forecast": [
+          {
+            "date": "2026-07-12",
+            "condition": "Overcast",
+            "temp_max_c": 23,
+            "temp_min_c": 11.9,
+            "precipitation_probability_pct": 1
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "Overcast",
+            "temp_max_c": 28,
+            "temp_min_c": 13.4,
+            "precipitation_probability_pct": 2
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "Clear sky",
+            "temp_max_c": 23.3,
+            "temp_min_c": 14.3,
+            "precipitation_probability_pct": 1
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "Clear sky",
+            "temp_max_c": 21.6,
+            "temp_min_c": 13.2,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "Overcast",
+            "temp_max_c": 20.1,
+            "temp_min_c": 13.1,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "Overcast",
+            "temp_max_c": 19.5,
+            "temp_min_c": 13.3,
+            "precipitation_probability_pct": 1
+          },
+          {
+            "date": "2026-07-18",
+            "condition": "Overcast",
+            "temp_max_c": 21,
+            "temp_min_c": 13.5,
+            "precipitation_probability_pct": 2
+          }
+        ]
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "meal_type": "lunch",
+        "lng": -122.4102,
+        "lat": 37.7852
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lat": 37.7852,
+        "lng": -122.4102,
+        "meal_type": "dinner"
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    }
+  ],
+  "routeMatrices": {}
+}

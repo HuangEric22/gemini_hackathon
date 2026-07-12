@@ -1,0 +1,91 @@
+{
+  "scenarioId": "paris-closed-days",
+  "recordedAt": "2026-07-12T09:38:36.203Z",
+  "toolCalls": [
+    {
+      "name": "get_weather_forecast",
+      "args": {
+        "lng": 2.3522,
+        "lat": 48.8566,
+        "location_name": "Paris, France"
+      },
+      "result": {
+        "location": "Paris, France",
+        "forecast": [
+          {
+            "date": "2026-07-12",
+            "condition": "Overcast",
+            "temp_max_c": 36.6,
+            "temp_min_c": 22.4,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "Thunderstorm",
+            "temp_max_c": 33.7,
+            "temp_min_c": 22.6,
+            "precipitation_probability_pct": 1
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "Overcast",
+            "temp_max_c": 35,
+            "temp_min_c": 21.4,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "Overcast",
+            "temp_max_c": 30.8,
+            "temp_min_c": 24.5,
+            "precipitation_probability_pct": 8
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "Overcast",
+            "temp_max_c": 34.8,
+            "temp_min_c": 23.3,
+            "precipitation_probability_pct": 17
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "Slight showers",
+            "temp_max_c": 26.3,
+            "temp_min_c": 21,
+            "precipitation_probability_pct": 42
+          },
+          {
+            "date": "2026-07-18",
+            "condition": "Slight showers",
+            "temp_max_c": 27.8,
+            "temp_min_c": 20.5,
+            "precipitation_probability_pct": 24
+          }
+        ]
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": 2.3376,
+        "meal_type": "lunch",
+        "lat": 48.8606
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lat": 48.8584,
+        "lng": 2.2945,
+        "meal_type": "dinner"
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    }
+  ],
+  "routeMatrices": {}
+}
