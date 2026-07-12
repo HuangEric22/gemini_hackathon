@@ -994,3 +994,33 @@ Every scenario requires `get_weather_forecast` in Phase 1, because the planning 
 | `iceland-clusters` | `get_travel_time` never called despite ~370 km spread |
 | `sf-packed-luxury` | packed pace not honored (3/2/2 activities/day) and no gap-fill suggestions added |
 | `rome-gap-fill` | planning phase silently no-opped once (rate-limited → empty trace) |
+
+---
+
+## 14. Validation loop (follow-up to the baseline findings)
+
+The baseline failures above are now addressed by enforcement rather than hope:
+
+- **`src/lib/itinerary-validation.ts`** — the Phase-2 hard checks extracted into one shared module of 11 pure
+  checks `(input, itinerary) → violation strings`. Violation messages name the offending item and constraint, so
+  they double as repair instructions. 51 unit tests (`src/test/itinerary-validation.test.ts`).
+- **`src/lib/itinerary-repair.ts`** — `generateWithRepair()`: generate → validate → on violations, re-prompt once
+  with the violation list and the previous attempt attached. The attempt with fewer violations wins, so a repair
+  can never regress the result; repair API failures fall back to the original attempt.
+- **`generate-itinerary.ts`** — wires the loop in as Phase 3 and hardens the prompt: user activities are
+  non-negotiable, surplus restaurants come back as `type="alternative"` with `is_suggested=false`, pace is a
+  per-day hard requirement with gap-fill instructions.
+- **`eval/graders/phase2-hard-checks.ts`** — now delegates to the shared module (−273 lines), keeping only the
+  eval-only expectation checks, so the eval grades exactly the contract production enforces.
+- **Judge quota handling** — per-day quota errors skip to the fallback model immediately; once quota is exhausted
+  mid-run remaining criteria are skipped; the scorecard shows `⚠ quota` vs `⚠ failed`.
+
+### Post-validation-loop run (2026-07-12, replay, no judge)
+
+9/9 generated, 7/9 fully green (baseline: 4/9). Repair fired twice: `sf-baseline` 7 violations → 0,
+`sf-packed-luxury` 4 → 1. Remaining known issues:
+
+| Scenario | Residual | Why the loop can't fix it |
+|---|---|---|
+| `iceland-clusters` | `get_travel_time` still never called | Phase-1 planning behavior; the repair loop validates the Phase-2 itinerary. Needs planning-prompt hardening. |
+| `sf-packed-luxury` | day 1 one activity short of the packed band | Repair fixed 3 of 4 violations; a second pass or stronger gap-fill instruction could close it at the cost of an extra generation call. |
