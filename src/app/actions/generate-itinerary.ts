@@ -14,7 +14,7 @@ const MODELS = [
   'gemini-3-flash-preview',
 ];
 
-interface ActivityPick {
+export interface ActivityPick {
   name: string;
   lat: number;
   lng: number;
@@ -24,7 +24,7 @@ interface ActivityPick {
   averageDuration?: number | null;  // minutes, from DB
 }
 
-interface GenerateItineraryInput {
+export interface GenerateItineraryInput {
   activities: ActivityPick[];
   numDays: number;
   transportMode?: string;          // 'DRIVE' | 'TRANSIT' | 'WALK'

@@ -1,6 +1,7 @@
 'use server'
 
 import type { TravelMatrix } from '@/shared';
+import { getEvalHooks } from '@/lib/eval-hooks';
 
 interface Activity {
   name: string;
@@ -24,6 +25,15 @@ function formatDuration(seconds: number): string {
  * Replaces the legacy DistanceMatrixService.
  */
 export async function computeRouteMatrixAction(
+  activities: Activity[],
+  mode: TravelMode = 'DRIVE',
+): Promise<TravelMatrix> {
+  const intercept = getEvalHooks().interceptRouteMatrix;
+  if (intercept) return intercept(activities, mode, computeRouteMatrixReal);
+  return computeRouteMatrixReal(activities, mode);
+}
+
+async function computeRouteMatrixReal(
   activities: Activity[],
   mode: TravelMode = 'DRIVE',
 ): Promise<TravelMatrix> {

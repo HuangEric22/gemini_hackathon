@@ -8,6 +8,7 @@
 
 import { Type } from '@google/genai';
 import type { OpeningPeriod } from '@/db/schema';
+import { getEvalHooks } from './eval-hooks';
 
 // ---------------------------------------------------------------------------
 // Opening hours formatter (shared with generate-itinerary and planning phase)
@@ -452,7 +453,7 @@ async function findNearbyRestaurants(args: {
 // Dispatcher — called by the planning loop
 // ---------------------------------------------------------------------------
 
-export async function executePlanningTool(
+async function dispatchPlanningTool(
   name: string,
   args: Record<string, unknown>,
 ): Promise<object> {
@@ -470,4 +471,13 @@ export async function executePlanningTool(
     default:
       return { error: `Unknown tool: ${name}` };
   }
+}
+
+export async function executePlanningTool(
+  name: string,
+  args: Record<string, unknown>,
+): Promise<object> {
+  const intercept = getEvalHooks().interceptPlanningTool;
+  if (intercept) return intercept(name, args, dispatchPlanningTool);
+  return dispatchPlanningTool(name, args);
 }
