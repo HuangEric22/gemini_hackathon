@@ -1,13 +1,13 @@
 {
   "scenarioId": "sf-feedback",
-  "recordedAt": "2026-07-12T09:39:31.891Z",
+  "recordedAt": "2026-07-12T10:44:26.086Z",
   "toolCalls": [
     {
       "name": "get_weather_forecast",
       "args": {
-        "lng": -122.4194,
+        "location_name": "San Francisco",
         "lat": 37.7749,
-        "location_name": "San Francisco"
+        "lng": -122.4194
       },
       "result": {
         "location": "San Francisco",
@@ -15,9 +15,9 @@
           {
             "date": "2026-07-12",
             "condition": "Overcast",
-            "temp_max_c": 23.8,
+            "temp_max_c": 23.5,
             "temp_min_c": 12.4,
-            "precipitation_probability_pct": 2
+            "precipitation_probability_pct": 1
           },
           {
             "date": "2026-07-13",
@@ -67,12 +67,12 @@
     {
       "name": "find_nearby_restaurants",
       "args": {
-        "lat": 37.7799,
-        "lng": -122.5115,
-        "meal_type": "lunch"
+        "meal_type": "lunch",
+        "lat": 37.8199,
+        "lng": -122.4783
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     },
     {
@@ -83,7 +83,7 @@
         "lng": -122.3937
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     }
   ],

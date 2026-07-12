@@ -39,7 +39,12 @@ function sourceMix(r: ScenarioResult): string {
 
 function judgeCell(r: ScenarioResult): string {
   if (r.judge.length === 0) return '—';
-  return r.judge.map(j => `${j.criterion.replace(/_/g, ' ')}: ${j.score}/5${j.cached ? '*' : ''}`).join('<br>');
+  // score 0 means the judge call itself failed (real scores are 1–5).
+  return r.judge.map(j =>
+    j.score === 0
+      ? `${j.criterion.replace(/_/g, ' ')}: ⚠ failed`
+      : `${j.criterion.replace(/_/g, ' ')}: ${j.score}/5${j.cached ? '*' : ''}`,
+  ).join('<br>');
 }
 
 // ---------------------------------------------------------------------------
@@ -76,12 +81,13 @@ export function renderScorecard(run: RunOutput): string {
     }
   }
 
-  const judged = run.results.flatMap(r => r.judge).filter(j => j.score > 0);
-  if (judged.length > 0) {
+  const allJudge = run.results.flatMap(r => r.judge);
+  if (allJudge.length > 0) {
     lines.push('## Judge justifications', '');
     for (const r of run.results) {
       for (const j of r.judge) {
-        lines.push(`- **${r.scenarioId} / ${j.criterion}** (${j.score}/5, ${j.model}${j.cached ? ', cached' : ''}): ${j.justification}`);
+        const label = j.score === 0 ? '⚠ failed' : `${j.score}/5`;
+        lines.push(`- **${r.scenarioId} / ${j.criterion}** (${label}, ${j.model}${j.cached ? ', cached' : ''}): ${j.justification}`);
       }
     }
     lines.push('');

@@ -1,13 +1,13 @@
 {
   "scenarioId": "tokyo-meals",
-  "recordedAt": "2026-07-12T09:38:20.608Z",
+  "recordedAt": "2026-07-12T10:43:13.293Z",
   "toolCalls": [
     {
       "name": "get_weather_forecast",
       "args": {
         "lng": 139.6503,
-        "location_name": "Tokyo",
-        "lat": 35.6762
+        "lat": 35.6762,
+        "location_name": "Tokyo"
       },
       "result": {
         "location": "Tokyo",
@@ -17,49 +17,49 @@
             "condition": "Moderate drizzle",
             "temp_max_c": 28.9,
             "temp_min_c": 22.6,
-            "precipitation_probability_pct": 15
+            "precipitation_probability_pct": 13
           },
           {
             "date": "2026-07-13",
             "condition": "Moderate drizzle",
             "temp_max_c": 27.3,
             "temp_min_c": 23.8,
-            "precipitation_probability_pct": 65
+            "precipitation_probability_pct": 54
           },
           {
             "date": "2026-07-14",
             "condition": "Overcast",
             "temp_max_c": 33,
             "temp_min_c": 23.3,
-            "precipitation_probability_pct": 4
+            "precipitation_probability_pct": 3
           },
           {
             "date": "2026-07-15",
             "condition": "Overcast",
             "temp_max_c": 33.5,
             "temp_min_c": 24.2,
-            "precipitation_probability_pct": 2
+            "precipitation_probability_pct": 1
           },
           {
             "date": "2026-07-16",
             "condition": "Thunderstorm",
             "temp_max_c": 34.2,
             "temp_min_c": 27.3,
-            "precipitation_probability_pct": 19
+            "precipitation_probability_pct": 34
           },
           {
             "date": "2026-07-17",
             "condition": "Thunderstorm",
             "temp_max_c": 32.4,
             "temp_min_c": 26.6,
-            "precipitation_probability_pct": 48
+            "precipitation_probability_pct": 53
           },
           {
             "date": "2026-07-18",
             "condition": "Light drizzle",
             "temp_max_c": 32.5,
             "temp_min_c": 26.6,
-            "precipitation_probability_pct": 50
+            "precipitation_probability_pct": 42
           }
         ]
       }

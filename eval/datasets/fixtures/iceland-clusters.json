@@ -1,122 +1,115 @@
 {
   "scenarioId": "iceland-clusters",
-  "recordedAt": "2026-07-12T09:38:26.448Z",
+  "recordedAt": "2026-07-12T10:43:19.518Z",
   "toolCalls": [
     {
       "name": "get_weather_forecast",
       "args": {
-        "lat": 64.1466,
-        "lng": -21.9426,
-        "location_name": "Reykjavík, Iceland"
+        "lng": -21.8174,
+        "lat": 64.1265,
+        "location_name": "Reykjavik, Iceland"
       },
       "result": {
-        "location": "Reykjavík, Iceland",
+        "location": "Reykjavik, Iceland",
         "forecast": [
           {
             "date": "2026-07-12",
             "condition": "Slight rain",
-            "temp_max_c": 12.4,
-            "temp_min_c": 10.8,
-            "precipitation_probability_pct": 29
+            "temp_max_c": 12.7,
+            "temp_min_c": 10.4,
+            "precipitation_probability_pct": 20
           },
           {
             "date": "2026-07-13",
             "condition": "Slight rain",
-            "temp_max_c": 11.8,
-            "temp_min_c": 10.6,
-            "precipitation_probability_pct": 96
+            "temp_max_c": 11.7,
+            "temp_min_c": 10.4,
+            "precipitation_probability_pct": 94
           },
           {
             "date": "2026-07-14",
             "condition": "Moderate rain",
-            "temp_max_c": 12.5,
-            "temp_min_c": 11,
-            "precipitation_probability_pct": 80
+            "temp_max_c": 12.4,
+            "temp_min_c": 10.6,
+            "precipitation_probability_pct": 70
           },
           {
             "date": "2026-07-15",
             "condition": "Light drizzle",
             "temp_max_c": 12.4,
-            "temp_min_c": 10.2,
-            "precipitation_probability_pct": 58
+            "temp_min_c": 9.6,
+            "precipitation_probability_pct": 35
           },
           {
             "date": "2026-07-16",
             "condition": "Light drizzle",
-            "temp_max_c": 12.5,
-            "temp_min_c": 9.5,
-            "precipitation_probability_pct": 12
+            "temp_max_c": 11.7,
+            "temp_min_c": 8.8,
+            "precipitation_probability_pct": 22
           },
           {
             "date": "2026-07-17",
             "condition": "Overcast",
-            "temp_max_c": 11,
-            "temp_min_c": 9.3,
-            "precipitation_probability_pct": 8
+            "temp_max_c": 11.1,
+            "temp_min_c": 8.8,
+            "precipitation_probability_pct": 6
           },
           {
             "date": "2026-07-18",
-            "condition": "Light drizzle",
-            "temp_max_c": 11.2,
-            "temp_min_c": 9.2,
-            "precipitation_probability_pct": 32
+            "condition": "Overcast",
+            "temp_max_c": 10.5,
+            "temp_min_c": 8.5,
+            "precipitation_probability_pct": 37
           }
         ]
       }
     },
     {
+      "name": "get_travel_time",
+      "args": {
+        "origin_name": "Reynisfjara Black Sand Beach",
+        "mode": "DRIVE",
+        "origin_lat": 63.4064,
+        "origin_lng": -19.0442,
+        "dest_lng": -16.2306,
+        "dest_lat": 64.0784,
+        "dest_name": "Jökulsárlón Glacier Lagoon"
+      },
+      "result": {
+        "error": "Routes API error: 403"
+      }
+    },
+    {
       "name": "find_nearby_restaurants",
       "args": {
-        "meal_type": "lunch",
         "lat": 64.1417,
+        "meal_type": "dinner",
         "lng": -21.9266
       },
       "result": {
-        "error": "Places API error: 400"
-      }
-    },
-    {
-      "name": "find_nearby_restaurants",
-      "args": {
-        "meal_type": "dinner",
-        "lat": 63.8804,
-        "lng": -22.4495
-      },
-      "result": {
-        "error": "Places API error: 400"
-      }
-    },
-    {
-      "name": "find_nearby_restaurants",
-      "args": {
-        "lng": -21.1299,
-        "lat": 64.2559,
-        "meal_type": "lunch"
-      },
-      "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     },
     {
       "name": "find_nearby_restaurants",
       "args": {
         "lat": 63.4064,
-        "meal_type": "dinner",
+        "meal_type": "lunch",
         "lng": -19.0442
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     },
     {
       "name": "find_nearby_restaurants",
       "args": {
-        "lng": -16.2306,
-        "meal_type": "lunch",
-        "lat": 64.0784
+        "meal_type": "dinner",
+        "lat": 64.0784,
+        "lng": -16.2306
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     }
   ],

@@ -118,6 +118,12 @@ function isRetryable(err: unknown): boolean {
   return msg.includes('UNAVAILABLE') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('high demand');
 }
 
+/** Daily quotas don't reset within a run — waiting on them is pointless. */
+function isDailyQuota(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes('PerDay');
+}
+
 /** Honors the API's advertised retry delay ("retryDelay":"15s"), else 20s. */
 function retryDelayMs(err: unknown): number {
   const msg = err instanceof Error ? err.message : String(err);
@@ -176,8 +182,10 @@ Return JSON: an integer score 1-5 and a 2-3 sentence justification citing specif
       } catch (err) {
         lastErr = err;
         if (!isRetryable(err)) break outer;
-        // Rate-limited (free-tier quotas are per-minute): wait the API's
-        // advertised delay and retry before falling back to the next model.
+        // Daily quota exhausted for this model: skip straight to the fallback.
+        if (isDailyQuota(err)) continue outer;
+        // Per-minute rate limit: wait the API's advertised delay and retry
+        // before falling back to the next model.
         await sleep(retryDelayMs(err));
       }
     }

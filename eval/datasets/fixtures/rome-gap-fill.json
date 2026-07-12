@@ -1,7 +1,81 @@
 {
   "scenarioId": "rome-gap-fill",
-  "recordedAt": "2026-07-12T09:39:02.563Z",
-  "toolCalls": [],
+  "recordedAt": "2026-07-12T10:44:18.736Z",
+  "toolCalls": [
+    {
+      "name": "get_weather_forecast",
+      "args": {
+        "lng": 12.4922,
+        "lat": 41.8902,
+        "location_name": "Rome, Italy"
+      },
+      "result": {
+        "location": "Rome, Italy",
+        "forecast": [
+          {
+            "date": "2026-07-12",
+            "condition": "Overcast",
+            "temp_max_c": 35.2,
+            "temp_min_c": 21.9,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "Partly cloudy",
+            "temp_max_c": 35.2,
+            "temp_min_c": 22.9,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "Partly cloudy",
+            "temp_max_c": 37.1,
+            "temp_min_c": 22.7,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "Clear sky",
+            "temp_max_c": 36.1,
+            "temp_min_c": 22.4,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "Mainly clear",
+            "temp_max_c": 37.9,
+            "temp_min_c": 23.9,
+            "precipitation_probability_pct": 3
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "Partly cloudy",
+            "temp_max_c": 36.4,
+            "temp_min_c": 25.8,
+            "precipitation_probability_pct": 2
+          },
+          {
+            "date": "2026-07-18",
+            "condition": "Fog",
+            "temp_max_c": 36.4,
+            "temp_min_c": 22.7,
+            "precipitation_probability_pct": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": 12.4922,
+        "lat": 41.8902,
+        "meal_type": "lunch"
+      },
+      "result": {
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    }
+  ],
   "routeMatrices": {
     "WALK": {}
   }
