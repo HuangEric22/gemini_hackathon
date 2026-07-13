@@ -53,3 +53,10 @@ __pycache__/
 local.db
 # clerk configuration (can include secrets)
 /.clerk/
+
+# local agent tooling (session-specific, not project source)
+.agents/
+.claude/worktrees/
+.claude/settings.local.json
+.lavish/
+skills-lock.json
