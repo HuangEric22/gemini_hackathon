@@ -1,78 +1,67 @@
 {
   "scenarioId": "sf-packed-luxury",
-  "recordedAt": "2026-07-12T09:38:53.194Z",
+  "recordedAt": "2026-07-12T10:44:09.690Z",
   "toolCalls": [
     {
       "name": "get_weather_forecast",
       "args": {
-        "lng": -122.4194,
-        "location_name": "San Francisco, CA",
-        "lat": 37.7749
+        "location_name": "San Francisco",
+        "lng": -122.4102,
+        "lat": 37.7852
       },
       "result": {
-        "location": "San Francisco, CA",
+        "location": "San Francisco",
         "forecast": [
           {
             "date": "2026-07-12",
             "condition": "Overcast",
-            "temp_max_c": 23.8,
-            "temp_min_c": 12.4,
-            "precipitation_probability_pct": 2
+            "temp_max_c": 22.9,
+            "temp_min_c": 12.1,
+            "precipitation_probability_pct": 1
           },
           {
             "date": "2026-07-13",
             "condition": "Overcast",
-            "temp_max_c": 28.7,
-            "temp_min_c": 13.8,
-            "precipitation_probability_pct": 2
+            "temp_max_c": 28,
+            "temp_min_c": 13.4,
+            "precipitation_probability_pct": 1
           },
           {
             "date": "2026-07-14",
             "condition": "Clear sky",
-            "temp_max_c": 23.4,
-            "temp_min_c": 14.4,
+            "temp_max_c": 23.3,
+            "temp_min_c": 14.3,
             "precipitation_probability_pct": 1
           },
           {
             "date": "2026-07-15",
             "condition": "Clear sky",
-            "temp_max_c": 21.7,
-            "temp_min_c": 13.3,
+            "temp_max_c": 21.6,
+            "temp_min_c": 13.2,
             "precipitation_probability_pct": 0
           },
           {
             "date": "2026-07-16",
             "condition": "Overcast",
-            "temp_max_c": 20.2,
-            "temp_min_c": 13.2,
+            "temp_max_c": 20.1,
+            "temp_min_c": 13.1,
             "precipitation_probability_pct": 0
           },
           {
             "date": "2026-07-17",
             "condition": "Overcast",
-            "temp_max_c": 19.6,
-            "temp_min_c": 13.4,
+            "temp_max_c": 19.5,
+            "temp_min_c": 13.3,
             "precipitation_probability_pct": 1
           },
           {
             "date": "2026-07-18",
             "condition": "Overcast",
-            "temp_max_c": 21.1,
-            "temp_min_c": 13.6,
-            "precipitation_probability_pct": 3
+            "temp_max_c": 21,
+            "temp_min_c": 13.5,
+            "precipitation_probability_pct": 2
           }
         ]
-      }
-    },
-    {
-      "name": "find_nearby_restaurants",
-      "args": {
-        "lng": -122.4102,
-        "lat": 37.7852,
-        "meal_type": "lunch"
-      },
-      "result": {
-        "error": "Places API error: 400"
       }
     },
     {
@@ -83,7 +72,7 @@
         "lat": 37.7852
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     }
   ],

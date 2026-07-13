@@ -1,6 +1,6 @@
 {
   "scenarioId": "nyc-day-assignments",
-  "recordedAt": "2026-07-12T09:38:43.675Z",
+  "recordedAt": "2026-07-12T10:43:40.019Z",
   "toolCalls": [
     {
       "name": "get_weather_forecast",
@@ -15,8 +15,129 @@
           {
             "date": "2026-07-12",
             "condition": "Mainly clear",
-            "temp_max_c": 29.4,
-            "temp_min_c": 19.1,
+            "temp_max_c": 29.1,
+            "temp_min_c": 19.6,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "Overcast",
+            "temp_max_c": 30,
+            "temp_min_c": 19,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "Overcast",
+            "temp_max_c": 33.3,
+            "temp_min_c": 21.8,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "Overcast",
+            "temp_max_c": 37.4,
+            "temp_min_c": 24.9,
+            "precipitation_probability_pct": 3
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "Light drizzle",
+            "temp_max_c": 32.2,
+            "temp_min_c": 23.7,
+            "precipitation_probability_pct": 3
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "Overcast",
+            "temp_max_c": 30.2,
+            "temp_min_c": 22.3,
+            "precipitation_probability_pct": 3
+          },
+          {
+            "date": "2026-07-18",
+            "condition": "Light drizzle",
+            "temp_max_c": 23.8,
+            "temp_min_c": 21.3,
+            "precipitation_probability_pct": 14
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_travel_time",
+      "args": {
+        "origin_lng": -74.0445,
+        "origin_lat": 40.6892,
+        "mode": "TRANSIT",
+        "dest_lat": 40.7794,
+        "dest_name": "The Metropolitan Museum of Art",
+        "origin_name": "Statue of Liberty",
+        "dest_lng": -73.9632
+      },
+      "result": {
+        "error": "Routes API error: 403"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "meal_type": "lunch",
+        "lng": -74.0134,
+        "lat": 40.7115
+      },
+      "result": {
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "meal_type": "lunch",
+        "lng": -73.9632,
+        "lat": 40.7794
+      },
+      "result": {
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": -73.9857,
+        "meal_type": "dinner",
+        "lat": 40.7484
+      },
+      "result": {
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": -73.9855,
+        "meal_type": "dinner",
+        "lat": 40.758
+      },
+      "result": {
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    },
+    {
+      "name": "get_weather_forecast",
+      "args": {
+        "lng": -74.006,
+        "location_name": "New York City",
+        "lat": 40.7128
+      },
+      "result": {
+        "location": "New York City",
+        "forecast": [
+          {
+            "date": "2026-07-12",
+            "condition": "Mainly clear",
+            "temp_max_c": 29.1,
+            "temp_min_c": 19.6,
             "precipitation_probability_pct": 0
           },
           {
@@ -67,12 +188,25 @@
     {
       "name": "find_nearby_restaurants",
       "args": {
+        "budget": "moderate",
         "meal_type": "lunch",
-        "lng": -74.0445,
-        "lat": 40.6892
+        "lng": -74.0134,
+        "lat": 40.7115
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": -73.9857,
+        "lat": 40.7484,
+        "budget": "moderate",
+        "meal_type": "dinner"
+      },
+      "result": {
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     },
     {
@@ -80,44 +214,35 @@
       "args": {
         "lat": 40.7794,
         "lng": -73.9632,
-        "meal_type": "dinner"
+        "budget": "moderate",
+        "meal_type": "lunch"
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     },
     {
       "name": "find_nearby_restaurants",
       "args": {
-        "lng": -74.0134,
-        "meal_type": "lunch",
-        "lat": 40.7115
-      },
-      "result": {
-        "error": "Places API error: 400"
-      }
-    },
-    {
-      "name": "find_nearby_restaurants",
-      "args": {
-        "lng": -73.9857,
+        "lat": 40.7061,
+        "lng": -73.9969,
         "meal_type": "dinner",
-        "lat": 40.7484
+        "budget": "moderate"
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     },
     {
       "name": "get_travel_time",
       "args": {
-        "mode": "TRANSIT",
+        "dest_name": "9/11 Memorial & Museum",
+        "dest_lng": -74.0134,
+        "origin_lng": -74.0445,
         "origin_name": "Statue of Liberty",
         "origin_lat": 40.6892,
-        "dest_lat": 40.7794,
-        "origin_lng": -74.0445,
-        "dest_name": "The Metropolitan Museum of Art",
-        "dest_lng": -73.9632
+        "dest_lat": 40.7115,
+        "mode": "TRANSIT"
       },
       "result": {
         "error": "Routes API error: 403"
@@ -126,13 +251,13 @@
     {
       "name": "get_travel_time",
       "args": {
-        "origin_lat": 40.748,
-        "origin_lng": -74.0048,
-        "dest_lat": 40.7484,
-        "dest_name": "Empire State Building",
-        "dest_lng": -73.9857,
+        "dest_lat": 40.758,
         "mode": "TRANSIT",
-        "origin_name": "The High Line"
+        "dest_name": "Times Square",
+        "origin_name": "The Metropolitan Museum of Art",
+        "dest_lng": -73.9855,
+        "origin_lng": -73.9632,
+        "origin_lat": 40.7794
       },
       "result": {
         "error": "Routes API error: 403"

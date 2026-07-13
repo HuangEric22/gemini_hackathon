@@ -1,13 +1,13 @@
 {
   "scenarioId": "yosemite-hike",
-  "recordedAt": "2026-07-12T09:38:12.460Z",
+  "recordedAt": "2026-07-12T10:43:04.639Z",
   "toolCalls": [
     {
       "name": "get_weather_forecast",
       "args": {
+        "lat": 37.7456,
         "lng": -119.5936,
-        "location_name": "Yosemite National Park",
-        "lat": 37.7456
+        "location_name": "Yosemite National Park"
       },
       "result": {
         "location": "Yosemite National Park",
@@ -15,8 +15,8 @@
           {
             "date": "2026-07-12",
             "condition": "Overcast",
-            "temp_max_c": 31.9,
-            "temp_min_c": 22.2,
+            "temp_max_c": 32.2,
+            "temp_min_c": 21.9,
             "precipitation_probability_pct": 2
           },
           {
@@ -24,7 +24,7 @@
             "condition": "Overcast",
             "temp_max_c": 31.7,
             "temp_min_c": 22.1,
-            "precipitation_probability_pct": 10
+            "precipitation_probability_pct": 9
           },
           {
             "date": "2026-07-14",
@@ -67,13 +67,13 @@
     {
       "name": "get_travel_time",
       "args": {
-        "origin_lng": -119.5869,
         "dest_lat": 37.5019,
-        "origin_name": "Yosemite Valley Visitor Center",
-        "mode": "DRIVE",
         "dest_name": "Mariposa Grove of Giant Sequoias",
+        "origin_name": "Yosemite Valley Visitor Center",
         "origin_lat": 37.7487,
-        "dest_lng": -119.6083
+        "origin_lng": -119.5869,
+        "dest_lng": -119.6083,
+        "mode": "DRIVE"
       },
       "result": {
         "error": "Routes API error: 403"
@@ -83,11 +83,22 @@
       "name": "find_nearby_restaurants",
       "args": {
         "lng": -119.5869,
-        "meal_type": "lunch",
-        "lat": 37.7487
+        "lat": 37.7487,
+        "meal_type": "lunch"
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lat": 37.5019,
+        "meal_type": "dinner",
+        "lng": -119.6083
+      },
+      "result": {
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     }
   ],

@@ -1,22 +1,22 @@
 {
   "scenarioId": "sf-baseline",
-  "recordedAt": "2026-07-12T09:38:03.234Z",
+  "recordedAt": "2026-07-12T10:42:55.638Z",
   "toolCalls": [
     {
       "name": "get_weather_forecast",
       "args": {
         "lat": 37.7852,
-        "location_name": "Hotel Nikko San Francisco",
+        "location_name": "San Francisco",
         "lng": -122.4102
       },
       "result": {
-        "location": "Hotel Nikko San Francisco",
+        "location": "San Francisco",
         "forecast": [
           {
             "date": "2026-07-12",
             "condition": "Overcast",
-            "temp_max_c": 23,
-            "temp_min_c": 11.9,
+            "temp_max_c": 22.9,
+            "temp_min_c": 12.1,
             "precipitation_probability_pct": 1
           },
           {
@@ -24,7 +24,7 @@
             "condition": "Overcast",
             "temp_max_c": 28,
             "temp_min_c": 13.4,
-            "precipitation_probability_pct": 2
+            "precipitation_probability_pct": 1
           },
           {
             "date": "2026-07-14",
@@ -67,12 +67,12 @@
     {
       "name": "find_nearby_restaurants",
       "args": {
+        "lat": 37.7852,
         "meal_type": "lunch",
-        "lng": -122.4102,
-        "lat": 37.7852
+        "lng": -122.4102
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     },
     {
@@ -83,7 +83,7 @@
         "meal_type": "dinner"
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     }
   ],

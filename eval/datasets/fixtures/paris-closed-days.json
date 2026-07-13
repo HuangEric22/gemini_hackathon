@@ -1,13 +1,13 @@
 {
   "scenarioId": "paris-closed-days",
-  "recordedAt": "2026-07-12T09:38:36.203Z",
+  "recordedAt": "2026-07-12T10:43:31.362Z",
   "toolCalls": [
     {
       "name": "get_weather_forecast",
       "args": {
-        "lng": 2.3522,
         "lat": 48.8566,
-        "location_name": "Paris, France"
+        "location_name": "Paris, France",
+        "lng": 2.3522
       },
       "result": {
         "location": "Paris, France",
@@ -15,43 +15,43 @@
           {
             "date": "2026-07-12",
             "condition": "Overcast",
-            "temp_max_c": 36.6,
+            "temp_max_c": 36.4,
             "temp_min_c": 22.4,
             "precipitation_probability_pct": 0
           },
           {
             "date": "2026-07-13",
-            "condition": "Thunderstorm",
-            "temp_max_c": 33.7,
-            "temp_min_c": 22.6,
+            "condition": "Slight showers",
+            "temp_max_c": 34.1,
+            "temp_min_c": 22.7,
             "precipitation_probability_pct": 1
           },
           {
             "date": "2026-07-14",
             "condition": "Overcast",
-            "temp_max_c": 35,
-            "temp_min_c": 21.4,
+            "temp_max_c": 35.5,
+            "temp_min_c": 22.5,
             "precipitation_probability_pct": 0
           },
           {
             "date": "2026-07-15",
             "condition": "Overcast",
-            "temp_max_c": 30.8,
+            "temp_max_c": 34.3,
             "temp_min_c": 24.5,
             "precipitation_probability_pct": 8
           },
           {
             "date": "2026-07-16",
-            "condition": "Overcast",
-            "temp_max_c": 34.8,
-            "temp_min_c": 23.3,
+            "condition": "Slight showers",
+            "temp_max_c": 36.2,
+            "temp_min_c": 23.5,
             "precipitation_probability_pct": 17
           },
           {
             "date": "2026-07-17",
             "condition": "Slight showers",
             "temp_max_c": 26.3,
-            "temp_min_c": 21,
+            "temp_min_c": 21.1,
             "precipitation_probability_pct": 42
           },
           {
@@ -68,22 +68,22 @@
       "name": "find_nearby_restaurants",
       "args": {
         "lng": 2.3376,
-        "meal_type": "lunch",
-        "lat": 48.8606
+        "lat": 48.8606,
+        "meal_type": "lunch"
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     },
     {
       "name": "find_nearby_restaurants",
       "args": {
-        "lat": 48.8584,
+        "meal_type": "dinner",
         "lng": 2.2945,
-        "meal_type": "dinner"
+        "lat": 48.8584
       },
       "result": {
-        "error": "Places API error: 400"
+        "error": "Places API error: 403 — {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
       }
     }
   ],

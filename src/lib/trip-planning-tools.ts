@@ -16,6 +16,19 @@ import { getEvalHooks } from './eval-hooks';
 
 export function formatOpeningHours(periods: OpeningPeriod[]): string {
   const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Google Places encodes "always open" as a single period starting Sunday
+  // 00:00 with no close; without this case it renders as "open Sundays only".
+  if (
+    periods.length === 1 &&
+    periods[0].close == null &&
+    periods[0].open.day === 0 &&
+    periods[0].open.hour === 0 &&
+    periods[0].open.minute === 0
+  ) {
+    return 'Open 24 hours, every day';
+  }
+
   const fmt = (h: number, m: number) => {
     const ampm = h < 12 ? 'AM' : 'PM';
     const hour = h % 12 || 12;
@@ -409,12 +422,17 @@ async function findNearbyRestaurants(args: {
         locationRestriction: {
           circle: { center: { latitude: args.lat, longitude: args.lng }, radius: 600 },
         },
+        // Nearby Search only accepts POPULARITY or DISTANCE (RATING is a 400);
+        // results are sorted by rating locally below.
         maxResultCount: 5,
-        rankPreference: 'RATING',
+        rankPreference: 'POPULARITY',
       }),
     });
 
-    if (!res.ok) return { error: `Places API error: ${res.status}` };
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      return { error: `Places API error: ${res.status}${body ? ` — ${body.slice(0, 300)}` : ''}` };
+    }
 
     const data = await res.json() as {
       places?: Array<{
@@ -441,7 +459,8 @@ async function findNearbyRestaurants(args: {
         rating: p.rating,
         lat: p.location?.latitude,
         lng: p.location?.longitude,
-      }));
+      }))
+      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
 
     return { meal_type: args.meal_type, restaurants };
   } catch (err) {
