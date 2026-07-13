@@ -134,17 +134,37 @@ function retryDelayMs(err: unknown): number {
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 const RETRIES_PER_MODEL = 3;
 
+/** Matches quota-exhaustion errors that won't recover within this run. */
+export function isQuotaFailure(justification: string): boolean {
+  return justification.includes('judge call failed') &&
+    (justification.includes('free_tier_requests') ||
+     justification.includes('exceeded your current quota') ||
+     justification.includes('RESOURCE_EXHAUSTED'));
+}
+
 async function judgeOne(
   ai: GoogleGenAI,
   scenario: EvalScenario,
   itinerary: ItineraryGenerationResponse,
   criterion: Criterion,
+  skipApiCalls: boolean,
 ): Promise<JudgeScore> {
   const preferredModel = process.env.EVAL_JUDGE_MODEL ?? DEFAULT_JUDGE_MODEL;
 
   const key = cacheKey(preferredModel, criterion.id, scenario, itinerary);
   const cached = readCache(key);
   if (cached) return cached;
+
+  // Quota already exhausted earlier in this run — don't burn time retrying.
+  if (skipApiCalls) {
+    return {
+      criterion: criterion.id,
+      score: 0,
+      justification: 'judge call failed: skipped — API quota exhausted earlier in this run',
+      model: preferredModel,
+      cached: false,
+    };
+  }
 
   const prompt = `You are a strict evaluator of AI-generated travel itineraries. Score ONE dimension only; ignore all other qualities.
 
@@ -207,8 +227,11 @@ export async function runJudge(
   const ai = new GoogleGenAI({ apiKey });
   const applicable = CRITERIA.filter(c => !c.appliesTo || c.appliesTo(scenario));
   const scores: JudgeScore[] = [];
+  let quotaExhausted = false;
   for (const criterion of applicable) {
-    scores.push(await judgeOne(ai, scenario, itinerary, criterion));
+    const score = await judgeOne(ai, scenario, itinerary, criterion, quotaExhausted);
+    if (score.score === 0 && isQuotaFailure(score.justification)) quotaExhausted = true;
+    scores.push(score);
   }
   return scores;
 }
