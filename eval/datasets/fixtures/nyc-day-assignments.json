@@ -1,0 +1,143 @@
+{
+  "scenarioId": "nyc-day-assignments",
+  "recordedAt": "2026-07-12T09:38:43.675Z",
+  "toolCalls": [
+    {
+      "name": "get_weather_forecast",
+      "args": {
+        "lat": 40.7128,
+        "lng": -74.006,
+        "location_name": "New York City"
+      },
+      "result": {
+        "location": "New York City",
+        "forecast": [
+          {
+            "date": "2026-07-12",
+            "condition": "Mainly clear",
+            "temp_max_c": 29.4,
+            "temp_min_c": 19.1,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "Overcast",
+            "temp_max_c": 30,
+            "temp_min_c": 19,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "Overcast",
+            "temp_max_c": 33.3,
+            "temp_min_c": 21.8,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "Overcast",
+            "temp_max_c": 37.4,
+            "temp_min_c": 24.9,
+            "precipitation_probability_pct": 3
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "Light drizzle",
+            "temp_max_c": 32.2,
+            "temp_min_c": 23.7,
+            "precipitation_probability_pct": 3
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "Overcast",
+            "temp_max_c": 30.2,
+            "temp_min_c": 22.3,
+            "precipitation_probability_pct": 3
+          },
+          {
+            "date": "2026-07-18",
+            "condition": "Light drizzle",
+            "temp_max_c": 23.8,
+            "temp_min_c": 21.3,
+            "precipitation_probability_pct": 14
+          }
+        ]
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "meal_type": "lunch",
+        "lng": -74.0445,
+        "lat": 40.6892
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lat": 40.7794,
+        "lng": -73.9632,
+        "meal_type": "dinner"
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": -74.0134,
+        "meal_type": "lunch",
+        "lat": 40.7115
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": -73.9857,
+        "meal_type": "dinner",
+        "lat": 40.7484
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "get_travel_time",
+      "args": {
+        "mode": "TRANSIT",
+        "origin_name": "Statue of Liberty",
+        "origin_lat": 40.6892,
+        "dest_lat": 40.7794,
+        "origin_lng": -74.0445,
+        "dest_name": "The Metropolitan Museum of Art",
+        "dest_lng": -73.9632
+      },
+      "result": {
+        "error": "Routes API error: 403"
+      }
+    },
+    {
+      "name": "get_travel_time",
+      "args": {
+        "origin_lat": 40.748,
+        "origin_lng": -74.0048,
+        "dest_lat": 40.7484,
+        "dest_name": "Empire State Building",
+        "dest_lng": -73.9857,
+        "mode": "TRANSIT",
+        "origin_name": "The High Line"
+      },
+      "result": {
+        "error": "Routes API error: 403"
+      }
+    }
+  ],
+  "routeMatrices": {}
+}

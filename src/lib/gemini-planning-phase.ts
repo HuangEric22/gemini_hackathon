@@ -13,6 +13,7 @@ import { GoogleGenAI } from '@google/genai';
 import type { FunctionDeclaration } from '@google/genai';
 import type { OpeningPeriod } from '@/db/schema';
 import { PLANNING_TOOL_DECLARATIONS, executePlanningTool, formatOpeningHours } from './trip-planning-tools';
+import { getEvalHooks } from './eval-hooks';
 
 // Models to try in order (no structured output here, so all are valid)
 const PLANNING_MODELS = [
@@ -22,7 +23,7 @@ const PLANNING_MODELS = [
   'gemini-2.5-flash',
 ];
 
-const MAX_TOOL_ROUNDS = 6; // prevent infinite loops
+export const MAX_TOOL_ROUNDS = 6; // prevent infinite loops
 
 interface ActivitySummary {
   name: string;
@@ -138,6 +139,7 @@ export async function runPlanningPhase(
 
         // Check for function calls
         const functionCalls = response.functionCalls ?? [];
+        getEvalHooks().onPlanningRound?.(round + 1, functionCalls.length);
         if (functionCalls.length === 0) {
           console.log('  [Phase 1] No tool calls — Gemini is done.');
           break;

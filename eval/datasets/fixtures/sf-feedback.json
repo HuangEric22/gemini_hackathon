@@ -1,0 +1,91 @@
+{
+  "scenarioId": "sf-feedback",
+  "recordedAt": "2026-07-12T09:39:31.891Z",
+  "toolCalls": [
+    {
+      "name": "get_weather_forecast",
+      "args": {
+        "lng": -122.4194,
+        "lat": 37.7749,
+        "location_name": "San Francisco"
+      },
+      "result": {
+        "location": "San Francisco",
+        "forecast": [
+          {
+            "date": "2026-07-12",
+            "condition": "Overcast",
+            "temp_max_c": 23.8,
+            "temp_min_c": 12.4,
+            "precipitation_probability_pct": 2
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "Overcast",
+            "temp_max_c": 28.7,
+            "temp_min_c": 13.8,
+            "precipitation_probability_pct": 2
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "Clear sky",
+            "temp_max_c": 23.4,
+            "temp_min_c": 14.4,
+            "precipitation_probability_pct": 1
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "Clear sky",
+            "temp_max_c": 21.7,
+            "temp_min_c": 13.3,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "Overcast",
+            "temp_max_c": 20.2,
+            "temp_min_c": 13.2,
+            "precipitation_probability_pct": 0
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "Overcast",
+            "temp_max_c": 19.6,
+            "temp_min_c": 13.4,
+            "precipitation_probability_pct": 1
+          },
+          {
+            "date": "2026-07-18",
+            "condition": "Overcast",
+            "temp_max_c": 21.1,
+            "temp_min_c": 13.6,
+            "precipitation_probability_pct": 3
+          }
+        ]
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lat": 37.7799,
+        "lng": -122.5115,
+        "meal_type": "lunch"
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "meal_type": "dinner",
+        "lat": 37.7955,
+        "lng": -122.3937
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    }
+  ],
+  "routeMatrices": {}
+}

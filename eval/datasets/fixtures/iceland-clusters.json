@@ -1,0 +1,124 @@
+{
+  "scenarioId": "iceland-clusters",
+  "recordedAt": "2026-07-12T09:38:26.448Z",
+  "toolCalls": [
+    {
+      "name": "get_weather_forecast",
+      "args": {
+        "lat": 64.1466,
+        "lng": -21.9426,
+        "location_name": "Reykjavík, Iceland"
+      },
+      "result": {
+        "location": "Reykjavík, Iceland",
+        "forecast": [
+          {
+            "date": "2026-07-12",
+            "condition": "Slight rain",
+            "temp_max_c": 12.4,
+            "temp_min_c": 10.8,
+            "precipitation_probability_pct": 29
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "Slight rain",
+            "temp_max_c": 11.8,
+            "temp_min_c": 10.6,
+            "precipitation_probability_pct": 96
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "Moderate rain",
+            "temp_max_c": 12.5,
+            "temp_min_c": 11,
+            "precipitation_probability_pct": 80
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "Light drizzle",
+            "temp_max_c": 12.4,
+            "temp_min_c": 10.2,
+            "precipitation_probability_pct": 58
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "Light drizzle",
+            "temp_max_c": 12.5,
+            "temp_min_c": 9.5,
+            "precipitation_probability_pct": 12
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "Overcast",
+            "temp_max_c": 11,
+            "temp_min_c": 9.3,
+            "precipitation_probability_pct": 8
+          },
+          {
+            "date": "2026-07-18",
+            "condition": "Light drizzle",
+            "temp_max_c": 11.2,
+            "temp_min_c": 9.2,
+            "precipitation_probability_pct": 32
+          }
+        ]
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "meal_type": "lunch",
+        "lat": 64.1417,
+        "lng": -21.9266
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "meal_type": "dinner",
+        "lat": 63.8804,
+        "lng": -22.4495
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": -21.1299,
+        "lat": 64.2559,
+        "meal_type": "lunch"
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lat": 63.4064,
+        "meal_type": "dinner",
+        "lng": -19.0442
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    },
+    {
+      "name": "find_nearby_restaurants",
+      "args": {
+        "lng": -16.2306,
+        "meal_type": "lunch",
+        "lat": 64.0784
+      },
+      "result": {
+        "error": "Places API error: 400"
+      }
+    }
+  ],
+  "routeMatrices": {}
+}

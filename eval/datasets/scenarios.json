@@ -1,0 +1,3375 @@
+[
+  {
+    "id": "sf-baseline",
+    "title": "3-day San Francisco with hotel anchor",
+    "notes": "Baseline: hotel-anchor commutes, moderate pace, two museums with closed days (SFMOMA Wed, de Young Mon).",
+    "input": {
+      "activities": [
+        {
+          "name": "Hotel Nikko San Francisco",
+          "lat": 37.7852,
+          "lng": -122.4102,
+          "category": "hotel"
+        },
+        {
+          "name": "Golden Gate Bridge",
+          "lat": 37.8199,
+          "lng": -122.4783,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "SFMOMA",
+          "lat": 37.7857,
+          "lng": -122.4011,
+          "category": "museum",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 120
+        },
+        {
+          "name": "de Young Museum",
+          "lat": 37.7715,
+          "lng": -122.4687,
+          "category": "museum",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 3,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 15
+              }
+            }
+          ],
+          "averageDuration": 120
+        },
+        {
+          "name": "Ferry Building Marketplace",
+          "lat": 37.7955,
+          "lng": -122.3937,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 22,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 90
+        },
+        {
+          "name": "Palace of Fine Arts",
+          "lat": 37.8029,
+          "lng": -122.4484,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Coit Tower",
+          "lat": 37.8024,
+          "lng": -122.4058,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 18,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 60
+        }
+      ],
+      "numDays": 3,
+      "transportMode": "DRIVE",
+      "pace": "moderate"
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "get_weather_forecast"
+        }
+      ]
+    }
+  },
+  {
+    "id": "yosemite-hike",
+    "title": "2-day Yosemite with Yosemite Falls Trail",
+    "notes": "The hike-shortening regression: Phase 1 must call estimate_hike_duration for the named trail, and the scheduled hike must be at least 5 hours.",
+    "input": {
+      "activities": [
+        {
+          "name": "Yosemite Falls Trail",
+          "lat": 37.7456,
+          "lng": -119.5936,
+          "category": "hiking",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ]
+        },
+        {
+          "name": "Glacier Point",
+          "lat": 37.7281,
+          "lng": -119.5729,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Tunnel View",
+          "lat": 37.7156,
+          "lng": -119.6773,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 30
+        },
+        {
+          "name": "Mariposa Grove of Giant Sequoias",
+          "lat": 37.5019,
+          "lng": -119.6083,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 20,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 150
+        },
+        {
+          "name": "Yosemite Valley Visitor Center",
+          "lat": 37.7487,
+          "lng": -119.5869,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 45
+        }
+      ],
+      "numDays": 2,
+      "transportMode": "DRIVE"
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "estimate_hike_duration",
+          "args_include": {
+            "trail_name": "Yosemite Falls"
+          }
+        },
+        {
+          "name": "get_weather_forecast"
+        }
+      ],
+      "phase2_hike_duration_min_minutes": 300
+    }
+  },
+  {
+    "id": "tokyo-meals",
+    "title": "1-day Tokyo with six restaurants",
+    "notes": "Meal surplus: six user-selected restaurants cannot all be primary meals in one day — expects alternatives, and the two dinner-only spots must not be scheduled at lunch.",
+    "input": {
+      "activities": [
+        {
+          "name": "Ichiran Shibuya",
+          "lat": 35.6595,
+          "lng": 139.7005,
+          "category": "restaurant",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 45
+        },
+        {
+          "name": "Sushi Dai",
+          "lat": 35.6654,
+          "lng": 139.7707,
+          "category": "restaurant",
+          "openingHours": [
+            {
+              "open": {
+                "day": 1,
+                "hour": 5,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 14,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 5,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 14,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 5,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 14,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 5,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 14,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 5,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 14,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Afuri Ebisu",
+          "lat": 35.6467,
+          "lng": 139.7101,
+          "category": "restaurant",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 23,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 45
+        },
+        {
+          "name": "Ginza Kyubey",
+          "lat": 35.669,
+          "lng": 139.7625,
+          "category": "restaurant",
+          "openingHours": [
+            {
+              "open": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 17,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 22,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 90
+        },
+        {
+          "name": "Kanda Matsuya",
+          "lat": 35.6997,
+          "lng": 139.7705,
+          "category": "restaurant",
+          "openingHours": [
+            {
+              "open": {
+                "day": 1,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 11,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 20,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 45
+        },
+        {
+          "name": "Gonpachi Nishi-Azabu",
+          "lat": 35.6604,
+          "lng": 139.7238,
+          "category": "restaurant",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 17,
+                "minute": 30
+              },
+              "close": {
+                "day": 0,
+                "hour": 23,
+                "minute": 30
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 17,
+                "minute": 30
+              },
+              "close": {
+                "day": 1,
+                "hour": 23,
+                "minute": 30
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 17,
+                "minute": 30
+              },
+              "close": {
+                "day": 2,
+                "hour": 23,
+                "minute": 30
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 17,
+                "minute": 30
+              },
+              "close": {
+                "day": 3,
+                "hour": 23,
+                "minute": 30
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 17,
+                "minute": 30
+              },
+              "close": {
+                "day": 4,
+                "hour": 23,
+                "minute": 30
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 17,
+                "minute": 30
+              },
+              "close": {
+                "day": 5,
+                "hour": 23,
+                "minute": 30
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 17,
+                "minute": 30
+              },
+              "close": {
+                "day": 6,
+                "hour": 23,
+                "minute": 30
+              }
+            }
+          ],
+          "averageDuration": 90
+        }
+      ],
+      "numDays": 1,
+      "transportMode": "TRANSIT"
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "get_weather_forecast"
+        }
+      ],
+      "phase2_min_alternative_items": 2
+    }
+  },
+  {
+    "id": "iceland-clusters",
+    "title": "5-day Iceland ring: Reykjavik to Jökulsárlón",
+    "notes": "Geographic clustering: ten activities spread over ~370 km must group into sensible day clusters; Phase 1 should check real driving times.",
+    "input": {
+      "activities": [
+        {
+          "name": "Hallgrímskirkja",
+          "lat": 64.1417,
+          "lng": -21.9266,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 21,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 45
+        },
+        {
+          "name": "Harpa Concert Hall",
+          "lat": 64.1505,
+          "lng": -21.9324,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 22,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 45
+        },
+        {
+          "name": "Blue Lagoon",
+          "lat": 63.8804,
+          "lng": -22.4495,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 21,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 180
+        },
+        {
+          "name": "Thingvellir National Park",
+          "lat": 64.2559,
+          "lng": -21.1299,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 120
+        },
+        {
+          "name": "Geysir Hot Springs",
+          "lat": 64.3104,
+          "lng": -20.3024,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Gullfoss Waterfall",
+          "lat": 64.3271,
+          "lng": -20.1199,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Seljalandsfoss",
+          "lat": 63.6156,
+          "lng": -19.9886,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Skógafoss",
+          "lat": 63.5321,
+          "lng": -19.5114,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Reynisfjara Black Sand Beach",
+          "lat": 63.4064,
+          "lng": -19.0442,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Jökulsárlón Glacier Lagoon",
+          "lat": 64.0784,
+          "lng": -16.2306,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 120
+        }
+      ],
+      "numDays": 5,
+      "transportMode": "DRIVE"
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "get_travel_time"
+        },
+        {
+          "name": "get_weather_forecast"
+        }
+      ]
+    }
+  },
+  {
+    "id": "paris-closed-days",
+    "title": "2-day Paris with Orsay closed Monday, Louvre closed Tuesday",
+    "notes": "Opening-hours enforcement: the two headline museums have disjoint closed days, so scheduling must respect real windows.",
+    "input": {
+      "activities": [
+        {
+          "name": "Louvre Museum",
+          "lat": 48.8606,
+          "lng": 2.3376,
+          "category": "museum",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 18,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 180
+        },
+        {
+          "name": "Musée d'Orsay",
+          "lat": 48.86,
+          "lng": 2.3266,
+          "category": "museum",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 0,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 2,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 3,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 4,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 5,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 6,
+                "hour": 18,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 150
+        },
+        {
+          "name": "Eiffel Tower",
+          "lat": 48.8584,
+          "lng": 2.2945,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 23,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 23,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 120
+        },
+        {
+          "name": "Sainte-Chapelle",
+          "lat": 48.8554,
+          "lng": 2.345,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Luxembourg Gardens",
+          "lat": 48.8462,
+          "lng": 2.3372,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 7,
+                "minute": 30
+              },
+              "close": {
+                "day": 0,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 7,
+                "minute": 30
+              },
+              "close": {
+                "day": 1,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 7,
+                "minute": 30
+              },
+              "close": {
+                "day": 2,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 7,
+                "minute": 30
+              },
+              "close": {
+                "day": 3,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 7,
+                "minute": 30
+              },
+              "close": {
+                "day": 4,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 7,
+                "minute": 30
+              },
+              "close": {
+                "day": 5,
+                "hour": 21,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 7,
+                "minute": 30
+              },
+              "close": {
+                "day": 6,
+                "hour": 21,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 60
+        }
+      ],
+      "numDays": 2,
+      "transportMode": "TRANSIT"
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "get_weather_forecast"
+        }
+      ]
+    }
+  },
+  {
+    "id": "nyc-day-assignments",
+    "title": "4-day NYC with two pinned activities",
+    "notes": "Day-preference respect: Statue of Liberty pinned to day 2, the Met pinned to day 4, six activities left for the model to place.",
+    "input": {
+      "activities": [
+        {
+          "name": "Statue of Liberty",
+          "lat": 40.6892,
+          "lng": -74.0445,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 180
+        },
+        {
+          "name": "The Metropolitan Museum of Art",
+          "lat": 40.7794,
+          "lng": -73.9632,
+          "category": "museum",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 180
+        },
+        {
+          "name": "Central Park",
+          "lat": 40.7829,
+          "lng": -73.9654,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 120
+        },
+        {
+          "name": "Times Square",
+          "lat": 40.758,
+          "lng": -73.9855,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 45
+        },
+        {
+          "name": "Brooklyn Bridge",
+          "lat": 40.7061,
+          "lng": -73.9969,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "9/11 Memorial & Museum",
+          "lat": 40.7115,
+          "lng": -74.0134,
+          "category": "museum",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 20,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 8,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 20,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 120
+        },
+        {
+          "name": "The High Line",
+          "lat": 40.748,
+          "lng": -74.0048,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 22,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 90
+        },
+        {
+          "name": "Empire State Building",
+          "lat": 40.7484,
+          "lng": -73.9857,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 22,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 90
+        }
+      ],
+      "numDays": 4,
+      "transportMode": "TRANSIT",
+      "dayAssignments": {
+        "day-2": [
+          "Statue of Liberty"
+        ],
+        "day-4": [
+          "The Metropolitan Museum of Art"
+        ],
+        "unassigned": [
+          "Central Park",
+          "Times Square",
+          "Brooklyn Bridge",
+          "9/11 Memorial & Museum",
+          "The High Line",
+          "Empire State Building"
+        ]
+      }
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "get_weather_forecast"
+        }
+      ]
+    }
+  },
+  {
+    "id": "sf-packed-luxury",
+    "title": "3-day SF, packed pace, luxury budget, 7 AM starts",
+    "notes": "The knobs: same activities as sf-baseline but pace=packed, budget=luxury, startTime=7:00 AM — pace band and start-time checks activate.",
+    "input": {
+      "activities": [
+        {
+          "name": "Hotel Nikko San Francisco",
+          "lat": 37.7852,
+          "lng": -122.4102,
+          "category": "hotel"
+        },
+        {
+          "name": "Golden Gate Bridge",
+          "lat": 37.8199,
+          "lng": -122.4783,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "SFMOMA",
+          "lat": 37.7857,
+          "lng": -122.4011,
+          "category": "museum",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 120
+        },
+        {
+          "name": "de Young Museum",
+          "lat": 37.7715,
+          "lng": -122.4687,
+          "category": "museum",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 3,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 15
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 30
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 15
+              }
+            }
+          ],
+          "averageDuration": 120
+        },
+        {
+          "name": "Ferry Building Marketplace",
+          "lat": 37.7955,
+          "lng": -122.3937,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 22,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 90
+        },
+        {
+          "name": "Palace of Fine Arts",
+          "lat": 37.8029,
+          "lng": -122.4484,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Coit Tower",
+          "lat": 37.8024,
+          "lng": -122.4058,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 18,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 10,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 18,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 60
+        }
+      ],
+      "numDays": 3,
+      "transportMode": "DRIVE",
+      "pace": "packed",
+      "budget": "luxury",
+      "startTime": "7:00 AM"
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "get_weather_forecast"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rome-gap-fill",
+    "title": "2-day Rome with only the Colosseum selected",
+    "notes": "Gap-fill: one selected activity across two days — the model must supply at least four sensible is_suggested items.",
+    "input": {
+      "activities": [
+        {
+          "name": "Colosseum",
+          "lat": 41.8902,
+          "lng": 12.4922,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 19,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 19,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 19,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 19,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 19,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 19,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 19,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 150
+        }
+      ],
+      "numDays": 2,
+      "transportMode": "WALK"
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "get_weather_forecast"
+        }
+      ],
+      "phase2_min_suggested_items": 4
+    }
+  },
+  {
+    "id": "sf-feedback",
+    "title": "2-day SF refinement: less museums, more outdoors",
+    "notes": "Feedback recovery: the previous itinerary is museum-heavy via suggested items; feedback asks for outdoors while keeping the user's Ferry Building lunch. Exercises the judge's feedback_recovery criterion.",
+    "input": {
+      "activities": [
+        {
+          "name": "Golden Gate Bridge",
+          "lat": 37.8199,
+          "lng": -122.4783,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Ferry Building Marketplace",
+          "lat": 37.7955,
+          "lng": -122.3937,
+          "category": "restaurant",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 22,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 7,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 22,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 90
+        },
+        {
+          "name": "Palace of Fine Arts",
+          "lat": 37.8029,
+          "lng": -122.4484,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 0,
+                "minute": 0
+              },
+              "close": null
+            }
+          ],
+          "averageDuration": 60
+        },
+        {
+          "name": "Lands End Lookout",
+          "lat": 37.7799,
+          "lng": -122.5115,
+          "category": "attraction",
+          "openingHours": [
+            {
+              "open": {
+                "day": 0,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 0,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 1,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 1,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 2,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 3,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 3,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 4,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 4,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 5,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 5,
+                "hour": 17,
+                "minute": 0
+              }
+            },
+            {
+              "open": {
+                "day": 6,
+                "hour": 9,
+                "minute": 0
+              },
+              "close": {
+                "day": 6,
+                "hour": 17,
+                "minute": 0
+              }
+            }
+          ],
+          "averageDuration": 90
+        }
+      ],
+      "numDays": 2,
+      "transportMode": "DRIVE",
+      "currentItinerary": {
+        "days": [
+          {
+            "day_number": 1,
+            "brief_description": "Downtown museums and the waterfront.",
+            "items": [
+              {
+                "title": "SFMOMA",
+                "description": "Modern art across seven floors.",
+                "start_time": "10:00 AM",
+                "end_time": "12:30 PM",
+                "type": "museum",
+                "is_suggested": true,
+                "lat": 37.7857,
+                "lng": -122.4011
+              },
+              {
+                "title": "Ferry Building Marketplace",
+                "description": "Lunch at the food stalls along the Embarcadero.",
+                "start_time": "1:00 PM",
+                "end_time": "2:30 PM",
+                "type": "meal",
+                "is_suggested": false,
+                "lat": 37.7955,
+                "lng": -122.3937
+              },
+              {
+                "title": "Asian Art Museum",
+                "description": "One of the largest Asian art collections outside Asia.",
+                "start_time": "3:00 PM",
+                "end_time": "5:00 PM",
+                "type": "museum",
+                "is_suggested": true,
+                "lat": 37.7803,
+                "lng": -122.4162
+              }
+            ]
+          },
+          {
+            "day_number": 2,
+            "brief_description": "Golden Gate sights and Golden Gate Park museums.",
+            "items": [
+              {
+                "title": "Golden Gate Bridge",
+                "description": "Walk the east sidewalk for bay views.",
+                "start_time": "9:00 AM",
+                "end_time": "10:30 AM",
+                "type": "attraction",
+                "is_suggested": false,
+                "lat": 37.8199,
+                "lng": -122.4783
+              },
+              {
+                "title": "Palace of Fine Arts",
+                "description": "Rotunda and lagoon photo stop.",
+                "start_time": "11:00 AM",
+                "end_time": "12:00 PM",
+                "type": "attraction",
+                "is_suggested": false,
+                "lat": 37.8029,
+                "lng": -122.4484
+              },
+              {
+                "title": "de Young Museum",
+                "description": "American art and the Hamon Tower view.",
+                "start_time": "1:30 PM",
+                "end_time": "4:00 PM",
+                "type": "museum",
+                "is_suggested": true,
+                "lat": 37.7715,
+                "lng": -122.4687
+              }
+            ]
+          }
+        ]
+      },
+      "preference": "Less museums, more outdoors please — but keep the Ferry Building lunch where it is."
+    },
+    "expectations": {
+      "phase1_required_tool_calls": [
+        {
+          "name": "get_weather_forecast"
+        }
+      ]
+    }
+  }
+]
