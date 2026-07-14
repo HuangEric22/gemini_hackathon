@@ -7,6 +7,10 @@ import { Calendar, MapPin, ChevronRight, Plane } from "lucide-react";
 import { DeleteTripButton } from "@/components/features/mytrip/delete-trip-button";
 import { syncClerkUser } from "@/app/actions/sync-user";
 
+// This page depends on the signed-in user and live trip data. Rendering it at
+// request time also prevents database access during the production build.
+export const dynamic = "force-dynamic";
+
 export default async function MyTripsPage() {
   await ensureDbSchema();
   const user = await syncClerkUser();
