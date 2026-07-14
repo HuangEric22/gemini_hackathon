@@ -575,7 +575,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             itineraryMarkers={itineraryMarkers}
             focusedItineraryMarkerId={focusedItineraryMarkerId}
             highlightedLegIndices={highlightedLegIndices}
-            onPlaceDetail={place => setDetailPlace(place)}
+            onPlaceDetail={setDetailPlace}
           />
         </Panel>
       </Group>
