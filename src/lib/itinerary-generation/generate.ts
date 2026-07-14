@@ -1,5 +1,3 @@
-'use server'
-
 import { GoogleGenAI } from '@google/genai';
 import type { ItineraryGenerationResponse, TravelMatrix } from '@/shared';
 import type { OpeningPeriod } from '@/db/schema';
@@ -7,7 +5,7 @@ import { runPlanningPhase } from '@/lib/gemini-planning-phase';
 import { formatOpeningHours } from '@/lib/trip-planning-tools';
 import { itineraryGenerationResponseSchema } from '@/lib/llm-output-schemas';
 import { isLlmJsonResponseError, parseLlmJson } from '@/lib/parse-llm-json';
-import { computeRouteMatrixAction } from './compute-route-matrix';
+import { computeRouteMatrixAction } from '@/app/actions/compute-route-matrix';
 
 const MODELS = [
   'gemini-3.1-pro-preview',
@@ -191,7 +189,7 @@ const ITINERARY_SCHEMA = {
   required: ['days'],
 };
 
-function isRetryable(err: unknown): boolean {
+export function isRetryableGenerationError(err: unknown): boolean {
   if (!err || typeof err !== 'object') return false;
   const e = err as { status?: number; message?: string };
   if (e.status === 503 || e.status === 429) return true;
@@ -205,10 +203,12 @@ const RETRY_DELAY_MS = 3000;
 async function tryAllModels(
   ai: InstanceType<typeof GoogleGenAI>,
   prompt: string,
+  signal?: AbortSignal,
 ): Promise<ItineraryGenerationResponse> {
   let lastError: unknown;
 
   for (const model of MODELS) {
+    signal?.throwIfAborted();
     try {
       const response = await ai.models.generateContent({
         model,
@@ -221,7 +221,7 @@ async function tryAllModels(
 
       return parseLlmJson(response.text, model, itineraryGenerationResponseSchema);
     } catch (err) {
-      if (isRetryable(err) || isLlmJsonResponseError(err)) {
+      if (isRetryableGenerationError(err) || isLlmJsonResponseError(err)) {
         lastError = err;
         continue;
       }
@@ -232,8 +232,19 @@ async function tryAllModels(
   throw lastError;
 }
 
-export async function generateItineraryAction(
+export interface GenerationProgress {
+  phase: 'planning' | 'generating' | 'validating';
+  message: string;
+}
+
+export interface GenerateItineraryOptions {
+  onProgress?: (update: GenerationProgress) => Promise<void> | void;
+  signal?: AbortSignal;
+}
+
+export async function generateItineraryCore(
   input: GenerateItineraryInput,
+  options: GenerateItineraryOptions = {},
 ): Promise<ItineraryGenerationResponse> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY is not set');
@@ -241,6 +252,8 @@ export async function generateItineraryAction(
   const ai = new GoogleGenAI({ apiKey });
 
   const mode = (input.transportMode ?? 'DRIVE') as 'DRIVE' | 'TRANSIT' | 'WALK';
+  options.signal?.throwIfAborted();
+  await options.onProgress?.({ phase: 'planning', message: 'Analyzing your activities...' });
 
   // Phase 1: planning notes + travel matrix run in parallel (independent of each other)
   console.log('\n━━━ [Phase 1] Planning phase + travel matrix starting in parallel ━━━');
@@ -269,12 +282,16 @@ export async function generateItineraryAction(
   console.log('\n━━━ [Phase 2] Building structured itinerary ━━━');
   const prompt = buildPrompt(input, travelMatrix, planningNotes || undefined);
   console.log('[Phase 2] Prompt length:', prompt.length, 'chars | Planning notes injected:', !!planningNotes);
+  options.signal?.throwIfAborted();
+  await options.onProgress?.({ phase: 'generating', message: 'Building your itinerary...' });
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      return await tryAllModels(ai, prompt);
+      const itinerary = await tryAllModels(ai, prompt, options.signal);
+      await options.onProgress?.({ phase: 'validating', message: 'Checking your itinerary...' });
+      return itinerary;
     } catch (err) {
-      if (attempt < MAX_RETRIES && isRetryable(err)) {
+      if (attempt < MAX_RETRIES && isRetryableGenerationError(err)) {
         console.warn(`[generateItinerary] All models busy, retrying in ${RETRY_DELAY_MS}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`);
         await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
         continue;

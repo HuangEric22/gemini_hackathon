@@ -3,7 +3,7 @@
  */
 
 import type { ItineraryGenerationResponse } from '@/shared';
-import type { GenerateItineraryInput } from '@/app/actions/generate-itinerary';
+import type { GenerateItineraryInput } from '@/lib/itinerary-generation/generate';
 
 // ---------------------------------------------------------------------------
 // Dataset
