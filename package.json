@@ -53,8 +53,5 @@
     "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.0.18"
-  },
-  "optionalDependencies": {
-    "lightningcss-darwin-arm64": "^1.32.0"
   }
 }
