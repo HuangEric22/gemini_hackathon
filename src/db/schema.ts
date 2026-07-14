@@ -104,7 +104,47 @@ export const tripSelections = sqliteTable("trip_selections", {
   primaryKey({ columns: [table.tripId, table.activityId] }),
 ]);
 
+export type ItineraryGenerationJobStatus =
+  | "queued"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "cancelled";
+
+export type ItineraryGenerationJobPhase =
+  | "planning"
+  | "computing_routes"
+  | "generating"
+  | "validating"
+  | "saving";
+
+export const itineraryGenerationJobs = sqliteTable("itinerary_generation_jobs", {
+  id: text("id").primaryKey(),
+  tripId: int("trip_id").notNull().references(() => trips.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
+  status: text("status").$type<ItineraryGenerationJobStatus>().notNull().default("queued"),
+  phase: text("phase").$type<ItineraryGenerationJobPhase>(),
+  message: text("message").notNull().default("Waiting to start..."),
+  inputJson: text("input_json", { mode: "json" }).$type<unknown>().notNull(),
+  resultJson: text("result_json", { mode: "json" }).$type<unknown>(),
+  errorCode: text("error_code"),
+  errorMessage: text("error_message"),
+  attemptCount: int("attempt_count").notNull().default(0),
+  maxAttempts: int("max_attempts").notNull().default(3),
+  provider: text("provider").$type<"inngest" | "bullmq">().notNull(),
+  providerRunId: text("provider_run_id"),
+  idempotencyKey: text("idempotency_key").notNull().unique(),
+  generationVersion: text("generation_version").notNull(),
+  promptVersion: text("prompt_version").notNull(),
+  cancelRequested: int("cancel_requested", { mode: "boolean" }).notNull().default(false),
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+  startedAt: int("started_at", { mode: "timestamp_ms" }),
+  updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
+  completedAt: int("completed_at", { mode: "timestamp_ms" }),
+});
+
 export type Trip = InferSelectModel<typeof trips>;
 export type Activity = InferSelectModel<typeof activities>;
 export type ItineraryItem = InferSelectModel<typeof itineraryItems>;
 export type User = InferSelectModel<typeof users>;
+export type ItineraryGenerationJob = InferSelectModel<typeof itineraryGenerationJobs>;

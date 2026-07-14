@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -56,3 +57,5 @@ local.db
 
 # for personal learning
 AGENTS.md
+DEPLOYPLAN1.md
+DEPLOYPLAN2.md

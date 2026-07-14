@@ -1,7 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 const isProtectedApiRoute = createRouteMatcher([
-  '/api/generate-itinerary(.*)',
+  '/api/itinerary-jobs(.*)',
+  '/api/trips/(.*)/itinerary-jobs(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
