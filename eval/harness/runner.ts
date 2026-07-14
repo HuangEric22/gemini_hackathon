@@ -1,6 +1,6 @@
 /**
  * Per-scenario driver: registers eval hooks, runs the real
- * generateItineraryAction against a timeout, then grades the result.
+ * shared itinerary generator against a timeout, then grades the result.
  *
  * Scenarios must run sequentially — hooks live in a single global registry,
  * so parallel scenarios would trample each other's interceptors (and hammer
@@ -8,7 +8,7 @@
  */
 
 import { setEvalHooks, clearEvalHooks } from '@/lib/eval-hooks';
-import { generateItineraryAction } from '@/app/actions/generate-itinerary';
+import { generateItineraryCore } from '@/lib/itinerary-generation/generate';
 import type { ItineraryGenerationResponse } from '@/shared';
 import { createScenarioHooks, saveFixture, type PlanningState } from './fixtures';
 import { gradePhase1 } from '../graders/phase1-tool-calls';
@@ -61,7 +61,7 @@ export async function runScenario(
   setEvalHooks(hooks);
   try {
     itinerary = await withTimeout(
-      generateItineraryAction(scenario.input),
+      generateItineraryCore(scenario.input),
       opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     );
   } catch (err) {

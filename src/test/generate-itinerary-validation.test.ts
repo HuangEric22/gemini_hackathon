@@ -28,7 +28,7 @@ vi.mock('@/app/actions/compute-route-matrix', () => ({
   computeRouteMatrixAction: mockComputeRouteMatrixAction,
 }));
 
-import { generateItineraryAction } from '@/app/actions/generate-itinerary';
+import { generateItineraryCore } from '@/lib/itinerary-generation/generate';
 import { regenerateDayAction } from '@/app/actions/regenerate-day';
 
 const validDay = {
@@ -63,12 +63,12 @@ describe('LLM output validation in itinerary actions', () => {
     process.env = originalEnv;
   });
 
-  it('generateItineraryAction falls back when the first model returns empty text', async () => {
+  it('generateItineraryCore falls back when the first model returns empty text', async () => {
     mockGenerateContent
       .mockResolvedValueOnce({ text: '' })
       .mockResolvedValueOnce({ text: JSON.stringify(validItinerary) });
 
-    const result = await generateItineraryAction({
+    const result = await generateItineraryCore({
       activities: [{ name: 'Fushimi Inari Shrine', lat: 34.9671, lng: 135.7727 }],
       numDays: 1,
     });

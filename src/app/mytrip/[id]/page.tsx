@@ -11,7 +11,7 @@ import { PlaceDetailPanel } from '@/components/features/map/place-detail-panel';
 import { getTripById, getTripSelectionsByTripId, getItineraryItemsByTripId, saveGeneratedItinerary, saveTripSelections, updateWantToGo } from '@/app/actions/crud-trip'
 import { shadowSaveActivities } from '@/app/actions/shadow-save-activities'
 import { ItineraryWorkspace } from '@/components/features/mytrip/itinerary-workspace'
-import { itineraryService } from '@/hooks/itinerary-generate';
+import { useItineraryGenerationJob } from '@/hooks/use-itinerary-generation-job';
 import { regenerateDayAction } from '@/app/actions/regenerate-day';
 import { useDirections } from '@/hooks/use-directions';
 import { ItineraryGenerationResponse, ItineraryMapMarker, MapPlace } from '@/shared';
@@ -53,8 +53,6 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
 
   // Data states
   const [, setIsLoading] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatingStatus, setGeneratingStatus] = useState<string>('Building your itinerary...');
   const [regeneratingDay, setRegeneratingDay] = useState<number | null>(null);
   // Trip generation preferences — shared between DayPlanner and ItineraryWorkspace
   const [pace, setPace] = useState<'relaxed' | 'moderate' | 'packed'>('moderate');
@@ -63,6 +61,24 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [selectedActivities, setSelectedActivities] = useState<Activity[]>([]); // From want-to-go browser
   const [currentItinerary, setCurrentItinerary] = useState<ItineraryGenerationResponse | null>(null); // From DB
   const [detailPlace, setDetailPlace] = useState<MapPlace | null>(null);
+  const {
+    job: generationJob,
+    submit: submitGenerationJob,
+    cancel: cancelGenerationJob,
+    retry: retryGenerationJob,
+    isGenerating,
+  } = useItineraryGenerationJob(Number.isInteger(Number(id)) ? Number(id) : null);
+  const generatingStatus = generationJob?.message ?? 'Building your itinerary...';
+
+  useEffect(() => {
+    if (generationJob?.status === 'succeeded' && generationJob.result) {
+      setCurrentItinerary(generationJob.result);
+      setViewMode('itinerary');
+    }
+    if (generationJob?.status === 'failed') {
+      console.error('Generation failed:', generationJob.error);
+    }
+  }, [generationJob]);
 
   // Transport hooks
   const { legTransports, computeRoutes, isComputing: isComputingRoutes } = useDirections();
@@ -207,13 +223,12 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
 
-    setIsGenerating(true);
     setSelectedActivities(activities); // Keep in sync for regeneration
     setViewMode('itinerary');
 
     try {
       // 0. Persist selections so they survive page reloads
-      saveTripSelections(Number(id), activities.map(a => a.id));
+      await saveTripSelections(Number(id), activities.map(a => a.id));
 
       // 1. Build day assignment hints for the AI
       const dayAssignmentHints = dayAssignments
@@ -222,68 +237,29 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           )
         : undefined;
 
-      // 2. Generate itinerary via server action
-      // (travel matrix + planning phase now run in parallel server-side)
-      const result = await itineraryService.generate(
-        activities,
-        trip?.dayCount || 1,
+      await submitGenerationJob({
+        activities: activities.map(a => ({
+          name: a.name,
+          lat: a.lat,
+          lng: a.lng,
+          category: a.category,
+          googlePlaceId: a.googlePlaceId,
+          openingHours: a.openingHours,
+          averageDuration: a.averageDuration,
+        })),
+        numDays: trip?.dayCount || 1,
         currentItinerary,
         preference,
         transportMode,
-        dayAssignmentHints,
+        dayAssignments: dayAssignmentHints,
         pace,
         budget,
         startTime,
-        (msg) => setGeneratingStatus(msg),
-      );
-      setCurrentItinerary(result);
-      await saveGeneratedItinerary(Number(id), result);
-
-      // 3. Compute detailed directions for transport comparison UI
-      // Include ALL non-commute items (user-selected + AI-suggested)
-      const allItems = result.days.flatMap(d =>
-        d.items.filter(i => i.type !== 'commute'),
-      );
-
-      // Fuzzy match: exact name, then case-insensitive, then includes
-      const findActivity = (title: string) =>
-        activities.find(a => a.name === title) ??
-        activities.find(a => a.name.toLowerCase() === title.toLowerCase()) ??
-        activities.find(a =>
-          a.name.toLowerCase().includes(title.toLowerCase()) ||
-          title.toLowerCase().includes(a.name.toLowerCase()),
-        );
-
-      // Get coordinates: use user-selected activity coords, or AI-provided lat/lng for suggestions
-      const getCoords = (item: typeof allItems[0]) => {
-        const act = findActivity(item.title);
-        if (act) return { lat: act.lat, lng: act.lng };
-        if (item.lat && item.lng) return { lat: item.lat, lng: item.lng };
-        return null;
-      };
-
-      const legs = [];
-      for (let i = 0; i < allItems.length - 1; i++) {
-        const curr = allItems[i];
-        const next = allItems[i + 1];
-        const currCoords = getCoords(curr);
-        const nextCoords = getCoords(next);
-        if (currCoords && nextCoords) {
-          legs.push({
-            originTitle: curr.title,
-            destTitle: next.title,
-            origin: currCoords,
-            destination: nextCoords,
-          });
-        }
-      }
-      if (legs.length > 0) computeRoutes(legs);
+      });
 
     } catch (err) {
       console.error('Generation error:', err);
       alert("Failed to generate itinerary. Please try again.");
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -484,6 +460,22 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         {/* Left Panel: Discovery Feed */}
         <Panel defaultSize={60} minSize={30}>
           <div className="relative h-full overflow-hidden">
+            {generationJob?.status === 'failed' && (
+              <div className="absolute inset-x-4 top-4 z-30 flex items-center justify-between rounded-lg bg-red-50 p-3 text-sm text-red-800 shadow">
+                <span>{generationJob.error?.message || 'Itinerary generation failed.'}</span>
+                <button className="rounded bg-red-700 px-3 py-1.5 text-white" onClick={() => retryGenerationJob()}>
+                  Retry
+                </button>
+              </div>
+            )}
+            {isGenerating && (
+              <button
+                className="absolute right-4 top-4 z-30 rounded bg-white px-3 py-1.5 text-sm text-slate-700 shadow"
+                onClick={() => cancelGenerationJob()}
+              >
+                Cancel generation
+              </button>
+            )}
             {trip ? (
               viewMode === 'browsing' ? (
                 <MyTripFeed
@@ -575,7 +567,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             itineraryMarkers={itineraryMarkers}
             focusedItineraryMarkerId={focusedItineraryMarkerId}
             highlightedLegIndices={highlightedLegIndices}
-            onPlaceDetail={place => setDetailPlace(place)}
+            onPlaceDetail={setDetailPlace}
           />
         </Panel>
       </Group>

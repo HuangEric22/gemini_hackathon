@@ -43,8 +43,9 @@ async function initSchema() {
   );
 }
 
-const schemaReadyPromise = initSchema();
+let schemaReadyPromise: Promise<void> | undefined;
 
 export async function ensureDbSchema() {
+  schemaReadyPromise ??= initSchema();
   await schemaReadyPromise;
 }
