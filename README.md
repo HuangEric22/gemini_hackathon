@@ -1,40 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GeminiGo
 
-## Getting Started
+An AI trip planner: discover places, save activities, and generate full multi-day itineraries using Google Maps/Places data and Gemini.
 
-First, run the development server:
+## How it works
+
+1. **Discover** — browse points of interest via Google Places, or search with natural language.
+2. **Save** — build a shortlist of activities for a trip (drag-and-drop day assignment via `dnd-kit`).
+3. **Generate** — Gemini turns your saved activities + trip constraints (dates, pace, hotel anchor) into a day-by-day itinerary, respecting venue opening hours and realistic travel/hike times between stops.
+4. **Persist & iterate** — itineraries save to the trip, individual days can be regenerated, and everything survives a refresh.
+
+POI search is backed by a retrieval-augmented pipeline: place data is embedded (`gemini-embedding-001`) and stored for semantic retrieval, so itinerary generation can pull in relevant, real venues rather than relying on the model's own (often stale) knowledge of a city.
+
+## Stack
+
+- **Next.js 16** (App Router) + React 19 + TypeScript
+- **Gemini** (`@google/genai`) for itinerary generation and POI embeddings
+- **Google Maps / Places** for location data, markers, and directions
+- **Clerk** for auth
+- **Drizzle ORM** + Turso/libSQL for persistence
+- **Inngest** for background jobs (async itinerary generation)
+- **Zustand** for client state, **Vitest** for tests
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # fill in Gemini, Google Maps, Clerk, and DB credentials
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Browser-visible Google Maps and Clerk keys must be restricted to your deployed domain(s).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-Copy `.env.example` to `.env.local` and supply local credentials before starting the app. Browser-visible Google and Clerk keys must be restricted to the deployed domains.
+| Command | Purpose |
+|---|---|
+| `npm run dev` / `build` / `start` | standard Next.js lifecycle |
+| `npm run lint` / `npm test` | lint and unit tests |
+| `npm run rag:backfill` | backfill POI embeddings for retrieval |
+| `npm run eval` | run the itinerary-generation eval harness against golden scenarios |
+| `npm run eval:retrieval` | score POI retrieval quality |
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-Configure Development, Preview, and Production variables separately in Vercel. At minimum, set every variable in `.env.example` except the Inngest keys until asynchronous jobs are enabled. Add each Vercel domain to Clerk and to the Google Maps browser-key restrictions.
-
-After deployment, smoke-test sign-in, trip creation, activity selection, itinerary generation, persistence after refresh, day regeneration, map markers, and directions.
+Dockerfile + `docker-compose.yml` included. Set every variable in `.env.example` (except Inngest keys, until async jobs are enabled) in your host's environment, and add each deployed domain to Clerk and to the Google Maps browser-key restrictions. After deploying, smoke-test sign-in, trip creation, activity selection, itinerary generation, persistence after refresh, day regeneration, map markers, and directions.
