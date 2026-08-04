@@ -1,10 +1,13 @@
 import { NonRetriableError } from 'inngest';
 import { inngest } from '@/inngest/client';
-import { generateItineraryCore, type GenerateItineraryInput } from '@/lib/itinerary-generation/generate';
 import {
-  completeItineraryJob,
+  generateItineraryForJob,
+  prepareItineraryJobAttempt,
+  saveItineraryJobResult,
+} from '@/lib/jobs/itinerary-job-executor';
+import { productionItineraryJobExecutionDependencies } from '@/lib/jobs/production-itinerary-job-execution';
+import {
   getItineraryJob,
-  incrementItineraryJobAttempt,
   transitionItineraryJob,
 } from '@/lib/jobs/itinerary-job-repository';
 import { logJobEvent, safeJobError } from '@/lib/jobs/job-logger';
@@ -41,19 +44,12 @@ export const generateItineraryWorkflow = inngest.createFunction(
     const workflowStartedAt = Date.now();
 
     const job = await step.run('load-job', async () => {
-      const loaded = await getItineraryJob(jobId);
-      if (!loaded) throw new NonRetriableError('Itinerary generation job not found');
-      if (loaded.cancelRequested || loaded.status === 'cancelled') {
-        throw new NonRetriableError('Itinerary generation was cancelled');
-      }
-      if (loaded.status === 'succeeded') return loaded;
-      await incrementItineraryJobAttempt(jobId);
-      await transitionItineraryJob({
+      const loaded = await prepareItineraryJobAttempt(
         jobId,
-        status: 'running',
-        phase: 'planning',
-        message: 'Analyzing your activities...',
-      });
+        productionItineraryJobExecutionDependencies,
+        message => new NonRetriableError(message),
+      );
+      if (loaded.status === 'succeeded') return loaded;
       logJobEvent('info', 'job.started', { jobId, tripId: loaded.tripId, attempt: loaded.attemptCount + 1 });
       return loaded;
     });
@@ -61,40 +57,21 @@ export const generateItineraryWorkflow = inngest.createFunction(
     if (job.status === 'succeeded') return { jobId, alreadyCompleted: true };
 
     const itinerary = await step.run('generate-itinerary', async () => {
-      return generateItineraryCore(job.inputJson as GenerateItineraryInput, {
-        onProgress: async update => {
-          const phase = update.phase === 'planning'
-            ? 'planning'
-            : update.phase === 'validating'
-              ? 'validating'
-              : 'generating';
-          await transitionItineraryJob({
-            jobId,
-            status: 'running',
-            phase,
-            message: update.message,
-          });
-        },
-      });
+      return generateItineraryForJob(
+        jobId,
+        job.inputJson,
+        productionItineraryJobExecutionDependencies,
+      );
     });
 
     await step.run('save-itinerary', async () => {
-      const latest = await getItineraryJob(jobId);
-      if (!latest || latest.cancelRequested) {
-        throw new NonRetriableError('Itinerary generation was cancelled');
-      }
-      await transitionItineraryJob({
-        jobId,
-        status: 'running',
-        phase: 'saving',
-        message: 'Saving your itinerary...',
-      });
-      await completeItineraryJob(jobId, itinerary);
-      logJobEvent('info', 'job.completed', {
-        jobId,
-        tripId: job.tripId,
-        durationMs: Date.now() - workflowStartedAt,
-      });
+      await saveItineraryJobResult(
+        job,
+        itinerary,
+        workflowStartedAt,
+        productionItineraryJobExecutionDependencies,
+        message => new NonRetriableError(message),
+      );
     });
 
     return { jobId, completed: true };

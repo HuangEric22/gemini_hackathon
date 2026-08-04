@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
-    "eval": "tsx eval/harness/run.ts"
+    "eval": "tsx eval/harness/run.ts",
+    "eval:async-pipeline": "tsx eval/async-pipeline/run.ts",
+    "eval:async-pipeline:http": "tsx eval/async-pipeline/http-run.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.7",

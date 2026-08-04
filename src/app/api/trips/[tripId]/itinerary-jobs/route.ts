@@ -22,7 +22,12 @@ export async function POST(request: Request, context: { params: Promise<{ tripId
   if (!parsed.success) return Response.json({ error: 'Invalid itinerary request' }, { status: 400 });
 
   const active = await findActiveItineraryJob(tripId, userId);
-  if (active) return Response.json({ jobId: active.id, status: active.status, statusUrl: `/api/itinerary-jobs/${active.id}` }, { status: 202 });
+  if (active) return Response.json({
+    jobId: active.id,
+    status: active.status,
+    statusUrl: `/api/itinerary-jobs/${active.id}`,
+    reused: true,
+  }, { status: 202 });
 
   const jobId = `job_${randomUUID()}`;
   const job = await createItineraryJob({
@@ -50,5 +55,10 @@ export async function POST(request: Request, context: { params: Promise<{ tripId
     console.error('[itinerary-jobs] enqueue failed', { jobId: job.id, error });
     return Response.json({ error: 'Generation queue unavailable' }, { status: 503 });
   }
-  return Response.json({ jobId: job.id, status: job.status, statusUrl: `/api/itinerary-jobs/${job.id}` }, { status: 202 });
+  return Response.json({
+    jobId: job.id,
+    status: job.status,
+    statusUrl: `/api/itinerary-jobs/${job.id}`,
+    reused: false,
+  }, { status: 202 });
 }
